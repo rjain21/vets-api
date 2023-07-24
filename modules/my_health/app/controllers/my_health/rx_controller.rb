@@ -13,7 +13,8 @@ module MyHealth
 
     def client
       # @client ||= Rx::Client.new(session: { user_id: current_user.mhv_correlation_id })
-      @client ||= Rx::Client.new(session: { user_id: 17621060 })
+      # @client ||= Rx::Client.new(session: { user_id: 17621060 }) # staging
+      @client ||= Rx::Client.new(session: { user_id: 1460597 }) # dev
 
     end
 
