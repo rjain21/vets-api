@@ -40,7 +40,6 @@ properties:
             - folderId
             - draftDate
             - toDate
-            - hasAttachments
           properties:
             messageId:
               type: integer

@@ -6,8 +6,7 @@
     "contact": {
       "name": "developer.va.gov"
     },
-    "termsOfService": "https://developer.va.gov/terms-of-service",
-    "description": "The Higher-Level Reviews API lets you create and manage Higher-Level Reviews. Higher-Level Reviews can be requested after receiving an initial claim or a Supplemental Claims decision. [Learn more about VA Higher-Level Reviews](https://www.va.gov/decision-reviews/higher-level-review/).  \n\nTo check the status of all decision reviews and appeals for a specified individual, use the [Appeals Status API](https://developer.va.gov/explore/appeals/docs/appeals?version=current).\n\n## Technical overview\nThe Higher-Level Reviews API pulls data from Caseflow, a case management system. It provides decision review and appeal data that can be used for submitting a Higher-Level Review.\n\n### Authorization and Access\nThe authentication model for the Higher-Level Reviews API uses OAuth 2.0/OpenID Connect. The following authorization models are supported:\n* [Authorization code flow](https://developer.va.gov/explore/authorization/docs/authorization-code)\n* [Client Credentials Grant (CCG)](https://developer.va.gov/explore/authorization/docs/client-credentials)\n\nTo use this API, you must first [request sandbox access](https://developer.va.gov/onboarding/request-sandbox-access). Then, follow our authentication process for [authorization code flow](https://developer.va.gov/explore/authorization/docs/authorization-code) or [client credentials grant](https://developer.va.gov/explore/authorization/docs/client-credentials).\n\n**Important:** To get production access using client credentials grant, you must either work for VA or have specific VA agreements in place. If you have questions, [contact us](https://developer.va.gov/support/contact-us).\n\n### Submission Statuses\nUse the correct GET endpoint to check the status of a Higher-Level Review submission. \n\nThese endpoints return the status of the submission in Caseflow but not the status of the submission in VBMS, which is the status visible to claimants. Therefore, VBMS statuses are different from the statuses this API returns. \n\nTo check the status of an appeal as it will appear to a claimant, use the [Appeals Status API](https://developer.va.gov/explore/appeals/docs/appeals?version=current).\n\n| Status      | What it means |\n| ---        |     ---     |\n| pending      | Submission successfully received by the API but has not yet started processing. |\n| submitting   | Data is transferring to upstream systems but is not yet complete. |\n| submitted   | A submitted status means the data was successfully transferred to the central mail portal.<br /><br />A submitted status is confirmation from the central mail portal that they have received the PDF, but the data is not yet being processed. The Date of Receipt is set when this status is achieved.<br /><br />Submitted is the final status in the sandbox environment.<p> |\n| processing   | Indicates intake has begun, the Intake, Conversion and Mail Handling Services (ICMHS) group is processing the appeal data. |\n| success   | The centralized mail portal, Digital Mail Handling System (DHMS), has received the data. |\n| complete   | Final status. Indicates the document package has been successfully associated with the Veteran and has been received in the correct business area for processing. Claim is now established in VBMS. |\n| error   | An error occurred. See the error code and message for further information. |\n\n#### Status simulation in sandbox and staging\n\nTest submissions do not progress through the same statuses as the production environment. In sandbox and staging, the final status of a submission is `submitted`; however, we allow passing a `Status-Simulation` header on the show endpoints so that you can simulate all production statuses.\n\n#### Status Caching\nDue to system limitations, status attribute data for the GET `/forms/200996/{uuid}` endpoint is cached for 1 hour. The updated_at field indicates the last time the status for a given GUID was updated.\n"
+    "description": "The Higher-Level Reviews API lets you create and manage Higher-Level Reviews. Higher-Level Reviews can be requested after receiving an initial claim or a Supplemental Claims decision. [Learn more about VA Higher-Level Reviews](https://www.va.gov/decision-reviews/higher-level-review/).  \n\nTo check the status of all decision reviews and appeals for a specified individual, use the [Appeals Status API](https://developer.va.gov/explore/appeals/docs/appeals?version=current).\n\n## Technical overview\nThe Higher-Level Reviews API pulls data from Caseflow, a case management system. It provides decision review and appeal data that can be used for submitting a Higher-Level Review.\n\n### Authorization and Access\nThe authentication model for the Higher-Level Reviews API uses OAuth 2.0/OpenID Connect. The following authorization models are supported:\n* [Authorization code flow](https://developer.va.gov/explore/authorization/docs/authorization-code)\n* [Client Credentials Grant (CCG)](https://developer.va.gov/explore/authorization/docs/client-credentials)\n\n**Important:** To get production access using client credentials grant, you must either work for VA or have specific VA agreements in place. If you have questions, [contact us](https://developer.va.gov/support/contact-us).\n\n### Submission Statuses\nUse the correct GET endpoint to check the status of a Higher-Level Review submission. \n\nThese endpoints return the status of the submission in Caseflow but not the status of the submission in VBMS, which is the status visible to claimants. Therefore, VBMS statuses are different from the statuses this API returns. \n\nTo check the status of an appeal as it will appear to a claimant, use the [Appeals Status API](https://developer.va.gov/explore/appeals/docs/appeals?version=current).\n\n| Status      | What it means |\n| ---        |     ---     |\n| pending      | Submission successfully received by the API but has not yet started processing. |\n| submitting   | Data is transferring to upstream systems but is not yet complete. |\n| submitted   | A submitted status means the data was successfully transferred to the central mail portal.<br /><br />A submitted status is confirmation from the central mail portal that they have received the PDF, but the data is not yet being processed. The Date of Receipt is set when this status is achieved.<br /><br />Submitted is the final status in the sandbox environment.<p> |\n| processing   | Indicates intake has begun, the Intake, Conversion and Mail Handling Services (ICMHS) group is processing the appeal data. |\n| success   | The centralized mail portal, Digital Mail Handling System (DHMS), has received the data. |\n| complete   | Final status. Indicates the document package has been successfully associated with the Veteran and has been received in the correct business area for processing. Claim is now established in VBMS. |\n| error   | An error occurred. See the error code and message for further information. |\n\n#### Status simulation in sandbox and staging\n\nTest submissions do not progress through the same statuses as the production environment. In sandbox and staging, the final status of a submission is `submitted`; however, we allow passing a `Status-Simulation` header on the show endpoints so that you can simulate all production statuses.\n\n#### Status Caching\nDue to system limitations, status attribute data for the GET `/forms/200996/{uuid}` endpoint is cached for 1 hour. The updated_at field indicates the last time the status for a given GUID was updated.\n"
   },
   "tags": [
     {
@@ -198,13 +197,12 @@
                                     "countryCodeISO2": "US",
                                     "zipCode5": "12345"
                                   }
-                                },
-                                "socOptIn": true
+                                }
                               }
                             },
                             "included": [
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "left shoulder",
                                   "decisionDate": "1920-12-01"
@@ -269,7 +267,6 @@
                                   "email": "claimant@email.com",
                                   "timezone": "America/Detroit"
                                 },
-                                "socOptIn": true,
                                 "informalConference": true,
                                 "informalConferenceContact": "veteran",
                                 "informalConferenceTime": "800-1200 ET",
@@ -288,7 +285,7 @@
                             },
                             "included": [
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "123456789",
                                   "decisionDate": "1900-01-01",
@@ -300,7 +297,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "left eyee",
                                   "decisionDate": "1900-01-02",
@@ -308,14 +305,14 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "right eye",
                                   "decisionDate": "1900-01-03"
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "left ear",
                                   "decisionDate": "1900-01-04",
@@ -324,7 +321,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "right ear",
                                   "decisionDate": "1900-01-05",
@@ -332,7 +329,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "migraines",
                                   "decisionDate": "1900-01-06",
@@ -340,7 +337,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "left knee",
                                   "decisionDate": "1900-01-07",
@@ -348,7 +345,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "right knee",
                                   "decisionDate": "1900-01-08",
@@ -356,7 +353,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "left foot",
                                   "decisionDate": "1900-01-09",
@@ -364,7 +361,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "right foot",
                                   "decisionDate": "1900-01-10",
@@ -373,7 +370,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "left hand",
                                   "decisionDate": "1900-01-11",
@@ -381,7 +378,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "right hand",
                                   "decisionDate": "1900-01-12",
@@ -389,7 +386,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "fever",
                                   "decisionDate": "1900-01-13",
@@ -397,7 +394,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "lupus",
                                   "decisionDate": "1900-01-14",
@@ -405,7 +402,7 @@
                                 }
                               },
                               {
-                                "type": "contestableIssue",
+                                "type": "appealableIssue",
                                 "attributes": {
                                   "issue": "cooties",
                                   "decisionDate": "1900-01-15",
@@ -496,13 +493,12 @@
                             "countryCodeISO2": "US",
                             "zipCode5": "12345"
                           }
-                        },
-                        "socOptIn": true
+                        }
                       }
                     },
                     "included": [
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left shoulder",
                           "decisionDate": "1920-12-01"
@@ -556,7 +552,6 @@
                           "email": "claimant@email.com",
                           "timezone": "America/Detroit"
                         },
-                        "socOptIn": true,
                         "informalConference": true,
                         "informalConferenceContact": "veteran",
                         "informalConferenceTime": "800-1200 ET",
@@ -575,7 +570,7 @@
                     },
                     "included": [
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "123456789",
                           "decisionDate": "1900-01-01",
@@ -587,7 +582,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left eyee",
                           "decisionDate": "1900-01-02",
@@ -595,14 +590,14 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right eye",
                           "decisionDate": "1900-01-03"
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left ear",
                           "decisionDate": "1900-01-04",
@@ -611,7 +606,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right ear",
                           "decisionDate": "1900-01-05",
@@ -619,7 +614,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "migraines",
                           "decisionDate": "1900-01-06",
@@ -627,7 +622,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left knee",
                           "decisionDate": "1900-01-07",
@@ -635,7 +630,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right knee",
                           "decisionDate": "1900-01-08",
@@ -643,7 +638,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left foot",
                           "decisionDate": "1900-01-09",
@@ -651,7 +646,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right foot",
                           "decisionDate": "1900-01-10",
@@ -660,7 +655,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left hand",
                           "decisionDate": "1900-01-11",
@@ -668,7 +663,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right hand",
                           "decisionDate": "1900-01-12",
@@ -676,7 +671,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "fever",
                           "decisionDate": "1900-01-13",
@@ -684,7 +679,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "lupus",
                           "decisionDate": "1900-01-14",
@@ -692,7 +687,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "cooties",
                           "decisionDate": "1900-01-15",
@@ -847,7 +842,7 @@
           {
             "name": "schema_type",
             "in": "path",
-            "description": "Schema type. Can be: `200996`, `address`, `non_blank_string`, `phone`, `timezone`",
+            "description": "Schema type. Can be: `200996`, `address`, `nonBlankString`, `phone`, `timezone`",
             "required": true,
             "examples": {
               "200996": {
@@ -856,8 +851,8 @@
               "address": {
                 "value": "address"
               },
-              "non_blank_string": {
-                "value": "non_blank_string"
+              "nonBlankString": {
+                "value": "nonBlankString"
               },
               "phone": {
                 "value": "phone"
@@ -1016,16 +1011,12 @@
                                     "lastName",
                                     "phone"
                                   ]
-                                },
-                                "socOptIn": {
-                                  "type": "boolean"
                                 }
                               },
                               "required": [
                                 "informalConference",
                                 "benefitType",
-                                "veteran",
-                                "socOptIn"
+                                "veteran"
                               ],
                               "if": {
                                 "properties": {
@@ -1055,7 +1046,7 @@
                               "type": {
                                 "type": "string",
                                 "enum": [
-                                  "contestableIssue"
+                                  "appealableIssue"
                                 ]
                               },
                               "attributes": {
@@ -1064,7 +1055,7 @@
                                   "issue": {
                                     "allOf": [
                                       {
-                                        "$ref": "non_blank_string.json"
+                                        "$ref": "nonBlankString.json"
                                       },
                                       {
                                         "minLength": 1,
@@ -1239,7 +1230,7 @@
                       }
                     }
                   },
-                  "non_blank_string": {
+                  "nonBlankString": {
                     "value": {
                       "$schema": "http://json-schema.org/draft-2020-12/schema#",
                       "description": "JSON Schema for VA Decision Review Forms: 'nonBlankString'",
@@ -2070,8 +2061,10 @@
                         "available_options": [
                           "200996",
                           "address",
-                          "non_blank_string",
+                          "icn",
+                          "nonBlankString",
                           "phone",
+                          "ssn",
                           "timezone"
                         ]
                       }
@@ -2404,13 +2397,12 @@
                             "countryCodeISO2": "US",
                             "zipCode5": "12345"
                           }
-                        },
-                        "socOptIn": true
+                        }
                       }
                     },
                     "included": [
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left shoulder",
                           "decisionDate": "1920-12-01"
@@ -2464,7 +2456,6 @@
                           "email": "claimant@email.com",
                           "timezone": "America/Detroit"
                         },
-                        "socOptIn": true,
                         "informalConference": true,
                         "informalConferenceContact": "veteran",
                         "informalConferenceTime": "800-1200 ET",
@@ -2483,7 +2474,7 @@
                     },
                     "included": [
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "123456789",
                           "decisionDate": "1900-01-01",
@@ -2495,7 +2486,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left eyee",
                           "decisionDate": "1900-01-02",
@@ -2503,14 +2494,14 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right eye",
                           "decisionDate": "1900-01-03"
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left ear",
                           "decisionDate": "1900-01-04",
@@ -2519,7 +2510,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right ear",
                           "decisionDate": "1900-01-05",
@@ -2527,7 +2518,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "migraines",
                           "decisionDate": "1900-01-06",
@@ -2535,7 +2526,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left knee",
                           "decisionDate": "1900-01-07",
@@ -2543,7 +2534,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right knee",
                           "decisionDate": "1900-01-08",
@@ -2551,7 +2542,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left foot",
                           "decisionDate": "1900-01-09",
@@ -2559,7 +2550,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right foot",
                           "decisionDate": "1900-01-10",
@@ -2568,7 +2559,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "left hand",
                           "decisionDate": "1900-01-11",
@@ -2576,7 +2567,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "right hand",
                           "decisionDate": "1900-01-12",
@@ -2584,7 +2575,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "fever",
                           "decisionDate": "1900-01-13",
@@ -2592,7 +2583,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "lupus",
                           "decisionDate": "1900-01-14",
@@ -2600,7 +2591,7 @@
                         }
                       },
                       {
-                        "type": "contestableIssue",
+                        "type": "appealableIssue",
                         "attributes": {
                           "issue": "cooties",
                           "decisionDate": "1900-01-15",
@@ -2994,16 +2985,12 @@
                       "lastName",
                       "phone"
                     ]
-                  },
-                  "socOptIn": {
-                    "type": "boolean"
                   }
                 },
                 "required": [
                   "informalConference",
                   "benefitType",
-                  "veteran",
-                  "socOptIn"
+                  "veteran"
                 ],
                 "if": {
                   "properties": {
@@ -3033,7 +3020,7 @@
                 "type": {
                   "type": "string",
                   "enum": [
-                    "contestableIssue"
+                    "appealableIssue"
                   ]
                 },
                 "attributes": {
@@ -3042,7 +3029,7 @@
                     "issue": {
                       "allOf": [
                         {
-                          "$ref": "#/components/schemas/non_blank_string"
+                          "$ref": "#/components/schemas/nonBlankString"
                         },
                         {
                           "minLength": 1,
@@ -3147,7 +3134,7 @@
           "data"
         ]
       },
-      "non_blank_string": {
+      "nonBlankString": {
         "type": "string",
         "pattern": "[^ \\f\\n\\r\\t\\v\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
       },
@@ -3950,7 +3937,7 @@
             "maxLength": 9
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },
@@ -3978,7 +3965,7 @@
             "maxLength": 18
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },
@@ -3988,7 +3975,7 @@
             "description": "last name"
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },
@@ -3998,7 +3985,7 @@
             "description": "middle initial"
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },
@@ -4013,7 +4000,7 @@
             "description": "first name"
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },
@@ -4023,7 +4010,7 @@
             "description": "last name"
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },
@@ -4033,7 +4020,7 @@
             "description": "middle initial"
           },
           {
-            "$ref": "#/components/schemas/non_blank_string"
+            "$ref": "#/components/schemas/nonBlankString"
           }
         ]
       },

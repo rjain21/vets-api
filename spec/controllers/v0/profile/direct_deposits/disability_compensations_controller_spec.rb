@@ -30,7 +30,7 @@ RSpec.describe V0::Profile::DirectDeposits::DisabilityCompensationsController, t
         payment_account = json['data']['attributes']['payment_account']
 
         expect(payment_account['name']).to eq('WELLS FARGO BANK')
-        expect(payment_account['account_type']).to eq('CHECKING')
+        expect(payment_account['account_type']).to eq('Checking')
         expect(payment_account['account_number']).to eq('******7890')
         expect(payment_account['routing_number']).to eq('*****0503')
       end
@@ -110,6 +110,21 @@ RSpec.describe V0::Profile::DirectDeposits::DisabilityCompensationsController, t
       end
     end
 
+    context 'when there is a gateway timeout' do
+      it 'returns a status of 504' do
+        VCR.use_cassette('lighthouse/direct_deposit/show/504_gateway_timeout') do
+          get(:show)
+        end
+
+        expect(response).to have_http_status(:gateway_timeout)
+
+        json = JSON.parse(response.body)
+        e = json['errors'].first
+
+        expect(e['code']).to eq('cnp.payment.api.gateway.timeout')
+      end
+    end
+
     context 'when lighthouse direct deposit feature flag is disabled' do
       before do
         allow(Flipper).to receive(:enabled?).with(:profile_lighthouse_direct_deposit, instance_of(User))
@@ -136,6 +151,19 @@ RSpec.describe V0::Profile::DirectDeposits::DisabilityCompensationsController, t
         end
 
         expect(response).to have_http_status(:ok)
+      end
+
+      it 'capitalizes account type' do
+        params = { account_number: '1234567890', account_type: 'CHECKING', routing_number: '031000503' }
+
+        VCR.use_cassette('lighthouse/direct_deposit/update/200_valid') do
+          put(:update, params:)
+        end
+
+        body = JSON.parse(response.body)
+        payment_account = body['data']['attributes']['payment_account']
+
+        expect(payment_account['account_type']).to eq('Checking')
       end
     end
 
@@ -265,7 +293,65 @@ RSpec.describe V0::Profile::DirectDeposits::DisabilityCompensationsController, t
 
         expect(e).not_to be_nil
         expect(e['title']).to eq('Bad Request')
-        expect(e['code']).to eq('cnp.payment.accounting.number.fraud')
+        expect(e['code']).to eq('cnp.payment.account.number.fraud')
+        expect(e['source']).to eq('Lighthouse Direct Deposit')
+      end
+    end
+
+    context 'when user profile info is invalid' do
+      let(:params) do
+        {
+          account_type: 'CHECKING',
+          account_number: '1234567890',
+          routing_number: '031000503'
+        }
+      end
+
+      it 'returns a day phone number error' do
+        VCR.use_cassette('lighthouse/direct_deposit/update/400_invalid_day_phone_number') do
+          put(:update, params:)
+        end
+
+        expect(response).to have_http_status(:bad_request)
+
+        json = JSON.parse(response.body)
+        e = json['errors'].first
+
+        expect(e).not_to be_nil
+        expect(e['title']).to eq('Bad Request')
+        expect(e['code']).to eq('cnp.payment.day.phone.number.invalid')
+        expect(e['source']).to eq('Lighthouse Direct Deposit')
+      end
+
+      it 'returns an mailing address error' do
+        VCR.use_cassette('lighthouse/direct_deposit/update/400_invalid_mailing_address') do
+          put(:update, params:)
+        end
+
+        expect(response).to have_http_status(:bad_request)
+
+        json = JSON.parse(response.body)
+        e = json['errors'].first
+
+        expect(e).not_to be_nil
+        expect(e['title']).to eq('Bad Request')
+        expect(e['code']).to eq('cnp.payment.mailing.address.invalid')
+        expect(e['source']).to eq('Lighthouse Direct Deposit')
+      end
+
+      it 'returns a routing number checksum error' do
+        VCR.use_cassette('lighthouse/direct_deposit/update/400_routing_number_checksum') do
+          put(:update, params:)
+        end
+
+        expect(response).to have_http_status(:bad_request)
+
+        json = JSON.parse(response.body)
+        e = json['errors'].first
+
+        expect(e).not_to be_nil
+        expect(e['title']).to eq('Bad Request')
+        expect(e['code']).to eq('cnp.payment.routing.number.invalid.checksum')
         expect(e['source']).to eq('Lighthouse Direct Deposit')
       end
     end

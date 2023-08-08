@@ -9,6 +9,8 @@ MyHealth::Engine.routes.draw do
       resources :allergies, only: %i[index show], defaults: { format: :json }
       resources :clinical_notes, only: %i[index show], defaults: { format: :json }
       resources :labs_and_tests, only: %i[index show], defaults: { format: :json }
+      resources :vitals, only: %i[index], defaults: { format: :json }
+      resources :conditions, only: %i[index show], defaults: { format: :json }
     end
 
     scope :messaging do
@@ -27,6 +29,7 @@ MyHealth::Engine.routes.draw do
       resources :messages, only: %i[show create destroy], defaults: { format: :json } do
         get :thread, on: :member
         get :categories, on: :collection
+        get :signature, on: :collection
         patch :move, on: :member
         post :reply, on: :member
         resources :attachments, only: [:show], defaults: { format: :json }
@@ -53,6 +56,9 @@ MyHealth::Engine.routes.draw do
       get :refresh, to: 'health_records#refresh', on: :collection
       get :eligible_data_classes, to: 'health_records#eligible_data_classes', on: :collection
       get :show, controller: 'health_record_contents', on: :collection
+      post 'sharing/optin', to: 'health_records#optin', on: :collection
+      post 'sharing/optout', to: 'health_records#optout', on: :collection
+      get 'sharing/status', to: 'health_records#status', on: :collection
     end
   end
 

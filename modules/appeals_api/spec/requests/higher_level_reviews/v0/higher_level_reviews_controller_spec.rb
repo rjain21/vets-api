@@ -8,9 +8,9 @@ describe AppealsApi::HigherLevelReviews::V0::HigherLevelReviewsController, type:
     "/services/appeals/higher-level-reviews/v0/#{path}"
   end
 
-  let(:data) { fixture_to_s 'valid_200996_minimum.json', version: 'v2' }
-  let(:headers) { fixture_as_json 'valid_200996_headers.json', version: 'v2' }
-  let(:headers_extra) { fixture_as_json 'valid_200996_headers_extra.json', version: 'v2' }
+  let(:data) { fixture_to_s 'higher_level_reviews/v0/valid_200996_minimum.json' }
+  let(:headers) { fixture_as_json 'higher_level_reviews/v0/valid_200996_headers.json' }
+  let(:headers_extra) { fixture_as_json 'higher_level_reviews/v0/valid_200996_headers_extra.json' }
   let(:parsed_response) { JSON.parse(response.body) }
 
   describe '#schema' do
@@ -23,7 +23,7 @@ describe AppealsApi::HigherLevelReviews::V0::HigherLevelReviewsController, type:
 
       expect(response.status).to eq(200)
       expect(parsed_response['description']).to eq('JSON Schema for VA Form 20-0996')
-      expect(response.body).to include('{"$ref":"non_blank_string.json"}')
+      expect(response.body).to include('{"$ref":"nonBlankString.json"}')
       expect(response.body).to include('{"$ref":"address.json"}')
       expect(response.body).to include('{"$ref":"phone.json"}')
     end
@@ -60,6 +60,12 @@ describe AppealsApi::HigherLevelReviews::V0::HigherLevelReviewsController, type:
         expect(parsed_response['errors'][0]['meta']['missing_fields']).to include('X-VA-ICN')
       end
     end
+
+    it_behaves_like 'an endpoint with OpenID auth', scopes: described_class::OAUTH_SCOPES[:POST] do
+      def make_request(auth_header)
+        post(path, params: data, headers: headers.merge(auth_header))
+      end
+    end
   end
 
   describe '#validate' do
@@ -76,5 +82,26 @@ describe AppealsApi::HigherLevelReviews::V0::HigherLevelReviewsController, type:
         expect(parsed_response['errors'][0]['meta']['missing_fields']).to include('X-VA-ICN')
       end
     end
+
+    it_behaves_like 'an endpoint with OpenID auth', scopes: described_class::OAUTH_SCOPES[:POST] do
+      def make_request(auth_header)
+        post(path, params: data, headers: headers.merge(auth_header))
+      end
+    end
+  end
+
+  describe '#show' do
+    let(:uuid) { create(:higher_level_review_v0).id }
+    let(:path) { base_path "forms/200996/#{uuid}" }
+
+    it_behaves_like('an endpoint with OpenID auth', scopes: described_class::OAUTH_SCOPES[:GET]) do
+      def make_request(auth_header)
+        get(path, headers: auth_header)
+      end
+    end
+  end
+
+  describe '#download', skip: 'Waiting for v0 release' do
+    it_behaves_like 'watermarked pdf download endpoint', { factory: :higher_level_review_v0 }
   end
 end

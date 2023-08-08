@@ -8,11 +8,14 @@ module VAOS
       STATSD_KEY = 'api.vaos.va_mobile.response.partial'
       NPI_NOT_FOUND_MSG = "We're sorry, we can't display your provider's information right now."
       PAP_COMPLIANCE_TELE = 'PAP COMPLIANCE/TELE'
-      PAP_COMPLIANCE_TELE_KEY = 'PAP COMPLIANCE/TELE Appointment Details'
+      PID = 'PID'
       FACILITY_ERROR_MSG = 'Error fetching facility details'
-      APPT_INDEX = 'Appointment Index'
-      APPT_SHOW = 'Appointment Show'
-      APPT_CREATE = 'Appointment Create'
+      APPT_INDEX = "GET '/vaos/v1/patients/<icn>/appointments'"
+      APPT_SHOW = "GET '/vaos/v1/patients/<icn>/appointments/<id>'"
+      APPT_CREATE = "POST '/vaos/v1/patients/<icn>/appointments'"
+      REASON = 'reason'
+      REASON_CODE = 'reason_code'
+      COMMENT = 'comment'
 
       # cache utilized by the controller to store key/value pairs of provider name and npi
       # in order to prevent duplicate service call lookups during index/show/create
@@ -32,7 +35,8 @@ module VAOS
         _include&.include?('facilities') && merge_facilities(appointments[:data])
 
         appointments[:data].each do |appt|
-          log_pap_compliance_appt_data(appt, APPT_INDEX) if appt&.[](:reason)&.include? PAP_COMPLIANCE_TELE
+          scrape_appt_comments_and_log_details(appt, APPT_INDEX, PAP_COMPLIANCE_TELE)
+          scrape_appt_comments_and_log_details(appt, APPT_INDEX, PID)
         end
 
         serializer = VAOS::V2::VAOSSerializer.new
@@ -62,9 +66,8 @@ module VAOS
 
         appointment[:location] = get_facility(appointment[:location_id]) unless appointment[:location_id].nil?
 
-        if appointment&.[](:reason_code)&.[](:text)&.include? PAP_COMPLIANCE_TELE
-          log_pap_compliance_appt_data(appointment, APPT_SHOW)
-        end
+        scrape_appt_comments_and_log_details(appointment, APPT_SHOW, PAP_COMPLIANCE_TELE)
+        scrape_appt_comments_and_log_details(appointment, APPT_SHOW, PID)
 
         serializer = VAOS::V2::VAOSSerializer.new
         serialized = serializer.serialize(appointment, 'appointments')
@@ -88,9 +91,8 @@ module VAOS
           new_appointment[:location] = get_facility(new_appointment[:location_id])
         end
 
-        if new_appointment&.[](:reason_code)&.[](:text)&.include? PAP_COMPLIANCE_TELE
-          log_pap_compliance_appt_data(new_appointment, APPT_CREATE)
-        end
+        scrape_appt_comments_and_log_details(new_appointment, APPT_CREATE, PAP_COMPLIANCE_TELE)
+        scrape_appt_comments_and_log_details(new_appointment, APPT_CREATE, PID)
 
         serializer = VAOS::V2::VAOSSerializer.new
         serialized = serializer.serialize(new_appointment, 'appointments')
@@ -311,17 +313,32 @@ module VAOS
         FACILITY_ERROR_MSG
       end
 
-      def log_pap_compliance_appt_data(appt, appt_method)
-        pap_compliance_entry = { PAP_COMPLIANCE_TELE_KEY => pap_compliance_details(appt[:location_id], appt[:clinic],
-                                                                                   appt_method) }
-        Rails.logger.info('Details for PAP COMPLIANCE/TELE appointment', pap_compliance_entry.to_json)
+      def scrape_appt_comments_and_log_details(appt, appt_method, comment_key)
+        if appt&.[](:reason)&.include? comment_key
+          log_appt_comment_data(appt, appt_method, appt&.[](:reason), comment_key, REASON)
+        elsif appt&.[](:comment)&.include? comment_key
+          log_appt_comment_data(appt, appt_method, appt&.[](:comment), comment_key, COMMENT)
+        elsif appt&.[](:reason_code)&.[](:text)&.include? comment_key
+          log_appt_comment_data(appt, appt_method, appt&.[](:reason_code)&.[](:text), comment_key, REASON_CODE)
+        end
       end
 
-      def pap_compliance_details(location_id, clinic, appt_method)
+      def log_appt_comment_data(appt, appt_method, comment_content, comment_key, field_name)
+        appt_comment_data_entry = { "#{comment_key} appointment details" => appt_comment_log_details(appt, appt_method,
+                                                                                                     comment_content,
+                                                                                                     field_name) }
+        Rails.logger.info("Details for #{comment_key} appointment", appt_comment_data_entry.to_json)
+      end
+
+      def appt_comment_log_details(appt, appt_method, comment_content, field_name)
         {
           endpoint_method: appt_method,
-          location_id:,
-          clinic:
+          appointment_id: appt[:id],
+          appointment_status: appt[:status],
+          location_id: appt[:location_id],
+          clinic: appt[:clinic],
+          field_name:,
+          comment: comment_content
         }
       end
 

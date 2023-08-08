@@ -1088,11 +1088,19 @@ RSpec.describe 'the API documentation', type: %i[apivore request], order: :defin
         end
       end
 
-      it 'supports getting rating info' do
-        expect(subject).to validate(:get, '/v0/disability_compensation_form/rating_info', 401)
+      context 'when calling EVSS' do
+        before do
+          # TODO: remove Flipper feature toggle when lighthouse provider is implemented
+          allow(Flipper).to receive(:enabled?).with(:profile_lighthouse_rating_info, instance_of(User))
+                                              .and_return(false)
+        end
 
-        VCR.use_cassette('evss/disability_compensation_form/rating_info') do
-          expect(subject).to validate(:get, '/v0/disability_compensation_form/rating_info', 200, headers)
+        it 'supports getting rating info' do
+          expect(subject).to validate(:get, '/v0/disability_compensation_form/rating_info', 401)
+
+          VCR.use_cassette('evss/disability_compensation_form/rating_info') do
+            expect(subject).to validate(:get, '/v0/disability_compensation_form/rating_info', 200, headers)
+          end
         end
       end
     end
@@ -2276,7 +2284,7 @@ RSpec.describe 'the API documentation', type: %i[apivore request], order: :defin
       context 'PUT' do
         it 'returns a 200' do
           headers = { '_headers' => { 'Cookie' => sign_in(user, nil, true) } }
-          params = { account_number: '1234567890', account_type: 'CHECKING', routing_number: '031000503' }
+          params = { account_number: '1234567890', account_type: 'Checking', routing_number: '031000503' }
           VCR.use_cassette('lighthouse/direct_deposit/update/200_valid') do
             expect(subject).to validate(:put,
                                         '/v0/profile/direct_deposits/disability_compensations',
@@ -2287,7 +2295,7 @@ RSpec.describe 'the API documentation', type: %i[apivore request], order: :defin
 
         it 'returns a 400' do
           headers = { '_headers' => { 'Cookie' => sign_in(user, nil, true) } }
-          params = { account_number: '1234567890', account_type: 'CHECKING', routing_number: '031000503' }
+          params = { account_number: '1234567890', account_type: 'Checking', routing_number: '031000503' }
           VCR.use_cassette('lighthouse/direct_deposit/update/400_routing_number_fraud') do
             expect(subject).to validate(:put,
                                         '/v0/profile/direct_deposits/disability_compensations',

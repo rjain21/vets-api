@@ -26,8 +26,19 @@ module ClaimsApi
       fault_string = hash&.dig('Envelope', 'Body', 'Fault', 'faultstring')
       return {} if fault_string.include?('IntentToFileWebService') && fault_string.include?('not found')
 
-      return 'not_found' if fault_string.include?('could not be converted') || fault_string.include?('not found')
-      return 'unprocessable' if fault_string.include?('does not have necessary info')
+      if fault_string.include?('No BnftClaim found') ||
+         fault_string.include?('not found')
+        {}
+      elsif fault_string.include?('could not be converted') ||
+            fault_string.include?('No Person found')
+        ClaimsApi::Logger.log("Returning 404 via local_bgs & soap_error_handler, fault_string:#{fault_string}")
+        'not_found'
+      elsif fault_string.include?('does not have necessary info')
+        ClaimsApi::Logger.log("Returning 422 via local_bgs & soap_error_handler, fault_string:#{fault_string}")
+        'unprocessable'
+      else
+        ClaimsApi::Logger.log("Returning 500 via local_bgs & soap_error_handler, fault_string:#{fault_string}")
+      end
     end
 
     def get_exception(fault_description)
@@ -41,8 +52,7 @@ module ClaimsApi
       when {}
         {}
       else
-        raise ::Common::Exceptions::ServiceError.new(detail: 'An external server is experiencing difficulty.',
-                                                     source: 'BGS', errors: 'Unknown')
+        raise ::Common::Exceptions::ServiceError.new(detail: 'An external server is experiencing difficulty.')
       end
     end
   end

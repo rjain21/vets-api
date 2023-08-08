@@ -52,6 +52,7 @@ unless ENV['NOCOVERAGE']
     # Modules
     add_group 'AppealsApi', 'modules/appeals_api/'
     add_group 'AppsApi', 'modules/apps_api'
+    add_group 'AskVAApi', 'modules/ask_va_api/'
     add_group 'CheckIn', 'modules/check_in/'
     add_group 'ClaimsApi', 'modules/claims_api/'
     add_group 'CovidResearch', 'modules/covid_research/'
@@ -59,7 +60,7 @@ unless ENV['NOCOVERAGE']
     add_group 'DebtsApi', 'modules/debts_api/'
     add_group 'DhpConnectedDevices', 'modules/dhp_connected_devices/'
     add_group 'FacilitiesApi', 'modules/facilities_api/'
-    add_group 'FormsApi', 'modules/forms_api/'
+    add_group 'SimpleFormsApi', 'modules/simple_forms_api/'
     add_group 'HealthQuest', 'modules/health_quest/'
     add_group 'IncomeLimits', 'modules/income_limits/'
     add_group 'MebApi', 'modules/meb_api/'

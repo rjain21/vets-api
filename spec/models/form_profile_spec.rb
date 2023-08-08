@@ -679,7 +679,7 @@ RSpec.describe FormProfile, type: :model do
           'decisionCode' => 'SVCCONNCTED',
           'decisionText' => 'Service Connected',
           'name' => 'Diabetes mellitus0',
-          'ratedDisabilityId' => '0',
+          'ratedDisabilityId' => '1',
           'ratingDecisionId' => '63655',
           'ratingPercentage' => 100
         },
@@ -688,7 +688,7 @@ RSpec.describe FormProfile, type: :model do
           'decisionCode' => 'SVCCONNCTED',
           'decisionText' => 'Service Connected',
           'name' => 'Diabetes mellitus1',
-          'ratedDisabilityId' => '1',
+          'ratedDisabilityId' => '2',
           'ratingDecisionId' => '63655',
           'ratingPercentage' => 100
         }
@@ -827,30 +827,6 @@ RSpec.describe FormProfile, type: :model do
   end
 
   let(:v26_4555_expected) do
-    {
-      'veteran' => {
-        'fullName' => {
-          'first' => user.first_name&.capitalize,
-          'last' => user.last_name&.capitalize,
-          'suffix' => user.suffix
-        },
-        'ssn' => '796111863',
-        'dateOfBirth' => '1809-02-12',
-        'homePhone' => '14445551212',
-        'email' => user.pciu_email,
-        'address' => {
-          'street' => street_check[:street],
-          'street2' => street_check[:street2],
-          'city' => user.address[:city],
-          'state' => user.address[:state],
-          'country' => user.address[:country],
-          'postal_code' => user.address[:postal_code][0..4]
-        }
-      }
-    }
-  end
-
-  let(:v21_4142_expected) do
     {
       'veteran' => {
         'fullName' => {
@@ -1020,6 +996,57 @@ RSpec.describe FormProfile, type: :model do
 
       it 'returns a prefilled 5655 form' do
         expect_prefilled('5655')
+      end
+
+      context 'payment window' do
+        let(:education_payments) do
+          [
+            { payment_date: DateTime.now - 3.months, payment_amount: '1500' }
+          ]
+        end
+
+        before do
+          allow_any_instance_of(DebtManagementCenter::PaymentsService).to(
+            receive(:education).and_return(education_payments)
+          )
+        end
+
+        it 'filters older payments when window is present' do
+          allow(Settings.dmc).to receive(:fsr_payment_window).and_return(30)
+
+          expect_prefilled('5655')
+        end
+
+        context 'no window present' do
+          let(:v5655_expected) do
+            {
+              'personalIdentification' => {
+                'ssn' => user.ssn.last(4),
+                'fileNumber' => '3735'
+              },
+              'personalData' => {
+                'veteranFullName' => full_name,
+                'address' => address,
+                'telephoneNumber' => us_phone,
+                'emailAddress' => user.pciu_email,
+                'dateOfBirth' => user.birth_date
+              },
+              'income' => [
+                {
+                  'veteranOrSpouse' => 'VETERAN',
+                  'compensationAndPension' => '3000',
+                  'education' => '1500'
+                }
+              ]
+            }
+          end
+
+          it 'includes older payments when no window is present' do
+            allow(Settings.dmc).to receive(:fsr_payment_window).and_return(nil)
+
+            expect_prefilled('5655')
+          end
+        end
       end
     end
 
@@ -1236,7 +1263,6 @@ RSpec.describe FormProfile, type: :model do
           28-1900
           26-1880
           26-4555
-          21-4142
         ].each do |form_id|
           it "returns prefilled #{form_id}" do
             expect_prefilled(form_id)

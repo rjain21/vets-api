@@ -2,6 +2,7 @@
 
 require 'lighthouse/letters_generator/service'
 require 'lighthouse/letters_generator/service_error'
+require 'lighthouse/letters_generator/veteran_sponsor_resolver'
 
 module V0
   class LettersGeneratorController < ApplicationController
@@ -36,7 +37,10 @@ module V0
                         .except('id')
                         .transform_values { |v| ActiveModel::Type::Boolean.new.cast(v) }
                         .transform_keys { |k| k.camelize(:lower) }
-      response = service.download_letter(@current_user.icn, params[:id], letter_options)
+
+      # Throws an error if the current user is a dependent but has no sponsor
+      icn = Lighthouse::LettersGenerator::VeteranSponsorResolver.get_icn(@current_user)
+      response = service.download_letter(icn, params[:id], letter_options)
       send_data response,
                 filename: "#{params[:id]}.pdf",
                 type: 'application/pdf',

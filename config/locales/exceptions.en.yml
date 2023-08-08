@@ -497,6 +497,11 @@ en:
         code: 'SM99'
         detail: 'Something went wrong. Please try again later.'
         status: 502
+      MEDICALRECORDS_401:
+        <<: *external_defaults
+        code: "MEDICALRECORDS_401"
+        detail: "Application authentication failed"
+        status: 401
       HCA422:
         <<: *external_defaults
         code: 'HCA422'
@@ -2138,6 +2143,10 @@ en:
         <<: *defaults
         code: LH_too_many_requests
         status: 429
+      gateway_timeout:
+        <<: *defaults
+        code: LH_gateway_timeout
+        status: 504
 
   evss:
     external_service_unavailable:
@@ -2334,3 +2343,12 @@ en:
         detail: Order unable to be processed
         code: MDOT_unprocessable_entity
         status: 422
+
+  chip:
+    exceptions:
+      unmapped_service_exception:
+        <<: *defaults
+        title: 'Operation failed'
+        detail: The upstream server returned an error code that is unmapped
+        code: unmapped_service_exception
+        status: 400

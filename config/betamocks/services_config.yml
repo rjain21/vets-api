@@ -745,10 +745,10 @@
 
 #CHIP
 - :name: "CHIP"
-  :base_uri: <%= "#{URI(Settings.check_in.chip_api_v2.url).host}:#{URI(Settings.check_in.chip_api_v2.url).port}" %>
+  :base_uri: <%= "#{URI(Settings.chip.url).host}:#{URI(Settings.chip.url).port}" %>
   :endpoints:
     - :method: :post
-      :path: <%= "/#{Settings.check_in.chip_api_v2.base_path}/token" %>
+      :path: <%= "/#{Settings.chip.base_path}/token" %>
       :file_path: "/chip/token/default"
       :response_delay: 0.2
     - :method: :post
@@ -779,9 +779,17 @@
       :path: <%= "/#{Settings.check_in.chip_api_v2.base_path}/actions/refresh-precheckin/*" %>
       :file_path: "/chip/refresh-precheckin/default"
       :response_delay: 4
+    - :method: :post
+      :path: <%= "/#{Settings.chip.base_path}/actions/authenticated-check-in" %>
+      :file_path: "/chip/authenticated-check-in/default"
+      :response_delay: 4
     - :method: :delete
       :path: <%= "/#{Settings.check_in.chip_api_v2.base_path}/actions/deleteFromLorota/*" %>
       :file_path: "/chip/deleteFromLorota/default"
+      :response_delay: 4
+    - :method: post
+      :path: <%= "/#{Settings.chip.base_path}/actions/authenticated-demographics" %>
+      :file_path: "/chip/update-demographics/default"
       :response_delay: 4
 
 # LGY: Certificate of Eligibility
@@ -854,3 +862,10 @@
         :uid_location: "url"
         :uid_locator: "\/services/claims/v2/veterans\/(?:.+)\/claims\/(.+)/5103"
 
+  # Lighthouse Benefits Documents API
+- :name: "Lighthouse Benefits Documents"
+  :base_uri: <%= "#{URI(Settings.lighthouse.benefits_documents.host).host}:#{URI(Settings.lighthouse.benefits_documents.host).port}" %>
+  :endpoints:
+    - :method: :post
+      :path: "/benefits-documents/v1/documents"
+      :file_path: "/lighthouse/benefits_documents"

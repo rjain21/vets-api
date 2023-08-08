@@ -15,7 +15,6 @@ class AppealsApi::RswagConfig
         title: DOC_TITLES[name.to_sym],
         version:,
         contact: { name: 'developer.va.gov' },
-        termsOfService: 'https://developer.va.gov/terms-of-service',
         description: File.read(description_file_path)
       },
       tags:,
@@ -216,15 +215,13 @@ class AppealsApi::RswagConfig
   def merge_schemas(*schema_parts) = schema_parts.reduce(&:merge).sort_by { |k, _| k.to_s.downcase }.to_h
 
   def schemas(api_name: nil)
-    nbs_key = api_name == 'decision_reviews' ? 'nonBlankString' : 'non_blank_string'
-
     case api_name
     when 'higher_level_reviews'
       merge_schemas(
         hlr_create_schemas,
         hlr_response_schemas,
         generic_schemas.except(*%i[errorWithTitleAndDetail timeStamp X-Consumer-Username X-Consumer-ID documentUploadMetadata]),
-        shared_schemas
+        shared_schemas.slice(*%w[address phone timezone nonBlankString])
       )
     when 'notice_of_disagreements'
       merge_schemas(
@@ -232,28 +229,27 @@ class AppealsApi::RswagConfig
         nod_response_schemas,
         contestable_issues_schema.slice(*%i[contestableIssue]),
         generic_schemas.except(*%i[errorWithTitleAndDetail timeStamp X-Consumer-ID X-Consumer-Username X-VA-Insurance-Policy-Number X-VA-NonVeteranClaimant-SSN X-VA-SSN]),
-        shared_schemas.slice(*%W[address phone timezone #{nbs_key}])
+        shared_schemas.slice(*%w[address phone timezone nonBlankString])
       )
     when 'supplemental_claims'
       merge_schemas(
         sc_create_schemas,
         sc_response_schemas,
-        sc_alt_signer_schemas,
-        contestable_issues_schema.slice(*%i[contestableIssue]),
-        generic_schemas.except(*%i[errorWithTitleAndDetail timeStamp uuid X-Consumer-ID X-Consumer-Username X-VA-NonVeteranClaimant-SSN X-VA-NonVeteranClaimant-Birth-Date]),
-        shared_schemas.slice(*%W[address phone timezone #{nbs_key}])
+        appealable_issues_schema.slice(*%i[appealableIssue]),
+        generic_schemas.slice(*%i[errorModel documentUploadMetadata]),
+        shared_schemas.slice(*%w[address icn phone ssn timezone nonBlankString])
       )
     when 'appealable_issues'
       merge_schemas(
         appealable_issues_schema,
         generic_schemas.slice(*%i[errorModel X-VA-SSN X-VA-File-Number X-VA-ICN]),
-        shared_schemas.slice(*%W[#{nbs_key}])
+        shared_schemas.slice(*%w[nonBlankString])
       )
     when 'legacy_appeals'
       merge_schemas(
         legacy_appeals_schema,
         generic_schemas.slice(*%i[errorModel X-VA-SSN X-VA-File-Number X-VA-ICN]),
-        shared_schemas.slice(*%W[#{nbs_key}])
+        shared_schemas.slice(*%w[nonBlankString])
       )
     when 'appeals_status'
       merge_schemas(
@@ -271,16 +267,16 @@ class AppealsApi::RswagConfig
         decision_reviews_sc_alt_signer_schemas,
         contestable_issues_schema,
         legacy_appeals_schema,
-        generic_schemas(nbs_key:),
-        shared_schemas(nbs_key:)
+        generic_schemas,
+        shared_schemas.slice(*%w[address phone timezone nonBlankString])
       )
     else
       raise "Don't know how to build schemas for '#{api_name}'"
     end
   end
 
-  def generic_schemas(nbs_key: 'non_blank_string')
-    nbs_ref = "#/components/schemas/#{nbs_key}"
+  def generic_schemas
+    nbs_ref = '#/components/schemas/nonBlankString'
 
     {
       'errorModel': JSON.parse(File.read(AppealsApi::Engine.root.join('spec', 'support', 'schemas', 'errors', 'default.json'))),
@@ -837,7 +833,8 @@ class AppealsApi::RswagConfig
     end
 
     {
-      scCreate: { type: 'object' }.merge!(sc_schema.slice(*%w[description properties required]))
+      scCreate: { type: 'object' }.merge!(sc_schema.slice(*%w[description properties required])),
+      scEvidenceSubmissionCreate: parse_create_schema('supplemental_claims', 'v0', 'evidence_submission.json', return_raw: true)
     }
   end
 
@@ -964,9 +961,62 @@ class AppealsApi::RswagConfig
     }
   end
 
-  def sc_response_schemas = decision_reviews_sc_response_schemas
+  def sc_response_schemas
+    decision_reviews_sc_response_schemas.merge(
+      {
+        'scCreateResponse': {
+          'description': 'Successful response of a 200995 form submission',
+          'type': 'object',
+          'properties': {
+            'data': {
+              'properties': {
+                'id': {
+                  'type': 'string',
+                  'description': 'Unique ID of created supplemental claim',
+                  'example': '97751cb6-d06d-4179-87f6-75e3fc9d875c'
+                },
+                'type': {
+                  'type': 'string',
+                  'description': 'Type of record',
+                  'example': 'supplementalClaim'
+                },
+                'attributes': {
+                  'type': 'object',
+                  'properties': {
+                    'status': {
+                      'type': 'string',
+                      'description': 'Status of created supplemental claim',
+                      'example': AppealsApi::SupplementalClaim::STATUSES.first,
+                      'enum': AppealsApi::SupplementalClaim::STATUSES
+                    },
+                    'createdAt': {
+                      'type': 'string',
+                      'description': 'Created timestamp of the supplemental claim',
+                      'example': '2020-12-16T19:52:23.909Z'
+                    },
+                    'updatedAt': {
+                      'type': 'string',
+                      'description': 'Updated timestamp of the supplemental claim',
+                      'example': '2020-12-16T19:52:23.909Z'
+                    }
+                  }
+                },
+                'formData': { '$ref': '#/components/schemas/scCreate' }
+              }
+            },
+            'included': {
+              'type': 'array',
+              'items': {
+                '$ref': '#/components/schemas/appealableIssue'
+              }
+            }
+          }
+        }
+      }
+    )
+  end
 
-  def decision_reviews_sc_alt_signer_schemas(nbs_key: 'nonBlankString')
+  def decision_reviews_sc_alt_signer_schemas
     # Taken from 200995_headers.json
     {
       'X-Alternate-Signer-First-Name': {
@@ -979,18 +1029,18 @@ class AppealsApi::RswagConfig
         'description': 'Alternate signer\'s middle initial',
         'minLength': 1,
         'maxLength': 1,
-        '$ref': "#/components/schemas/#{nbs_key}"
+        '$ref': '#/components/schemas/nonBlankString'
       },
       'X-Alternate-Signer-Last-Name': {
         'description': 'Alternate signer\'s last name',
         'minLength': 1,
         'maxLength': 40,
-        '$ref': "#/components/schemas/#{nbs_key}"
+        '$ref': '#/components/schemas/nonBlankString'
       }
     }
   end
 
-  def sc_alt_signer_schemas = decision_reviews_sc_alt_signer_schemas(nbs_key: 'non_blank_string')
+  def sc_alt_signer_schemas = decision_reviews_sc_alt_signer_schemas
 
   def legacy_appeals_schema
     {
@@ -1129,12 +1179,14 @@ class AppealsApi::RswagConfig
     }
   end
 
-  def shared_schemas(nbs_key: 'non_blank_string')
+  def shared_schemas
     # Keys are strings to override older, non-shared-schema definitions
     {
       'address' => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'address.json')))['properties']['address'],
-      nbs_key => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'non_blank_string.json')))['properties']['nonBlankString'],
+      'icn' => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'icn.json')))['properties']['icn'],
+      'nonBlankString' => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'nonBlankString.json')))['properties']['nonBlankString'],
       'phone' => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'phone.json')))['properties']['phone'],
+      'ssn' => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'ssn.json')))['properties']['ssn'],
       'timezone' => JSON.parse(File.read(AppealsApi::Engine.root.join('config', 'schemas', 'shared', 'v0', 'timezone.json')))['properties']['timezone']
     }
   end

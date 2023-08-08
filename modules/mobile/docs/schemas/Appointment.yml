@@ -31,6 +31,9 @@ properties:
       - vetextId
       - reason
       - isCovidVaccine
+      - appointmentIEN
+      - locationId
+      - eCheckinAllowed
     properties:
       appointmentType:
         type: string
@@ -169,3 +172,14 @@ properties:
       friendlyLocationName:
         type: string
         example: "CHYSHR-Cheyenne VA Medical Center"
+      serviceCategoryName:
+        type: string
+        example: "COMPENSATION & PENSION"
+      appointmentIEN:
+        type: string
+      locationId:
+        type: string
+        example: '983'
+      eCheckinAllowed:
+        type: boolean
+        example: true

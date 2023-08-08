@@ -23,6 +23,7 @@ module VA526ez
     attribute :decision_code, String
     attribute :decision_text, String
     attribute :rating_percentage, Integer
+    attribute :maximum_rating_percentage, Integer
   end
 
   class FormRatedDisabilities
@@ -91,14 +92,14 @@ class FormProfiles::VA526ez < FormProfile
   def initialize_rated_disabilities_information
     return {} unless user.authorize :evss, :access?
 
-    settings = Settings.lighthouse.veteran_verification.form526
     service = ApiProviderFactory.rated_disabilities_service_provider(
       {
         auth_headers: EVSS::DisabilityCompensationAuthHeaders.new(user).add_headers(EVSS::AuthHeaders.new(user).to_h),
         icn: user.icn.to_s
       }
     )
-    response = service.get_rated_disabilities(settings.access_token.client_id, settings.access_token.rsa_key)
+    response = service.get_rated_disabilities
+    ClaimFastTracking::MaxRatingAnnotator.annotate_disabilities(response)
 
     # Remap response object to schema fields
     VA526ez::FormRatedDisabilities.new(

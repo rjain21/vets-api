@@ -83,7 +83,7 @@ module BenefitsClaims
         faraday.request :json
 
         faraday.response :betamocks if use_mocks?
-        faraday.response :json
+        faraday.response :json, content_type: /\bjson/
         faraday.adapter Faraday.default_adapter
       end
     end
@@ -123,7 +123,7 @@ module BenefitsClaims
       aud_claim_url ||= settings.access_token.aud_claim_url
 
       @token_service ||= Auth::ClientCredentials::Service.new(
-        url, API_SCOPES, lighthouse_client_id, aud_claim_url, lighthouse_rsa_key_path
+        url, API_SCOPES, lighthouse_client_id, aud_claim_url, lighthouse_rsa_key_path, 'benefits-claims'
       )
     end
   end

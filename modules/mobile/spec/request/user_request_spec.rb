@@ -156,16 +156,17 @@ RSpec.describe 'user', type: :request do
             appeals
             appointments
             claims
+            decisionLetters
             directDepositBenefits
+            directDepositBenefitsUpdate
             disabilityRating
+            genderIdentity
             lettersAndDocuments
             militaryServiceHistory
             paymentHistory
-            userProfileUpdate
-            scheduleAppointments
             preferredName
-            genderIdentity
-            directDepositBenefitsUpdate
+            scheduleAppointments
+            userProfileUpdate
           ]
         )
       end
@@ -176,17 +177,19 @@ RSpec.describe 'user', type: :request do
             appeals
             appointments
             claims
+            decisionLetters
             directDepositBenefits
+            directDepositBenefitsUpdate
             disabilityRating
+            genderIdentity
             lettersAndDocuments
             militaryServiceHistory
             paymentHistory
-            userProfileUpdate
-            secureMessaging
-            scheduleAppointments
-            prescriptions
             preferredName
-            genderIdentity
+            prescriptions
+            scheduleAppointments
+            secureMessaging
+            userProfileUpdate
           ]
         )
       end
@@ -228,230 +231,6 @@ RSpec.describe 'user', type: :request do
           expect(attributes['profile']).to include(
             'birthDate' => nil
           )
-        end
-      end
-
-      context 'with a user who does not have access to evss and is not using Lighthouse Letters service' do
-        before do
-          Flipper.disable(:mobile_lighthouse_letters)
-          iam_sign_in(FactoryBot.build(:iam_user, :no_edipi_id))
-          VCR.use_cassette('mobile/payment_information/payment_information') do
-            VCR.use_cassette('mobile/user/get_facilities_no_ids', match_requests_on: %i[method uri]) do
-              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v0/user', headers: iam_headers
-              end
-            end
-          end
-        end
-
-        it 'does not include edipi services (claims, direct deposit, letters)' do
-          expect(attributes['authorizedServices']).to eq(
-            %w[
-              appeals
-              appointments
-              militaryServiceHistory
-              paymentHistory
-              userProfileUpdate
-              preferredName
-              genderIdentity
-            ]
-          )
-        end
-      end
-
-      context 'with a user who does not have access to evss but is using Lighthouse letters service' do
-        before do
-          user = FactoryBot.build(:iam_user, :no_edipi_id)
-          iam_sign_in(user)
-          Flipper.enable(:mobile_lighthouse_letters, user)
-          VCR.use_cassette('mobile/payment_information/payment_information') do
-            VCR.use_cassette('mobile/user/get_facilities_no_ids', match_requests_on: %i[method uri]) do
-              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v0/user', headers: iam_headers
-              end
-            end
-          end
-        end
-
-        it 'does not include edipi services (claims, direct deposit) except for letters' do
-          expect(attributes['authorizedServices']).to eq(
-            %w[
-              appeals
-              appointments
-              militaryServiceHistory
-              paymentHistory
-              userProfileUpdate
-              preferredName
-              genderIdentity
-              lettersAndDocuments
-            ]
-          )
-        end
-      end
-
-      context 'with a user who has access to evss but not ppiu (not idme)' do
-        before do
-          user = FactoryBot.build(:iam_user, :no_multifactor)
-          iam_sign_in(user)
-          VCR.use_cassette('mobile/payment_information/payment_information') do
-            VCR.use_cassette('mobile/user/get_facilities', match_requests_on: %i[method uri]) do
-              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v0/user', headers: iam_headers
-              end
-            end
-          end
-        end
-
-        it 'does not include directDepositBenefits in the authorized services list' do
-          expect(attributes['authorizedServices']).to eq(
-            %w[
-              appeals
-              appointments
-              claims
-              disabilityRating
-              lettersAndDocuments
-              militaryServiceHistory
-              paymentHistory
-              userProfileUpdate
-              scheduleAppointments
-              preferredName
-              genderIdentity
-            ]
-          )
-        end
-      end
-
-      context 'with a user that has mhv sign-in service' do
-        before do
-          allow_any_instance_of(MHVAccountTypeService).to receive(:mhv_account_type).and_return('Premium')
-          current_user = build(:iam_user, :mhv)
-          iam_sign_in(current_user)
-          VCR.use_cassette('mobile/payment_information/payment_information') do
-            VCR.use_cassette('mobile/user/get_facilities') do
-              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v0/user', headers: iam_headers
-              end
-            end
-          end
-        end
-
-        it 'includes prescriptions in authorized services' do
-          expect(attributes['authorizedServices']).to eq(
-            %w[
-              appeals
-              appointments
-              claims
-              disabilityRating
-              lettersAndDocuments
-              militaryServiceHistory
-              paymentHistory
-              userProfileUpdate
-              scheduleAppointments
-              prescriptions
-              preferredName
-              genderIdentity
-            ]
-          )
-        end
-      end
-
-      context 'with a user who does not have access to bgs' do
-        before do
-          Flipper.disable(:mobile_lighthouse_letters)
-          iam_sign_in(FactoryBot.build(:iam_user, :no_participant_id))
-          VCR.use_cassette('mobile/payment_information/payment_information') do
-            VCR.use_cassette('mobile/user/get_facilities_no_ids', match_requests_on: %i[method uri]) do
-              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v0/user', headers: iam_headers
-              end
-            end
-          end
-        end
-
-        it 'does not include paymentHistory' do
-          expect(attributes['authorizedServices']).to eq(
-            %w[
-              appeals
-              appointments
-              militaryServiceHistory
-              userProfileUpdate
-              preferredName
-              genderIdentity
-            ]
-          )
-        end
-      end
-
-      context 'with a user who does not have access to schedule appointments' do
-        context 'due to not having any registered faclities' do
-          let(:user_request) do
-            iam_sign_in(FactoryBot.build(:iam_user, :no_vha_facilities))
-            VCR.use_cassette('mobile/payment_information/payment_information') do
-              VCR.use_cassette('mobile/user/get_facilities_no_ids', match_requests_on: %i[method uri]) do
-                VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                  get '/mobile/v0/user', headers: iam_headers
-                end
-              end
-            end
-          end
-
-          it 'authorized services does not include scheduleAppointments' do
-            user_request
-            expect(attributes['authorizedServices']).not_to include('scheduleAppointments')
-          end
-
-          it 'increments statsd' do
-            expect do
-              user_request
-            end.to trigger_statsd_increment('mobile.schedule_appointment.policy.failure', times: 1)
-          end
-        end
-
-        context 'due to not being LOA3' do
-          let(:user_request) do
-            iam_sign_in(FactoryBot.build(:iam_user, :loa2))
-            VCR.use_cassette('mobile/payment_information/payment_information') do
-              VCR.use_cassette('mobile/user/get_facilities_no_ids', match_requests_on: %i[method uri]) do
-                VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                  get '/mobile/v0/user', headers: iam_headers
-                end
-              end
-            end
-          end
-
-          it 'authorized services does not include scheduleAppointments' do
-            user_request
-            expect(attributes['authorizedServices']).not_to include('scheduleAppointments')
-          end
-
-          it 'increments statsd' do
-            expect do
-              user_request
-            end.to trigger_statsd_increment('mobile.schedule_appointment.policy.failure', times: 1)
-          end
-        end
-      end
-
-      context 'with a user who does have access to schedule appointments' do
-        let(:user_request) do
-          VCR.use_cassette('mobile/payment_information/payment_information') do
-            VCR.use_cassette('mobile/user/get_facilities', match_requests_on: %i[method uri]) do
-              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v0/user', headers: iam_headers
-              end
-            end
-          end
-        end
-
-        it 'authorized services does include scheduleAppointments' do
-          user_request
-          expect(attributes['authorizedServices']).to include('scheduleAppointments')
-        end
-
-        it 'increments statsd' do
-          expect do
-            user_request
-          end.to trigger_statsd_increment('mobile.schedule_appointment.policy.success', times: 1)
         end
       end
     end
@@ -543,7 +322,7 @@ RSpec.describe 'user', type: :request do
           VCR.use_cassette('mobile/payment_information/payment_information') do
             VCR.use_cassette('mobile/user/get_facilities', match_requests_on: %i[method uri]) do
               VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v1/user', headers: iam_headers
+                get '/mobile/v0/user', headers: iam_headers
               end
             end
           end
@@ -560,7 +339,7 @@ RSpec.describe 'user', type: :request do
           VCR.use_cassette('mobile/payment_information/payment_information') do
             VCR.use_cassette('mobile/user/get_facilities', match_requests_on: %i[method uri]) do
               VCR.use_cassette('mobile/va_profile/demographics/demographics') do
-                get '/mobile/v1/user', headers: iam_headers
+                get '/mobile/v0/user', headers: iam_headers
               end
             end
           end
@@ -596,100 +375,6 @@ RSpec.describe 'user', type: :request do
               }
             ]
           }
-        )
-      end
-    end
-
-    context 'with no upstream errors for logingov user' do
-      before do
-        iam_sign_in(FactoryBot.build(:iam_user, :logingov))
-        allow_any_instance_of(IAMUser).to receive(:idme_uuid).and_return(nil)
-        allow_any_instance_of(IAMUser).to receive(:logingov_uuid).and_return('b2fab2b5-6af0-45e1-a9e2-394347af91ef')
-
-        VCR.use_cassette('mobile/payment_information/payment_information') do
-          VCR.use_cassette('mobile/user/get_facilities') do
-            VCR.use_cassette('mobile/va_profile/demographics/logingov') do
-              get '/mobile/v0/user', headers: iam_headers
-            end
-          end
-        end
-      end
-
-      it 'returns an ok response' do
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'returns a user profile response with the expected schema' do
-        expect(response.body).to match_json_schema('user')
-      end
-
-      it 'includes sign-in service' do
-        expect(attributes['profile']['signinService']).to eq('IDME')
-      end
-
-      it 'includes the service the user has access to' do
-        expect(attributes['authorizedServices']).to eq(
-          %w[
-            appeals
-            appointments
-            claims
-            directDepositBenefits
-            disabilityRating
-            lettersAndDocuments
-            militaryServiceHistory
-            paymentHistory
-            userProfileUpdate
-            scheduleAppointments
-            preferredName
-            genderIdentity
-            directDepositBenefitsUpdate
-          ]
-        )
-      end
-    end
-
-    context 'when EVSS service fails' do
-      let(:user) { FactoryBot.build(:iam_user, :logingov) }
-
-      before do
-        iam_sign_in(user)
-        allow_any_instance_of(IAMUser).to receive(:idme_uuid).and_return(nil)
-        allow_any_instance_of(IAMUser).to receive(:logingov_uuid).and_return('b2fab2b5-6af0-45e1-a9e2-394347af91ef')
-      end
-
-      it 'does not include directDepositBenefitsUpdate in the authorized services' do
-        details = [{ 'key' => 'paymenthistory.partner.service.failed', 'severity' => 'ERROR',
-                     'text' => 'Call to partner getPaymentHistory failed' }]
-        response_details = { 'messages' => details }
-        allow_any_instance_of(EVSS::ErrorMiddleware).to receive(:on_complete).and_raise(
-          EVSS::ErrorMiddleware::EVSSError.new(
-            response_details['messages'], response_details['messages'], response_details
-          )
-        )
-
-        VCR.use_cassette('mobile/payment_information/payment_information') do
-          VCR.use_cassette('mobile/user/get_facilities') do
-            VCR.use_cassette('mobile/va_profile/demographics/logingov') do
-              get '/mobile/v0/user', headers: iam_headers
-            end
-          end
-        end
-
-        expect(attributes['authorizedServices']).to eq(
-          %w[
-            appeals
-            appointments
-            claims
-            directDepositBenefits
-            disabilityRating
-            lettersAndDocuments
-            militaryServiceHistory
-            paymentHistory
-            userProfileUpdate
-            scheduleAppointments
-            preferredName
-            genderIdentity
-          ]
         )
       end
     end
@@ -735,41 +420,11 @@ RSpec.describe 'user', type: :request do
       end
     end
 
-    context 'no idme logingov' do
-      before do
-        iam_sign_in(FactoryBot.build(:iam_user, :no_multifactor))
-        allow_any_instance_of(IAMUser).to receive(:idme_uuid).and_return(nil)
-        allow_any_instance_of(IAMUser).to receive(:logingov_uuid).and_return(nil)
-
-        VCR.use_cassette('mobile/payment_information/payment_information') do
-          VCR.use_cassette('mobile/user/get_facilities') do
-            get '/mobile/v0/user', headers: iam_headers
-          end
-        end
-      end
-
-      let(:attributes) { response.parsed_body.dig('data', 'attributes') }
-
-      it 'includes the service the user has access to' do
-        expect(attributes['authorizedServices']).to eq(
-          %w[
-            appeals
-            appointments
-            claims
-            disabilityRating
-            lettersAndDocuments
-            militaryServiceHistory
-            paymentHistory
-            userProfileUpdate
-            scheduleAppointments
-          ]
-        )
-      end
-    end
-
     describe 'vet360 linking' do
       context 'when user has a vet360_id' do
-        before { iam_sign_in(FactoryBot.build(:iam_user)) }
+        let(:user) { FactoryBot.build(:iam_user) }
+
+        before { iam_sign_in(user) }
 
         it 'does not enqueue vet360 linking job' do
           expect(Mobile::V0::Vet360LinkingJob).not_to receive(:perform_async)
@@ -778,6 +433,21 @@ RSpec.describe 'user', type: :request do
             VCR.use_cassette('mobile/user/get_facilities') do
               VCR.use_cassette('mobile/va_profile/demographics/demographics') do
                 get '/mobile/v0/user', headers: iam_headers
+              end
+            end
+          end
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'flips mobile user vet360_linked to true if record exists' do
+          Mobile::User.create(icn: user.icn, vet360_link_attempts: 1, vet360_linked: false)
+
+          VCR.use_cassette('mobile/payment_information/payment_information') do
+            VCR.use_cassette('mobile/user/get_facilities') do
+              VCR.use_cassette('mobile/va_profile/demographics/demographics') do
+                get '/mobile/v0/user', headers: iam_headers
+
+                expect(Mobile::User.where(icn: user.icn, vet360_link_attempts: 1, vet360_linked: true)).to exist
               end
             end
           end

@@ -41,7 +41,10 @@ module ClaimsApi
         private
 
         def evss_docs_service
-          EVSS::DocumentsService.new(auth_headers)
+          ClaimsApi::Logger.log('EVSS', rid: request.request_id, detail: 'starting service')
+          service = EVSS::DocumentsService.new(auth_headers)
+          ClaimsApi::Logger.log('EVSS', rid: request.request_id, detail: 'service started')
+          service
         end
 
         def bgs_phase_status_mapper
@@ -259,6 +262,8 @@ module ClaimsApi
         def get_bgs_phase_completed_dates(data)
           lc_status_array =
             [data&.dig(:benefit_claim_details_dto, :bnft_claim_lc_status)].flatten.compact
+          return {} if lc_status_array.first.nil?
+
           max_completed_phase = lc_status_array.first[:phase_type_change_ind].split('').first
           return {} if max_completed_phase.downcase.eql?('n')
 
@@ -493,6 +498,19 @@ module ClaimsApi
           date_present(item[:date_open] || tracked_item[:req_dt] || tracked_item[:create_dt])
         end
 
+        def get_evss_documents(claim_id)
+          ClaimsApi::Logger.log('EVSS', rid: request.request_id, detail: 'getting docs')
+          docs = evss_docs_service.get_claim_documents(claim_id).body
+          ClaimsApi::Logger.log('EVSS', rid: request.request_id, detail: 'got docs')
+          docs
+        rescue => e
+          ClaimsApi::Logger.log('EVSS', rid: request.request_id, detail: 'getting docs failed', exception: e)
+          log_message_to_sentry('Error in Claims v2 show calling EVSS Doc Service',
+                                :warning,
+                                body: e.message)
+          {}
+        end
+
         def build_supporting_docs(bgs_claim)
           return [] if bgs_claim.nil?
 
@@ -501,9 +519,10 @@ module ClaimsApi
           docs = if sandbox?
                    { documents: ClaimsApi::V2::MockDocumentsService.new.generate_documents }.with_indifferent_access
                  else
-                   evss_docs_service.get_claim_documents(bgs_claim[:benefit_claim_details_dto][:benefit_claim_id]).body
+                   get_evss_documents(bgs_claim[:benefit_claim_details_dto][:benefit_claim_id])
                  end
-          return [] if docs.nil? || docs['documents'].blank?
+          ClaimsApi::Logger.log('EVSS', rid: request.request_id, detail: 'recieved docs from evss doc service')
+          return [] if docs.nil? || docs&.dig('documents').blank?
 
           @supporting_documents = docs['documents']
 

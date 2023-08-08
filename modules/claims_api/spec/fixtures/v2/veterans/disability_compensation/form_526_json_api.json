@@ -46,7 +46,7 @@
                 ],
                 "reservesNationalGuardService": {
                     "obligationTermsOfService": {
-                        "startDate":"2019-06-04",
+                        "beginDate":"2019-06-04",
                         "endDate":"2020-06-04"
                     },
                     "unitName": "National Guard Unit Name",
@@ -70,18 +70,18 @@
             "disabilities": [
                 {
                     "disabilityActionType": "REOPEN",
-                    "name": "PTSD (post traumatic stress disorder)",
-                    "classificationCode": "5420",
+                    "name": "Traumatic Brain Injury",
+                    "classificationCode": "9020",
                     "serviceRelevance": "ABCDEFG",
                     "approximateDate": "03-11-2018",
                     "ratedDisabilityId": "ABCDEFGHIJKLMNOPQRSTUVWX",
-                    "diagnosticCode": 9999,
+                    "diagnosticCode": 9020,
                     "secondaryDisabilities": [
                         {
-                            "name": "Cancer - Musculoskeletal - Elbow",
+                            "name": "Post Traumatic Stress Disorder (PTSD) Combat - Mental Disorders",
                             "disabilityActionType": "SECONDARY",
                             "serviceRelevance": "ABCDEFGHIJKLMNOPQ",
-                            "classificationCode": "249470",
+                            "classificationCode": "9010",
                             "approximateDate": "03-12-2018",
                             "exposureOrEventOrInjury": "EXPOSURE"
                         }
@@ -91,22 +91,12 @@
                 },
                 {
                     "disabilityActionType": "REOPEN",
-                    "name": "Traumatic Brain Injury",
-                    "classificationCode": "9020",
+                    "name": "Cancer - Musculoskeletal - Elbow",
+                    "classificationCode": "249470",
                     "serviceRelevance": "ABCDEFG",
                     "approximateDate": "03-02-2018",
                     "ratedDisabilityId": "ABCDEFGHIJKLMNOPQRSTUVWX",
-                    "diagnosticCode": 0,
-                    "secondaryDisabilities": [
-                        {
-                            "name": "Cancer - Musculoskeletal - Elbow",
-                            "disabilityActionType": "SECONDARY",
-                            "serviceRelevance": "ABCDEFGHIJKLMNOPQ",
-                            "classificationCode": "249470",
-                            "approximateDate": "03-12-2018",
-                            "exposureOrEventOrInjury": "EXPOSURE"
-                        }
-                    ],
+                    "diagnosticCode": 249470,
                     "isRelatedToToxicExposure": true,
                     "exposureOrEventOrInjury": "EXPOSURE"
                 }
@@ -116,8 +106,8 @@
             "claimDate": "2023-02-18",
             "changeOfAddress": {
                 "dates": {
-                    "beginningDate": "2012-11-30",
-                    "endingDate": "2013-10-11"
+                    "beginDate": "2012-11-30",
+                    "endDate": "2013-10-11"
                   },
                   "typeOfAddressChange": "TEMPORARY",
                   "numberAndStreet": "10 Peach St",
@@ -143,7 +133,7 @@
                 "gulfWarHazardService": {
                     "servedInGulfWarHazardLocations": true,
                     "serviceDates": {
-                        "startDate": "07-2018",
+                        "beginDate": "07-2018",
                         "endDate": "08-2018"
                     }
                 },
@@ -151,7 +141,7 @@
                     "servedInHerbicideHazardLocations": true,
                     "otherLocationsServed": "ABCDEFGHIJKLM",
                     "serviceDates": {
-                        "startDate": "07-2018",
+                        "beginDate": "07-2018",
                         "endDate": "08-2018"
                     }
                 },
@@ -159,13 +149,13 @@
                     "additionalExposures": ["ASBESTOS", "SHAD"],
                     "specifyOtherExposures": "Other exposure details",
                     "exposureDates": {
-                        "startDate": "07-2018",
+                        "beginDate": "07-2018",
                         "endDate": "08-2018"
                     }
                 },
                 "multipleExposures": {
                     "exposureDates": {
-                        "startDate": "07-2018",
+                        "beginDate": "07-2018",
                         "endDate": "08-2018"
                     },
                     "exposureLocation": "ABCDEFGHIJKLMN",
@@ -174,13 +164,13 @@
             },
             "treatments": [
                 {
-                    "treatedDisabilityNames": ["PTSD (post traumatic stress disorder)"],
+                    "treatedDisabilityNames": ["Traumatic Brain Injury", "Post Traumatic Stress Disorder (PTSD) Combat - Mental Disorders", "Cancer - Musculoskeletal - Elbow"],
                     "center": {
                         "name": "Center One",
                         "state": "GA",
                         "city": "Decatur"
                     },
-                    "startDate": "03-1985"
+                    "beginDate": "03-1985"
                 }
             ],
             "servicePay": {

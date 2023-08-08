@@ -12,19 +12,16 @@
 # Sorted using http://yaml-sorter.herokuapp.com/
 
 features:
+  this_is_only_a_test:
+    actor_type: user
+    description: used in feature_toggles_controller_spec.
+  avs_enabled:
+    actor_type: user
+    description: Enables the After Visit Summary API.
+    enable_in_development: true
   bcas_letters_use_lighthouse:
     actor_type: user
     description: Use lighthouse instead of EVSS to view/download benefit letters.
-    enable_in_development: true
-  binding_flow_modal_dsl:
-    actor_type: user
-    description: Enables grandfathering modal to begin binding from dslogon to login.gov
-  binding_flow_modal_mhv:
-    actor_type: user
-    description: Enables grandfathering modal to begin binding from mhv to login.gov
-  caregiver_sigi_enabled:
-    actor_type: user
-    description: Whether Self-Identifying Gender Identity is enabled for caregiver.
     enable_in_development: true
   caregiver_use_facilities_API:
     actor_type: user
@@ -32,10 +29,6 @@ features:
   hca_browser_monitoring_enabled:
     actor_type: user
     description: Enables browser monitoring for the health care application.
-  hca_vaprofile_military_info:
-    actor_type: user
-    description: Enables prefilling 1010ez using VA profile military data
-    enable_in_development: false
   hca_enrollment_status_override_enabled:
     actor_type: user
     description: Enables override of enrollment status for a user, to allow multiple submissions with same user.
@@ -43,9 +36,20 @@ features:
     actor_type: user
     description: Enables the optimized household section flow.
     enable_in_development: true
+  hca_remove_id_fields_enabled:
+    actor_type: user
+    description: Enables removal of duplicate identitiy fields when completing health care application as a guest.
+    enable_in_development: true
+  hca_sigi_enabled:
+    actor_type: user
+    description: Enables Self-Identifying Gender Identity question for health care applicants.
   hca_use_facilities_API:
     actor_type: user
     description: Allow list of medical care facilites to be fetched by way of the Facilities API.
+  hca_vaprofile_military_info:
+    actor_type: user
+    description: Enables prefilling 1010ez using VA profile military data
+    enable_in_development: false
   cerner_allow_partial_facilities:
     actor_type: user
     description: This will allow cerner facilities to be set to partially cerner or all cerner.
@@ -193,6 +197,13 @@ features:
   covid_volunteer_delivery:
     actor_type: cookie_id
     description: Toggles whether COVID Research volunteer submissions will be delivered to genISIS
+  claims_status_v1_bgs_enabled:
+    actor_type: user
+    description: enables calling BGS instead of EVSS for the claims status v1.
+  claims_status_v2_lh_benefits_docs_service_enabled:
+    actor_type: user
+    description: enable/disable the use of LH Benefits Documents API in our Claim Status v2 services.
+    enable_in_development: false
   debt_letters_show_letters:
     actor_type: user
     description: Enables debt letters
@@ -350,6 +361,14 @@ features:
   file_upload_short_workflow_enabled:
     actor_type: user
     description: Enables shorter workflow enhancement for file upload component
+  financial_status_report_debts_api_module:
+    actor_type: user
+    description: Points to debts-api module routes
+    enable_in_development: true
+  financial_status_report_streamlined_waiver:
+    actor_type: user
+    description: Enables streamlined waiver flow for qualifying users completing the Financial Status Report (FSR) form
+    enable_in_development: true
   form526_legacy:
     actor_type: user
     description: If true, points controllers to the legacy EVSS Form 526 instance. If false, the controllers will use the Dockerized instance running in DVP.
@@ -361,10 +380,6 @@ features:
   form1990_confirmation_email:
     actor_type: user
     description: Enables form 1990 email submission confirmation (VaNotify)
-    enable_in_development: true
-  form1990_auth_confirmation_email:
-    actor_type: user
-    description: Enables form 1990 email submission confirmation for authenticated users (VaNotify)
     enable_in_development: true
   form1995_confirmation_email:
     actor_type: user
@@ -503,7 +518,14 @@ features:
     enable_in_development: true
   organic_conversion_experiment:
     actor_type: user
-    description: Toggle to enable login.gov create account modal experiment
+    description: Toggle to enable login.gov create account experiment
+  reactivation_experiment_initial_gate:
+    actor_type: user
+    description: Toggle to enable all users to enter the eligibility check portion of the flow.  This only be set to
+      enabled for one (1) week at the longest, starting 20JULY2023 or 21JULY2023 depending on deployment timing.
+  reactivation_experiment_rate_limit:
+    actor_type: user
+    description: Toggle to control the amount of eligible users entering the send_email portion of the flow.
   pdf_warning_banner:
     description: "When enabled, will allow display of PDF cert warnings in find-a-form"
     actor_type: user
@@ -514,6 +536,9 @@ features:
       Toggle for the entire pre-entry covid 19 self-screener available at /covid19screener and to be used by visitors
       to VHA facilities in lieu of manual screening with a VHA employee.
       This toggle is owned by Patrick B. and the rest of the CTO Health Products team.
+  profile_lighthouse_rating_info:
+    actor_type: user
+    description: When enabled, will request disability rating info data from lighthouse API.
   profile_lighthouse_direct_deposit:
     actor_type: user
     description: When enabled, will request direct deposit data from lighthouse API.
@@ -531,6 +556,9 @@ features:
     actor_type: user
     description: Hides disability comp and pen section of the Profile - Direct Deposit page during a service outage
     enable_in_development: false
+  profile_show_email_notification_settings:
+    actor_type: user
+    description: Show/Hide the email channel based notification settings in profile
   profile_show_payments_notification_setting:
     actor_type: user
     description: Show/Hide the payments section of notifications in profile
@@ -552,6 +580,10 @@ features:
     description: "Use an accessible component for Profile application information card sections"
     enable_in_development: true
     actor_type: user
+  profile_use_notification_settings_checkboxes:
+    actor_type: user
+    description: "Use checkboxes for Notification Settings in Profile - Default Send and Email Channel"
+    enable_in_development: true
   profile_use_vafsc:
     description: "Use VA Forms System Core for forms instead of schema based forms"
     actor_type: user
@@ -567,10 +599,9 @@ features:
     actor_type: user
     description: Use for experimental features for My VA application
     enable_in_development: true
-  my_va_redirect:
+  my_va_update_errors_warnings:
     actor_type: user
-    description: After authentication redirects a user to the My VA page if they are on the homepage
-    enable_in_development: true
+    description: Update all errors and warnings on My VA for consistency (will remove when va-notification component is released) 
   search_representative:
     actor_type: user
     description: Enable frontend application and cta for Search Representative application
@@ -707,6 +738,10 @@ features:
     actor_type: user
     description: Allows veterans to submit requests for VA appointments
     enable_in_development: true
+  va_online_scheduling_static_landing_page:
+    actor_type: user
+    description: Allows updates to the static landing widget on the Public Websites page
+    enable_in_development: true
   va_online_scheduling_unenrolled_vaccine:
     actor_type: user
     description: Toggle for unenrolled vaccine scheduling discovery work.
@@ -755,6 +790,18 @@ features:
     actor_type: user
     enable_in_development: true
     description: Toggle for the Acheron service changes
+  va_online_scheduling_breadcrumb_url_update:
+    actor_type: user
+    enable_in_development: true
+    description: Toggle for the breadcrumb and url changes for mhv
+  va_online_scheduling_print_list:
+    actor_type: user
+    enable_in_development: true
+    description: Toggle for the print list initiative
+  va_online_scheduling_descriptive_back_link:
+    actor_type: user
+    enable_in_development: true
+    description: Toggle for the descriptive back link
   va_online_scheduling_use_dsot:
     actor_type: user
     enable_in_development: true
@@ -767,6 +814,14 @@ features:
     actor_type: user
     enable_in_development: true
     description: Toggle for proof of concept to help Veteran contact a facility when the type of care is not available
+  va_online_scheduling_required_schedulable_param:
+    actor_type: user
+    enable_in_development: true
+    description: Toggle that requires the inclusion of a new 'schedulable' boolean param for fetching facilities
+  va_online_scheduling_after_visit_summary:
+    actor_type: user
+    enable_in_development: true
+    description: Toggle for After visit summary feature.
   va_view_dependents_access:
     actor_type: user
     description: Allows us to gate the View/ Modify dependents content in a progressive rollout
@@ -828,36 +883,52 @@ features:
     actor_type: user
     description: Provides a flag wrapper for minor code changes to be gated from Prod.
     enable_in_development: true
+  supply_reordering_sleep_apnea_enabled:
+    actor_type: user
+    description: Enables sleep apnea supplies to be ordered in the supply reorder tool / MDOT.
+    enable_in_development: true
   move_form_back_button:
     actor_type: user
     description: Test moving form back button to the top of the page
   mobile_lighthouse_letters:
     actor_type: user
     description: For mobile app, use Lighthouse instead of EVSS for our letters endpoints upstream service
+  mobile_lighthouse_direct_deposit:
+    actor_type: user
+    description: For mobile app, use Lighthouse instead of EVSS for our direct deposit interactions
   mobile_lighthouse_claims:
     actor_type: user
     description: For mobile app, use Lighthouse instead of EVSS for our claims endpoints upstream service
+  mobile_lighthouse_document_upload:
+    actor_type: user
+    description: For mobile app, use Lighthouse instead of EVSS for our document uploads
+  mobile_lighthouse_disability_ratings:
+    actor_type: user
+    description: For mobile app, use Lighthouse instead of EVSS for our disability ratings endpoints upstream service
   form526_backup_submission_temp_killswitch:
     actor_type: user
     description: Provide a temporary killswitch to disable form526 backup submission if something were to go awry
   form526_backup_submission_force_offramp:
     actor_type: user
     description: If enabled add the "forceOfframp" flag to backup 526 submission metadata
-  bgs_via_faraday:
-    actor_type: user
-    description: If enabled uses the faraday connection to BGS as opposed to bgs-ext
-  bgs_via_faraday_file_number:
-    actor_type: user
-    description: If enabled uses the faraday connection to BGS to locate file_number
   virtual_agent_show_floating_chatbot:
     actor_type: user
     description: Enables a floating chatbot on the chatbot page - managed by virtual agent team
   disability_compensation_lighthouse_rated_disabilities_provider:
     actor_type: user
     description: If enabled uses the lighthouse rated disabilities endpoint
+  disability_compensation_lighthouse_document_service_provider:
+    actor_type: user
+    description: If enabled uses the lighthouse documents service
+  disability_compensation_lighthouse_submit_migration:
+    actor_type: user
+    description: If enabled uses the lighthouse submit endpoint
   disability_compensation_lighthouse_intent_to_file_provider:
     actor_type: user
     description: If enabled uses the lighthouse intent to file endpoint
+  disability_compensation_lighthouse_ppiu_direct_deposit_provider:
+    actor_type: user
+    description: If enabled uses the lighthouse ppiu/direct deposit endpoint in the form526 submission workflow
   virtual_agent_fetch_jwt_token:
     actor_type: user
     description: Enable the fetching of a JWT token to access MAP environment
@@ -867,6 +938,24 @@ features:
   drupal_footer:
     actor_type: user
     description: If enabled, pulls Drupal data to populate most of the global footer
-  hlr_disable_submit:
+  my_va_lighthouse_claims:
     actor_type: user
-    description: If enabled, the HLR submit button will be disabled to prevent user testing submission in production
+    description: Use lighthouse instead of EVSS to view benefit claims
+    enable_in_development: true
+  virtual_agent_lighthouse_claims:
+    actor_type: user
+    description: Use lighthouse instead of EVSS to view benefit claims for virtual agent chatbot application
+  virtual_agent_voice:
+    actor_type: user
+    description: Enable the voice feature of the VA Chatbot
+  notification_center:
+    actor_type: user
+    description: Enable Notification Center
+    enable_in_development: true
+  nod_part3_update:
+    actor_type: user
+    description: NOD update to latest form, part III box 11
+    enable_in_development: true
+  nod_browser_monitoring_enabled:
+    actor_type: user
+    description: NOD Datadog RUM monitoring

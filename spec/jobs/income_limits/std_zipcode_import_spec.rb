@@ -17,7 +17,7 @@ RSpec.describe IncomeLimits::StdZipcodeImport, type: :worker do
 
     it 'populates zipcodes' do
       IncomeLimits::StdZipcodeImport.new.perform
-      expect(StdZipcode.find_by(zip_code: 12_345)).not_to be_nil
+      expect(StdZipcode.find_by(zip_code: '12345')).not_to be_nil
       expect(StdZipcode.find_by(county_number: 123)).not_to be_nil
     end
 
@@ -31,7 +31,7 @@ RSpec.describe IncomeLimits::StdZipcodeImport, type: :worker do
       it 'sets the attributes correctly' do
         described_class.new.perform
         zipcode = StdZipcode.last
-        expect(zipcode.zip_code).to eq(12_345)
+        expect(zipcode.zip_code).to eq('12345')
         expect(zipcode.zip_classification_id).to eq(1)
         expect(zipcode.preferred_zip_place_id).to eq(2)
         expect(zipcode.state_id).to eq(3)

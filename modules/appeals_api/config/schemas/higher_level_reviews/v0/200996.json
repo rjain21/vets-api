@@ -76,14 +76,12 @@
                 }
               },
               "required": [ "firstName", "lastName", "phone" ]
-            },
-            "socOptIn": { "type": "boolean" }
+            }
           },
           "required": [
             "informalConference",
             "benefitType",
-            "veteran",
-            "socOptIn"
+            "veteran"
           ],
           "if": { "properties": { "informalConference": { "const":  true } } },
           "then": { "required":  ["informalConferenceContact", "informalConferenceTime"] }
@@ -96,11 +94,11 @@
       "items": {
         "type": "object",
         "properties": {
-          "type":       { "type": "string", "enum": ["contestableIssue"] },
+          "type":       { "type": "string", "enum": ["appealableIssue"] },
           "attributes": {
             "type": "object",
             "properties": {
-              "issue":                     { "allOf": [ { "$ref": "non_blank_string.json" }, { "minLength": 1, "maxLength": 140 } ] },
+              "issue":                     { "allOf": [ { "$ref": "nonBlankString.json" }, { "minLength": 1, "maxLength": 140 } ] },
               "decisionDate":              { "type": "string", "format": "date" },
               "decisionIssueId":           { "type": "integer" },
               "ratingIssueReferenceId":    { "type": "string" },

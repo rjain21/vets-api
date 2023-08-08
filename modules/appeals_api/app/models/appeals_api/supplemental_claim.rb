@@ -51,6 +51,7 @@ module AppealsApi
       :validate_claimant_type,
       :contestable_issue_dates_are_in_the_past,
       :validate_retrieve_from_date_range,
+      :claimant_birth_date_is_in_the_past,
       if: proc { |a| a.form_data.present? }
     )
 
@@ -147,15 +148,18 @@ module AppealsApi
     end
 
     def alternate_signer_first_name
-      auth_headers['X-Alternate-Signer-First-Name']&.strip
+      (auth_headers&.dig('X-Alternate-Signer-First-Name') || \
+        form_data&.dig('data', 'attributes', 'alternateSigner', 'firstName'))&.strip
     end
 
     def alternate_signer_middle_initial
-      auth_headers['X-Alternate-Signer-Middle-Initial']&.strip
+      (auth_headers&.dig('X-Alternate-Signer-Middle-Initial') || \
+        form_data&.dig('data', 'attributes', 'alternateSigner', 'middleInitial'))&.strip
     end
 
     def alternate_signer_last_name
-      auth_headers['X-Alternate-Signer-Last-Name']&.strip
+      (auth_headers&.dig('X-Alternate-Signer-Last-Name') || \
+        form_data&.dig('data', 'attributes', 'alternateSigner', 'lastName'))&.strip
     end
 
     def alternate_signer_full_name
@@ -192,8 +196,10 @@ module AppealsApi
     end
 
     def soc_opt_in
-      # This is no longer optional as of v3 of the PDF
-      pdf_version&.downcase == 'v3' || data_attributes&.dig('socOptIn')
+      # This was removed from the form in PDF version v3 - it is no longer optional.
+      # - In Decision Reviews APIs, it can only be false if the pdf version is older than v3
+      # - In the Supplemental Claims API v0, it is no longer part of the schema
+      pdf_version&.downcase == 'v3' || api_version&.downcase == 'v0' || data_attributes&.dig('socOptIn')
     end
 
     def new_evidence

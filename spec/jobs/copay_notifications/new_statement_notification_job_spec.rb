@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'debt_management_center/statement_identifier_service'
+require 'debt_management_center/workers/va_notify_email_job'
 
 RSpec.describe CopayNotifications::NewStatementNotificationJob, type: :worker do
   before do
@@ -8,10 +10,7 @@ RSpec.describe CopayNotifications::NewStatementNotificationJob, type: :worker do
   end
 
   describe '#perform' do
-    let(:mpi_profile) { build(:mpi_profile) }
-    let(:profile_response) { create(:find_profile_response, profile: mpi_profile) }
-    let(:profile_response_error) { create(:find_profile_server_error_response) }
-    let(:profile_not_found_error) { create(:find_profile_not_found_response) }
+    let(:email_address) { Faker::Internet.email }
     let(:statement) do
       {
         'veteranIdentifier' => '492031291',
@@ -23,19 +22,20 @@ RSpec.describe CopayNotifications::NewStatementNotificationJob, type: :worker do
     end
 
     before do
-      allow_any_instance_of(MPI::Service).to receive(:find_profile_by_edipi).and_return(profile_response)
-      allow_any_instance_of(MPI::Service).to receive(:find_profile_by_facility).and_return(profile_response)
+      allow_any_instance_of(DebtManagementCenter::StatementIdentifierService)
+        .to receive(:derive_email_address).and_return(email_address)
     end
 
     it 'sends a new mcp notification email job frome edipi' do
       job = described_class.new
       expect { job.perform(statement) }
-        .to change { CopayNotifications::McpNotificationEmailJob.jobs.size }
+        .to change { DebtManagementCenter::VANotifyEmailJob.jobs.size }
         .from(0)
         .to(1)
     end
 
     context 'veteran identifier is a vista id' do
+      let(:email_address) { Faker::Internet.email }
       let(:statement) do
         {
           'veteranIdentifier' => '348530923',
@@ -46,48 +46,55 @@ RSpec.describe CopayNotifications::NewStatementNotificationJob, type: :worker do
         }
       end
 
+      before do
+        allow_any_instance_of(DebtManagementCenter::StatementIdentifierService)
+          .to receive(:derive_email_address).and_return(email_address)
+      end
+
       it 'sends a new mcp notification email job frome facility and vista id' do
         job = described_class.new
         expect { job.perform(statement) }
-          .to change { CopayNotifications::McpNotificationEmailJob.jobs.size }
+          .to change { DebtManagementCenter::VANotifyEmailJob.jobs.size }
           .from(0)
           .to(1)
       end
     end
 
-    context 'MPI profile not found' do
-      before do
-        allow_any_instance_of(MPI::Service).to receive(:find_profile_by_edipi).and_return(profile_not_found_error)
+    context 'with malformed statement' do
+      let(:statement) do
+        {
+          'identifierType' => 'dfn',
+          'facilityName' => 'VA Medical Center',
+          'statementDate' => '01/01/2023'
+        }
       end
 
-      it 'raises not found error from MPI' do
+      it 'throws an error' do
         job = described_class.new
-        expect { job.perform(statement) }
-          .to raise_error(MPI::Errors::RecordNotFound)
+        expect { job.perform(statement) }.to raise_error do |error|
+          expect(error).to be_instance_of(DebtManagementCenter::StatementIdentifierService::MalformedMCPStatement)
+        end
       end
     end
 
-    context 'MPI service error' do
-      before do
-        allow_any_instance_of(MPI::Service).to receive(:find_profile_by_edipi).and_return(profile_response_error)
-      end
+    context 'with retryable error' do
+      subject(:config) { described_class }
 
-      it 'raises server error from MPI' do
-        job = described_class.new
-        expect { job.perform(statement) }
-          .to raise_error(MPI::Errors::FailedRequestError)
+      let(:error) { OpenStruct.new(message: 'oh shoot') }
+      let(:exception) { DebtManagementCenter::StatementIdentifierService::RetryableError.new(error) }
+
+      it 'sends job to retry queue' do
+        expect(config.sidekiq_retry_in_block.call(0, exception, nil)).to eq(10)
       end
     end
 
-    context 'MPI profile does not contain vet360 id' do
-      let(:mpi_profile) { build(:mpi_profile, vet360_id: nil) }
+    context 'with any other error' do
+      subject(:config) { described_class }
 
-      it 'raises vet360 id not found error' do
-        job = described_class.new
-        expect(job).to receive(:log_exception_to_sentry).with(
-          instance_of(CopayNotifications::Vet360IdNotFound), {}, { error: :new_statement_notification_job_error }
-        )
-        job.perform(statement)
+      let(:exception) { DebtManagementCenter::StatementIdentifierService::UnableToSourceEmailForStatement.new(nil) }
+
+      it 'kills the job' do
+        expect(config.sidekiq_retry_in_block.call(0, exception, nil)).to eq(:kill)
       end
     end
   end

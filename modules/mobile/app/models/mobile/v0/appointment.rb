@@ -12,9 +12,11 @@ module Mobile
     #   Mobile::V0::Adapters::Appointment.new(appointment_hash)
     #
     class Appointment < Common::Resource
+      CACHE_VERSION = 1
+
       include Mobile::V0::Concerns::RedisCaching
 
-      redis_config REDIS_CONFIG[:mobile_app_appointments_store]
+      redis_config REDIS_CONFIG[:mobile_app_appointments_store], CACHE_VERSION
 
       APPOINTMENT_TYPE = Types::String.enum(
         'COMMUNITY_CARE',
@@ -69,6 +71,7 @@ module Mobile
       attribute :patient_email, Types::String.optional
       attribute :best_time_to_call, Types::Array.optional
       attribute :friendly_location_name, Types::String.optional
+      attribute :service_category_name, Types::String.optional
 
       # On staging, some upstream services use different facility ids for the same facility.
       # These methods convert between the two sets of ids.
