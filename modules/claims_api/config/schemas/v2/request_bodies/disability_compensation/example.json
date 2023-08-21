@@ -6,7 +6,7 @@
       "claimProcessType": "STANDARD_CLAIM_PROCESS",
       "claimDate": "2020-12-18",
       "veteranIdentification": {
-        "currentlyVaEmployee": false,
+        "currentVaEmployee": false,
         "mailingAddress": {
           "numberAndStreet": "1234 Couch Street",
           "apartmentOrUnitNumber": "22",
@@ -29,8 +29,8 @@
       },
       "changeOfAddress": {
         "dates": {
-          "beginDate": "2013-11-29",
-          "endDate": "2025-10-11"
+          "beginDate": "11-29-2013",
+          "endDate": "10-11-2025"
         },
         "typeOfAddressChange": "TEMPORARY",
         "numberAndStreet": "10 Peach St",
@@ -54,14 +54,14 @@
       },
       "toxicExposure": {
         "gulfWarHazardService": {
-          "servedInGulfWarHazardLocations": true,
+          "servedInGulfWarHazardLocations": "YES",
           "serviceDates": {
             "beginDate": "07-1999",
             "endDate": "01-2005"
           }
         },
         "herbicideHazardService": {
-          "servedInHerbicideHazardLocations": true,
+          "servedInHerbicideHazardLocations": "YES",
           "otherLocationsServed": "Guam",
           "serviceDates": {
             "beginDate": "03-2002",
@@ -69,10 +69,7 @@
           }
         },
         "additionalHazardExposures": {
-          "additionalExposures": [
-            "ASBESTOS",
-            "SHAD"
-          ],
+          "additionalExposures": ["ASBESTOS", "SHIPBOARD_HAZARD_AND_DEFENSE"],
           "specifyOtherExposures": "Other exposure details",
           "exposureDates": {
             "beginDate": "07-2011",
@@ -131,10 +128,7 @@
       ],
       "treatments": [
         {
-          "treatedDisabilityNames": [
-            "Hearing Loss",
-            "Traumatic Brain Injury"
-          ],
+          "treatedDisabilityNames": ["Hearing Loss", "Traumatic Brain Injury"],
           "center": {
             "name": "Center One",
             "state": "GA",
@@ -143,9 +137,7 @@
           "beginDate": "03-1985"
         },
         {
-          "treatedDisabilityNames": [
-            "Musculoskeletal - Foot"
-          ],
+          "treatedDisabilityNames": ["Musculoskeletal - Foot"],
           "center": {
             "name": "Center One",
             "state": "GA",
@@ -158,8 +150,8 @@
         "servicePeriods": [
           {
             "serviceBranch": "Public Health Service",
-            "activeDutyBeginDate": "2015-11-14",
-            "activeDutyEndDate": "2018-11-30",
+            "activeDutyBeginDate": "11-14-2015",
+            "activeDutyEndDate": "11-30-2018",
             "serviceComponent": "Active",
             "separationLocationCode": "V01D"
           }
@@ -176,40 +168,37 @@
         ],
         "reservesNationalGuardService": {
           "obligationTermsOfService": {
-            "beginDate": "2016-11-24",
-            "endDate": "2017-11-17"
+            "beginDate": "11-24-2016",
+            "endDate": "11-17-2017"
           },
           "unitName": "National Guard Unit Name",
           "unitAddress": "1243 pine court",
           "component": "National Guard",
           "title10Activation": {
-            "anticipatedSeparationDate": "2025-10-03",
-            "title10ActivationDate": "2018-02-11"
+            "anticipatedSeparationDate": "10-03-2025",
+            "title10ActivationDate": "02-11-2018"
           },
           "unitPhone": {
             "areaCode": "555",
             "phoneNumber": "5555555"
           },
-          "receivingInactiveDutyTrainingPay": true
+          "receivingInactiveDutyTrainingPay": "YES"
         },
-        "alternateNames": [
-          "John Jacob Jingleheimer-Schmidt",
-          "Johnathon"
-        ],
-        "servedInActiveCombatSince911": false
+        "alternateNames": ["John Jacob Jingleheimer-Schmidt", "Johnathon"],
+        "servedInActiveCombatSince911": "NO"
       },
       "servicePay": {
         "favorTrainingPay": true,
         "favorMilitaryRetiredPay": false,
-        "receivingMilitaryRetiredPay": false,
-        "futureMilitaryRetiredPay": true,
+        "receivingMilitaryRetiredPay": "NO",
+        "futureMilitaryRetiredPay": "YES",
         "futureMilitaryRetiredPayExplanation": "ABCDEFGHIJKLMNOPQRSTUVW",
         "militaryRetiredPay": {
           "branchOfService": "Army",
           "monthlyAmount": 840.75
         },
         "retiredStatus": "PERMANENT_DISABILITY_RETIRED_LIST",
-        "receivedSeparationOrSeverancePay": false,
+        "receivedSeparationOrSeverancePay": "NO",
         "separationSeverancePay": {
           "datePaymentReceived": "07-31-2018",
           "branchOfService": "Naval Academy",

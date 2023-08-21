@@ -14,7 +14,7 @@
 features:
   this_is_only_a_test:
     actor_type: user
-    description: used in feature_toggles_controller_spec.
+    description: Used in feature_toggles_controller_spec.
   avs_enabled:
     actor_type: user
     description: Enables the After Visit Summary API.
@@ -120,10 +120,18 @@ features:
     actor_type: user
     description: Enables travel reimbursement workflow for day-of check-in application.
     enable_in_development: true
+  check_in_experience_travel_logic:
+    actor_type: user
+    description: Enables the travel reimbursement logic
+    enable_in_development: true
   check_in_experience_browser_monitoring:
     actor_type: user
     description: Enables browser monitoring for check-in applications.
     enable_in_development: false
+  check_in_experience_unified_landing_page:
+    actor_type: user
+    description: Enables the unified experience version of the landing page.
+    enable_in_development: true
   claim_letters_access:
     actor_type: user
     description: Enables users to access the claim letters page
@@ -281,6 +289,14 @@ features:
     actor_type: user
     description: enables sending claims for increase to VRO Contention Classification service for more accurate classification entry.
     enable_in_development: true
+  disability_526_maximum_rating:
+    actor_type: user
+    description: enables displaying a short education blurb alongside rated disabilities already at maximum rating.
+    enable_in_development: true
+  disability_526_maximum_rating_api:
+    actor_type: user
+    description: enables sending disability diagnostic codes to VRO Max CFI API to get the corresponding maximum ratings.
+    enable_in_development: false
   disability_compensation_flashes:
     actor_type: user
     description: enables sending flashes to BGS for disability_compensation submissions.
@@ -393,12 +409,19 @@ features:
     actor_type: user
     description: Enables form 5490 email submission confirmation (VaNotify)
     enable_in_development: true
+  form5495_confirmation_email:
+    actor_type: user
+    description: Enables form 5495 email submission confirmation (VaNotify)
+    enable_in_development: true
   form214142:
     actor_type: user
     description: If enabled shows the digital form experience for form 21-4142
   form2110210:
     actor_type: user
     description: If enabled shows the digital form experience for form 21-10210
+  form21p0847:
+    actor_type: user
+    description: If enabled shows the digital form experience for form 21P-0847
   form264555:
     actor_type: user
     description: If enabled shows the digital form experience for form 26-4555
@@ -521,7 +544,8 @@ features:
     description: Toggle to enable login.gov create account experiment
   reactivation_experiment_initial_gate:
     actor_type: user
-    description: Toggle to enable all users to enter the eligibility check portion of the flow.  This only be set to
+    description:
+      Toggle to enable all users to enter the eligibility check portion of the flow.  This only be set to
       enabled for one (1) week at the longest, starting 20JULY2023 or 21JULY2023 depending on deployment timing.
   reactivation_experiment_rate_limit:
     actor_type: user
@@ -576,10 +600,6 @@ features:
     description: "Use a single page route in Profile for editing or adding a field value"
     enable_in_development: true
     actor_type: user
-  profile_use_info_card:
-    description: "Use an accessible component for Profile application information card sections"
-    enable_in_development: true
-    actor_type: user
   profile_use_notification_settings_checkboxes:
     actor_type: user
     description: "Use checkboxes for Notification Settings in Profile - Default Send and Email Channel"
@@ -601,7 +621,7 @@ features:
     enable_in_development: true
   my_va_update_errors_warnings:
     actor_type: user
-    description: Update all errors and warnings on My VA for consistency (will remove when va-notification component is released) 
+    description: Update all errors and warnings on My VA for consistency (will remove when va-notification component is released)
   search_representative:
     actor_type: user
     description: Enable frontend application and cta for Search Representative application
@@ -674,6 +694,9 @@ features:
     actor_type: cookie_id
     description: Enables the ability to use OAuth authentication via the Sign in Service (Identity)
     enable_in_development: true
+  sign_in_page_and_modal_experiment_lga:
+    actor_type: user
+    description: Enables users to see updated design of the sign in page to facilitate login.gov and id.me adoption.
   medical_copays_zero_debt:
     actor_type: user
     description: Enables zero debt balances feature on the medical copays application
@@ -839,9 +862,6 @@ features:
   show_dashboard_notifications:
     actor_type: user
     description: Enables on-site notifications
-  show_myva_dashboard_2_0:
-    actor_type: user
-    description: Enables My VA 2.0
   check_va_inbox_enabled:
     actor_type: user
     description: Enables check inbox link
@@ -880,6 +900,10 @@ features:
     actor_type: user
     description: Provides a flag wrapper for minor code changes to be gated from Prod.
   show_meb_enhancements_08:
+    actor_type: user
+    description: Provides a flag wrapper for minor code changes to be gated from Prod.
+    enable_in_development: true
+  show_meb_enhancements_09:
     actor_type: user
     description: Provides a flag wrapper for minor code changes to be gated from Prod.
     enable_in_development: true

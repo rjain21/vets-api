@@ -24,7 +24,8 @@ Mobile::Engine.routes.draw do
     post '/claim/:id/request-decision', to: 'claims_and_appeals#request_decision'
     get '/community-care-providers', to: 'community_care_providers#index'
     get '/disability-rating', to: 'disability_rating#index'
-    get '/facilities-info/:sort', to: 'facilities_info#index'
+    get '/facilities-info', to: 'facilities_info#index'
+    get '/facilities-info/:sort', to: 'facilities_info#schedulable'
     get '/health/immunizations', to: 'immunizations#index'
     get '/health/locations/:id', to: 'locations#show'
     get '/letters', to: 'letters#index'
@@ -41,6 +42,8 @@ Mobile::Engine.routes.draw do
     put '/push/prefs/:endpoint_sid', to: 'push_notifications#set_pref'
     post '/push/send', to: 'push_notifications#send_notification'
     get '/user', to: 'users#show'
+    get '/user/authorized-services', to: 'authorized_services#index'
+    get '/user/contact-info', to: 'contact_info#show'
     get '/user/logout', to: 'users#logout'
     post '/user/addresses', to: 'addresses#create'
     put '/user/addresses', to: 'addresses#update'
@@ -55,6 +58,7 @@ Mobile::Engine.routes.draw do
     put '/user/phones', to: 'phones#update'
     delete '/user/phones', to: 'phones#destroy'
     put '/user/preferred_name', to: 'preferred_names#update'
+    get '/user/demographics', to: 'demographics#index'
     get '/health/rx/prescriptions', to: 'prescriptions#index'
     put '/health/rx/prescriptions/refill', to: 'prescriptions#refill'
     get '/health/rx/prescriptions/:id/tracking', to: 'prescriptions#tracking'
@@ -95,5 +99,9 @@ Mobile::Engine.routes.draw do
         end
       end
     end
+  end
+
+  namespace :v2 do
+    get '/user', to: 'users#show'
   end
 end

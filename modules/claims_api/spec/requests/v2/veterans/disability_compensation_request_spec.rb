@@ -17,7 +17,7 @@ RSpec.describe 'Disability Claims', type: :request do
 
   describe '#526', vcr: 'claims_api/disability_comp' do
     let(:claim_date) { (Time.zone.today - 1.day).to_s }
-    let(:anticipated_separation_date) { 2.days.from_now.strftime('%Y-%m-%d') }
+    let(:anticipated_separation_date) { 2.days.from_now.strftime('%m-%d-%Y') }
     let(:data) do
       temp = Rails.root.join('modules', 'claims_api', 'spec', 'fixtures', 'v2', 'veterans', 'disability_compensation',
                              'form_526_json_api.json').read
@@ -326,7 +326,7 @@ RSpec.describe 'Disability Claims', type: :request do
             let(:valid_change_of_address) do
               {
                 dates: {
-                  beginDate: '2012-11-31',
+                  beginDate: '11-30-2012',
                   endDate: ''
                 },
                 typeOfAddressChange: 'PERMANENT',
@@ -355,7 +355,7 @@ RSpec.describe 'Disability Claims', type: :request do
             let(:invalid_change_of_address) do
               {
                 dates: {
-                  beginDate: '2012-11-31',
+                  beginDate: '11-30-2012',
                   endDate: ''
                 },
                 typeOfAddressChange: 'PERMANENT',
@@ -388,7 +388,7 @@ RSpec.describe 'Disability Claims', type: :request do
             let(:invalid_change_of_address) do
               {
                 dates: {
-                  beginDate: '2012-11-31',
+                  beginDate: '11-31-2012',
                   endDate: ''
                 },
                 typeOfAddressChange: 'PERMANENT',
@@ -454,7 +454,7 @@ RSpec.describe 'Disability Claims', type: :request do
             let(:invalid_change_of_address) do
               {
                 dates: {
-                  beginDate: '2012-11-31',
+                  beginDate: '11-31-2012',
                   endDate: ''
                 },
                 typeOfAddressChange: '',
@@ -509,8 +509,8 @@ RSpec.describe 'Disability Claims', type: :request do
         end
 
         context 'when the begin date is after the end date' do
-          let(:begin_date) { '2023-01-01' }
-          let(:end_date) { '2022-01-01' }
+          let(:begin_date) { '01-01-2023' }
+          let(:end_date) { '01-01-2022' }
 
           it 'responds with bad request' do
             with_okta_user(scopes) do |auth_header|
@@ -655,14 +655,14 @@ RSpec.describe 'Disability Claims', type: :request do
           end
         end
 
-        context 'when currentlyVaEmployee is a non-boolean value' do
-          let(:currently_va_employee) { 'negative' }
+        context 'when currentVaEmployee is a non-boolean value' do
+          let(:current_va_employee) { 'negative' }
 
           it 'responds with bad request' do
             with_okta_user(scopes) do |auth_header|
               json = JSON.parse(data)
-              json['data']['attributes']['veteranIdentification']['currentlyVaEmployee'] =
-                currently_va_employee
+              json['data']['attributes']['veteranIdentification']['currentVaEmployee'] =
+                current_va_employee
               data = json.to_json
               post submit_path, params: data, headers: auth_header
               expect(response).to have_http_status(:unprocessable_entity)
@@ -915,18 +915,33 @@ RSpec.describe 'Disability Claims', type: :request do
         end
       end
 
-      context 'when is a PACT claim' do
-        let(:hazard_exposed_to) { 'some !@#@#$#%$^%$#&$^%&&(*978078)' }
+      context 'tracking PACT act claims' do
+        context 'when is a PACT claim' do
+          it 'tracks the claim count' do
+            with_okta_user(scopes) do |auth_header|
+              json = JSON.parse(data)
+              json['data']['attributes']['disabilities'][0]['isRelatedToToxicExposure'] = true
+              data = json.to_json
+              post submit_path, params: data, headers: auth_header
+              id = JSON.parse(response.body)['data']['id']
+              submissions = ClaimsApi::AutoEstablishedClaim.find(id).submissions
+              expect(submissions.size).to be <= 1
+            end
+          end
+        end
 
-        it 'tracks the claim count' do
-          with_okta_user(scopes) do |auth_header|
-            json = JSON.parse(data)
-            json['data']['attributes']['disabilities'][0]['isRelatedToToxicExposure'] = true
-            data = json.to_json
-            post submit_path, params: data, headers: auth_header
-            id = JSON.parse(response.body)['data']['id']
-            submissions = ClaimsApi::AutoEstablishedClaim.find(id).submissions
-            expect(submissions.size).to be <= 1
+        context 'when it is not a PACT claim' do
+          it 'tracks the claim count' do
+            with_okta_user(scopes) do |auth_header|
+              json = JSON.parse(data)
+              json['data']['attributes']['disabilities'][0]['isRelatedToToxicExposure'] = false
+              json['data']['attributes']['disabilities'][1]['isRelatedToToxicExposure'] = false
+              data = json.to_json
+              post submit_path, params: data, headers: auth_header
+              id = JSON.parse(response.body)['data']['id']
+              submissions = ClaimsApi::AutoEstablishedClaim.find(id).submissions
+              expect(submissions.size).to be(0)
+            end
           end
         end
       end
@@ -947,8 +962,8 @@ RSpec.describe 'Disability Claims', type: :request do
 
             context "when 'receivingMilitaryRetiredPay' and 'futureMilitaryRetiredPay' are equal but not 'nil'" do
               context "when both are 'true'" do
-                let(:receiving) { true }
-                let(:future) { true }
+                let(:receiving) { 'YES' }
+                let(:future) { 'YES' }
 
                 it 'responds with a bad request' do
                   with_okta_user(scopes) do |auth_header|
@@ -962,8 +977,8 @@ RSpec.describe 'Disability Claims', type: :request do
               end
 
               context "when both are 'false'" do
-                let(:receiving) { false }
-                let(:future) { false }
+                let(:receiving) { 'NO' }
+                let(:future) { 'NO' }
 
                 it 'responds with a bad request' do
                   with_okta_user(scopes) do |auth_header|
@@ -979,8 +994,8 @@ RSpec.describe 'Disability Claims', type: :request do
 
             context "when 'receivingMilitaryRetiredPay' and 'futureMilitaryRetiredPay' are not equal" do
               context "when 'receivingMilitaryRetiredPay' is 'false' and 'futureMilitaryRetiredPay' is 'true'" do
-                let(:receiving) { false }
-                let(:future) { true }
+                let(:receiving) { 'NO' }
+                let(:future) { 'YES' }
 
                 it 'responds with a 200' do
                   with_okta_user(scopes) do |auth_header|
@@ -993,9 +1008,9 @@ RSpec.describe 'Disability Claims', type: :request do
                 end
               end
 
-              context "when 'receivingMilitaryRetiredPay' is 'true' and 'futureMilitaryRetiredPay' is 'false'" do
-                let(:receiving) { true }
-                let(:future) { false }
+              context "when 'receivingMilitaryRetiredPay' is 'YES' and 'futureMilitaryRetiredPay' is 'NO'" do
+                let(:receiving) { 'YES' }
+                let(:future) { 'NO' }
 
                 it 'responds with a 200' do
                   with_okta_user(scopes) do |auth_header|
@@ -1013,8 +1028,8 @@ RSpec.describe 'Disability Claims', type: :request do
           describe "'payment'" do
             let(:service_pay_attribute) do
               {
-                receivingMilitaryRetiredPay: true,
-                futureMilitaryRetiredPay: false,
+                receivingMilitaryRetiredPay: 'YES',
+                futureMilitaryRetiredPay: 'NO',
                 militaryRetiredPay: {
                   branchOfService: 'Air Force',
                   monthlyAmount: military_retired_payment_amount
@@ -1067,12 +1082,12 @@ RSpec.describe 'Disability Claims', type: :request do
 
           describe "'futurePayExplanation'" do
             context "when 'futureMilitaryRetiredPay' is 'true'" do
-              let(:future_military_retired_pay) { true }
+              let(:future_military_retired_pay) { 'YES' }
 
               context "when 'futureMilitaryRetiredPayExplanation' is not provided" do
                 let(:service_pay_attribute) do
                   {
-                    receivingMilitaryRetiredPay: false,
+                    receivingMilitaryRetiredPay: 'NO',
                     futureMilitaryRetiredPay: future_military_retired_pay,
                     militaryRetiredPay: {
                       branchOfService: 'Air Force'
@@ -1094,7 +1109,7 @@ RSpec.describe 'Disability Claims', type: :request do
               context "when 'futureMilitaryRetiredPayExplanation' is provided" do
                 let(:service_pay_attribute) do
                   {
-                    receivingMilitaryRetiredPay: false,
+                    receivingMilitaryRetiredPay: 'NO',
                     futureMilitaryRetiredPay: future_military_retired_pay,
                     futureMilitaryRetiredPayExplanation: 'Retiring soon.',
                     militaryRetiredPay: {
@@ -1121,7 +1136,7 @@ RSpec.describe 'Disability Claims', type: :request do
           describe "'payment'" do
             let(:service_pay_attribute) do
               {
-                receivedSeparationOrSeverancePay: true,
+                receivedSeparationOrSeverancePay: 'YES',
                 separationSeverancePay: {
                   datePaymentReceived: (Time.zone.today - 1.year).strftime('%m-%d-%Y'),
                   branchOfService: 'Air Force',
@@ -1176,7 +1191,7 @@ RSpec.describe 'Disability Claims', type: :request do
           describe "'datePaymentReceived'" do
             let(:service_pay_attribute) do
               {
-                receivedSeparationOrSeverancePay: true,
+                receivedSeparationOrSeverancePay: 'YES',
                 separationSeverancePay: {
                   datePaymentReceived: received_date,
                   branchOfService: 'Air Force',
@@ -1635,7 +1650,7 @@ RSpec.describe 'Disability Claims', type: :request do
         end
 
         context 'when the activeDutyEndDate is not formatted correctly' do
-          let(:active_duty_end_date) { '07-28-1995' }
+          let(:active_duty_end_date) { '1995-07-28' }
 
           it 'responds with a 422' do
             with_okta_user(scopes) do |auth_header|
@@ -1650,7 +1665,7 @@ RSpec.describe 'Disability Claims', type: :request do
         end
 
         context 'when the activeDutyEndDate is in the future' do
-          let(:active_duty_end_date) { 2.months.from_now.strftime('%Y-%m-%d') }
+          let(:active_duty_end_date) { 2.months.from_now.strftime('%m-%d-%Y') }
 
           context 'and the seperationLocationCode is present' do
             it 'responds with a 200' do
@@ -2136,7 +2151,7 @@ RSpec.describe 'Disability Claims', type: :request do
                 params = json_data
                 disabilities = [
                   {
-                    disabilityActionType: 'REOPEN',
+                    disabilityActionType: 'NEW',
                     name: 'PTSD (post traumatic stress disorder)',
                     serviceRelevance: 'Heavy equipment operator in service.',
                     diagnosticCode: 9999,
@@ -2559,7 +2574,7 @@ RSpec.describe 'Disability Claims', type: :request do
           end
 
           context 'when anticipatedSeparationDate is not in the future' do
-            let(:anticipated_separation_date) { 1.month.ago.strftime('%Y-%m-%d') }
+            let(:anticipated_separation_date) { 1.month.ago.strftime('%m-%d-%Y') }
 
             it 'responds with a 422' do
               with_okta_user(scopes) do |auth_header|
@@ -2589,20 +2604,20 @@ RSpec.describe 'Disability Claims', type: :request do
           end
 
           context 'when title10ActivationDate is not after the earliest servicePeriod.activeDutyBeginDate' do
-            let(:title_10_activation_date) { '2005-05-05' }
+            let(:title_10_activation_date) { '05-05-2005' }
             let(:service_periods) do
               [
                 {
                   serviceBranch: 'Public Health Service',
-                  activeDutyBeginDate: '1980-02-05',
-                  activeDutyEndDate: '1990-01-02',
+                  activeDutyBeginDate: '02-05-1980',
+                  activeDutyEndDate: '01-02-1990',
                   serviceComponent: 'Reserves',
                   separationLocationCode: 'ABCDEFGHIJKLMN'
                 },
                 {
                   serviceBranch: 'Public Health Service',
-                  activeDutyBeginDate: '2006-02-05',
-                  activeDutyEndDate: '2016-01-02',
+                  activeDutyBeginDate: '02-05-2006',
+                  activeDutyEndDate: '01-02-2016',
                   serviceComponent: 'Active',
                   separationLocationCode: 'OPQRSTUVWXYZ'
                 }
