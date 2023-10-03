@@ -139,7 +139,6 @@ vanotify:
       api_key: fake_api_key
       template_id:
         disconnection_template: fake_template_id
-        connection_template: fake_template_id
     check_in:
       api_key: check-in_aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
       sms_sender_id: fake_sms_sender_id
@@ -310,13 +309,13 @@ mcp:
   vbs:
     url: https://fake_url.com:9000
     host: fake_url.com:9000
-    base_path: /base/path
+    base_path: /vbsapi
     service_name: VBS
     mock: true
   vbs_v2:
-    url: https://fake_url.com:9000
-    host: fake_url.com:9000
-    base_path: /base/path
+    url: https://internal-dsva-vagov-staging-fwdproxy-1821450725.us-gov-west-1.elb.amazonaws.com:4491
+    host: internal-dsva-vagov-staging-fwdproxy-1821450725.us-gov-west-1.elb.amazonaws.com:4491
+    base_path: /vbsapi
     service_name: VBS
     mock: true
   notifications:
@@ -356,15 +355,15 @@ form_10_10cg:
 
 vha:
   sharepoint:
-    sharepoint_url: "fake_url.com"
-    client_id: "51dadf135qwwc"
-    client_secret: "xxxxxxxxx"
-    tenant_id: "ad21angkl35dadf43ad56"
-    resource: "23asdb54ada655a3"
+    sharepoint_url: "dvagov.sharepoint.com"
+    client_id: "fake_sharepoint_client_id"
+    client_secret: "fake_sharepoint_client_secret"
+    tenant_id: "fake_sharepoint_tenant_id"
+    resource: "00000003-0000-0ff1-ce00-000000000000"
     service_name: "VHA-SHAREPOINT"
-    base_path: "/base"
-    authentication_url: "https://fake_auth_url.com"
-    mock: true
+    base_path: "/sites/vhafinance/MDW"
+    authentication_url: "https://accounts.accesscontrol.windows.net"
+    mock: false
 
 mhv:
   medical_records:
@@ -372,11 +371,22 @@ mhv:
     app_token: xyz
     host: http://example.org
 
-pdf_generator:
-  url: 'https://fake_pdf_url.com'
-  path: '/form-526ez-pdf-generator/v1/forms/'
-  content_type: 'application/vnd.api+json'
+evss:
+  dvp:
+    url: https://fakedomainandsubdomain.com
 
 claims_api:
   evss_container:
     auth_base_name: staging-api.va.gov
+    client_key: fakekeyvaluehere
+  pdf_generator_526:
+    url: 'https://fake_pdf_url.com'
+    path: '/form-526ez-pdf-generator/v1/forms/'
+    content_type: 'application/vnd.api+json'
+  benefits_documents:
+    host: https://sandbox-api.va.gov
+    auth:
+      ccg:
+        client_id: fakekeyvaluehere
+        secret_key: path/to/fake/key.pem
+        aud_claim_url: https://fakeurlhere/fake/path/here

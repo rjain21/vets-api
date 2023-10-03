@@ -569,7 +569,8 @@ RSpec.describe SAML::PostURLService do
         end
 
         context 'redirect urls' do
-          let(:params) { { action: 'saml_callback', RelayState: '{"type":"idme"}' } }
+          let(:params) { { action: 'saml_callback', RelayState: '{"type":"idme"}', application: } }
+          let(:application) { 'vaweb' }
 
           it 'has a base url' do
             expect(subject.base_redirect_url).to eq(values[:base_redirect])
@@ -598,6 +599,34 @@ RSpec.describe SAML::PostURLService do
             it 'has a logout redirect url' do
               expect(subject.logout_redirect_url)
                 .to eq(values[:base_redirect] + SAML::URLService::LOGOUT_REDIRECT_PARTIAL)
+            end
+          end
+
+          context 'for terms of use' do
+            let(:user) { build(:user, :loa3) }
+            let(:expected_redirect_url_param) do
+              expected_login_redirect_url.to_query('redirect_url')
+            end
+            let(:expected_login_redirect_url) do
+              "#{values[:base_redirect]}#{SAML::URLService::LOGIN_REDIRECT_PARTIAL}?type=idme"
+            end
+
+            context 'when tracker application is within TERMS_OF_USE_ENABLED_CLIENTS' do
+              let(:application) { SAML::URLService::TERMS_OF_USE_ENABLED_CLIENTS.first }
+
+              it 'has a login redirect url as a parameter embedded in terms of use page with success' do
+                expect(subject.terms_of_use_redirect_url)
+                  .to eq("#{values[:base_redirect]}/terms-of-use?#{expected_redirect_url_param}")
+              end
+            end
+
+            context 'when tracker application is not within TERMS_OF_USE_ENABLED_CLIENTS' do
+              let(:application) { 'some-application' }
+
+              it 'has a login redirect url with success not embedded in a terms of use page' do
+                expect(subject.terms_of_use_redirect_url)
+                  .to eq(expected_login_redirect_url)
+              end
             end
           end
         end

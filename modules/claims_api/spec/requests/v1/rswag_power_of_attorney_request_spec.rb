@@ -3,10 +3,15 @@
 require 'swagger_helper'
 require Rails.root.join('spec', 'rswag_override.rb').to_s
 require 'rails_helper'
+require_relative '../../rails_helper'
 require_relative '../../support/swagger_shared_components/v1'
 
 describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claims_api/v1/swagger.json' do # rubocop:disable RSpec/DescribeClass
   let(:pws) { ClaimsApi::LocalBGS }
+
+  before do
+    stub_jwt_valid_token_decode
+  end
 
   path '/forms/2122' do
     get 'Gets schema for POA form.' do
@@ -97,7 +102,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             allow_any_instance_of(pws)
               .to receive(:find_by_ssn).and_return({ file_nbr: '123456789' })
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               submit_request(example.metadata)
             end
           end
@@ -134,7 +139,8 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
+              allow(ClaimsApi::ValidatedToken).to receive(:new).and_return(nil)
               submit_request(example.metadata)
             end
           end
@@ -171,7 +177,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               submit_request(example.metadata)
             end
           end
@@ -257,7 +263,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow_any_instance_of(pws)
                 .to receive(:find_by_ssn).and_return({ file_nbr: '123456789' })
               allow_any_instance_of(ClaimsApi::PowerOfAttorneyUploader).to receive(:store!)
@@ -297,8 +303,11 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow_any_instance_of(ClaimsApi::PowerOfAttorneyUploader).to receive(:store!)
+              allow_any_instance_of(pws)
+                .to receive(:find_by_ssn).and_return({ file_nbr: '123456789' })
+              allow(ClaimsApi::ValidatedToken).to receive(:new).and_return(nil)
               submit_request(example.metadata)
             end
           end
@@ -333,7 +342,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow_any_instance_of(ClaimsApi::PowerOfAttorneyUploader).to receive(:store!)
               submit_request(example.metadata)
             end
@@ -370,7 +379,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow_any_instance_of(pws)
                 .to receive(:find_by_ssn).and_return(nil)
               submit_request(example.metadata)
@@ -408,7 +417,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow_any_instance_of(pws)
                 .to receive(:find_by_ssn).and_raise(BGS::ShareError.new('HelloWorld'))
               submit_request(example.metadata)
@@ -442,7 +451,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow_any_instance_of(BGS::PersonWebService)
                 .to receive(:find_by_ssn).and_raise(BGS::ShareError.new('HelloWorld'))
               submit_request(example.metadata)
@@ -514,7 +523,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               submit_request(example.metadata)
             end
           end
@@ -555,7 +564,8 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
+              allow(ClaimsApi::ValidatedToken).to receive(:new).and_return(nil)
               submit_request(example.metadata)
             end
           end
@@ -594,7 +604,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               submit_request(example.metadata)
             end
           end
@@ -665,7 +675,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow(BGS::PowerOfAttorneyVerifier).to receive(:new).and_return(bgs_poa_verifier)
               allow(::Veteran::Service::Representative).to receive(:for_user).and_return(true)
               expect(bgs_poa_verifier).to receive(:current_poa).and_return(Struct.new(:code).new('HelloWorld'))
@@ -703,7 +713,8 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
+              allow(ClaimsApi::ValidatedToken).to receive(:new).and_return(nil)
               submit_request(example.metadata)
             end
           end
@@ -734,7 +745,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               allow(BGS::PowerOfAttorneyVerifier).to receive(:new).and_return(bgs_poa_verifier)
               allow(::Veteran::Service::Representative).to receive(:for_user).and_return(true)
               expect(bgs_poa_verifier).to receive(:current_poa).and_return(Struct.new(:code).new(nil))
@@ -811,7 +822,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               submit_request(example.metadata)
             end
           end
@@ -848,7 +859,8 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
+              allow(ClaimsApi::ValidatedToken).to receive(:new).and_return(nil)
               submit_request(example.metadata)
             end
           end
@@ -879,7 +891,7 @@ describe 'Power of Attorney', swagger_doc: 'modules/claims_api/app/swagger/claim
             stub_poa_verification
             stub_mpi
 
-            with_okta_user(scopes) do
+            mock_acg(scopes) do
               submit_request(example.metadata)
             end
           end

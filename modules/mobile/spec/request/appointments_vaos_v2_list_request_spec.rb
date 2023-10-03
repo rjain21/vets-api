@@ -109,7 +109,36 @@ RSpec.describe 'vaos v2 appointments', type: :request do
           end
         end
         expect(response.body).to match_json_schema('VAOS_v2_appointments')
-        expect(response.parsed_body['location']).to be_nil
+        location = response.parsed_body.dig('data', 0, 'attributes', 'location')
+        expect(location).to eq({ 'id' => nil,
+                                 'name' => nil,
+                                 'address' =>
+                                   { 'street' => nil,
+                                     'city' => nil,
+                                     'state' => nil,
+                                     'zipCode' => nil },
+                                 'lat' => nil,
+                                 'long' => nil,
+                                 'phone' =>
+                                   { 'areaCode' => nil,
+                                     'number' => nil,
+                                     'extension' => nil },
+                                 'url' => nil,
+                                 'code' => nil })
+      end
+
+      it 'does not attempt to fetch facility more than once' do
+        expect_any_instance_of(Mobile::AppointmentsHelper).to receive(:get_facility).with('983').once
+
+        VCR.use_cassette('mobile/appointments/VAOS_v2/get_clinic_200', match_requests_on: %i[method uri]) do
+          VCR.use_cassette('mobile/appointments/VAOS_v2/get_facility_500', match_requests_on: %i[method uri],
+                                                                           allow_playback_repeats: true) do
+            VCR.use_cassette('mobile/appointments/VAOS_v2/get_appointments_bad_facility_200',
+                             match_requests_on: %i[method uri]) do
+              get '/mobile/v0/appointments', headers: iam_headers, params:
+            end
+          end
+        end
       end
     end
 
@@ -141,6 +170,19 @@ RSpec.describe 'vaos v2 appointments', type: :request do
         end
         expect(response.body).to match_json_schema('VAOS_v2_appointments')
         expect(response.parsed_body.dig('data', 0, 'attributes', 'healthcareService')).to be_nil
+      end
+
+      it 'attempts to fetch clinic once' do
+        allow_any_instance_of(Mobile::AppointmentsHelper).to receive(:get_clinic).and_return(nil)
+        expect_any_instance_of(Mobile::AppointmentsHelper).to receive(:get_clinic).once
+
+        VCR.use_cassette('mobile/appointments/VAOS_v2/get_clinic_bad_facility_id_500',
+                         match_requests_on: %i[method uri]) do
+          VCR.use_cassette('mobile/appointments/VAOS_v2/get_appointments_bad_facility_200',
+                           match_requests_on: %i[method uri]) do
+            get '/mobile/v0/appointments', headers: iam_headers, params:
+          end
+        end
       end
     end
 
@@ -233,6 +275,50 @@ RSpec.describe 'vaos v2 appointments', type: :request do
 
         is_pending = response.parsed_body['data'].map { |appt| appt.dig('attributes', 'isPending') }.uniq
         expect(is_pending).to match_array([true, false])
+      end
+    end
+
+    context 'request telehealth onsite appointment' do
+      before do
+        mock_facility
+        mock_clinic
+      end
+
+      let(:start_date) { Time.zone.parse('1991-01-01T00:00:00Z').iso8601 }
+      let(:end_date) { Time.zone.parse('2023-01-01T00:00:00Z').iso8601 }
+      let(:params) do
+        { page: { number: 1, size: 9999 }, startDate: start_date, endDate: end_date }
+      end
+
+      it 'processes appointments without error' do
+        VCR.use_cassette('mobile/appointments/VAOS_v2/get_appointment_200_telehealth_onsite',
+                         match_requests_on: %i[method uri]) do
+          VCR.use_cassette('mobile/providers/get_provider_200', match_requests_on: %i[method uri], tag: :force_utf8) do
+            allow_any_instance_of(Mobile::V2::Appointments::ProviderNames).to \
+              receive(:fetch_provider).and_return(provider_response)
+            get '/mobile/v0/appointments', headers: iam_headers, params:
+          end
+        end
+        attributes = response.parsed_body.dig('data', 0, 'attributes')
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to match_json_schema('VAOS_v2_appointments')
+
+        expect(attributes['appointmentType']).to eq('VA_VIDEO_CONNECT_ONSITE')
+        expect(attributes['location']).to eq({ 'id' => '983',
+                                               'name' => 'Cheyenne VA Medical Center',
+                                               'address' =>
+                                                { 'street' => '2360 East Pershing Boulevard',
+                                                  'city' => 'Cheyenne',
+                                                  'state' => 'WY',
+                                                  'zipCode' => '82001-5356' },
+                                               'lat' => 41.148026,
+                                               'long' => -104.786255,
+                                               'phone' =>
+                                                { 'areaCode' => '307',
+                                                  'number' => '778-7550',
+                                                  'extension' => nil },
+                                               'url' => nil,
+                                               'code' => nil })
       end
     end
 

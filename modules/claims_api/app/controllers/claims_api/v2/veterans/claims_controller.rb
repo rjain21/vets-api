@@ -7,8 +7,6 @@ module ClaimsApi
   module V2
     module Veterans
       class ClaimsController < ClaimsApi::V2::ApplicationController # rubocop:disable Metrics/ClassLength
-        before_action :verify_access!
-
         def index
           bgs_claims = find_bgs_claims!
 
@@ -179,6 +177,7 @@ module ClaimsApi
 
         def build_claim_structure(data:, lighthouse_id:, upstream_id:) # rubocop:disable Metrics/MethodLength
           {
+            base_end_prdct_type_cd: data[:base_end_prdct_type_cd],
             claim_date: date_present(data[:claim_dt]),
             claim_id: upstream_id,
             claim_phase_dates: build_claim_phase_attributes(data, 'index'),
@@ -521,14 +520,17 @@ module ClaimsApi
                    file_number = local_bgs_service.find_by_ssn(target_veteran.ssn)&.dig(:file_nbr) # rubocop:disable Rails/DynamicFindBy
 
                    if file_number.nil?
-                     raise ::Common::Exceptions::ResourceNotFound.new(detail:
-                       "Unable to locate Veteran's File Number. " \
-                       'Please submit an issue at ask.va.gov or call 1-800-MyVA411 (800-698-2411) for assistance.')
+                     ClaimsApi::Logger.log('benefits_documents',
+                                           detail: 'calling benefits documents api ' \
+                                                   "for claim_id #{params[:id]} returned nil file number")
+
+                     return []
                    end
+
                    ClaimsApi::Logger.log('benefits_documents',
                                          detail: "calling benefits documents api for claim_id #{params[:id]}")
-                   supporting_docs_list = benefits_doc_api(multipart: false).search(params[:id],
-                                                                                    file_number)&.dig(:data)
+                   supporting_docs_list = benefits_doc_api.search(params[:id],
+                                                                  file_number)&.dig(:data)
                    # add with_indifferent_access so ['documents'] works below
                    # we can remove when EVSS is gone and access it via it's symbol
                    supporting_docs_list.with_indifferent_access if supporting_docs_list.present?

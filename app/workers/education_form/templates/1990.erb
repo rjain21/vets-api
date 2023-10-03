@@ -2,6 +2,7 @@
 <%= benefit_type(@applicant) %>
 *START*
 VA Form 22-1990
+OMB Control #: 2900-0154
 
                     APPLICATION FOR VA EDUCATION BENEFITS
                     -------------------------------------
@@ -79,20 +80,6 @@ Did you have a period of active duty that the Department of Defense counts for p
 
 <%= parse_with_template_path('non_va_assistance') %>
 
-
-                        MARITAL AND DEPENDENCY STATUS
-           (For Applicants with Military Service Before Jan 1, 1977)
-           ---------------------------------------------------------
-
-
-<% if @applicant.serviceBefore1977 -%>
-Married: <%= yesno(@applicant.serviceBefore1977.married) %>
-Has Dependents: <%= yesno(@applicant.serviceBefore1977.haveDependents) %>
-Parent Dependent: <%= yesno(@applicant.serviceBefore1977.parentDependent) %>
-<% else -%>
-N/A
-<% end -%>
-
 <% if @applicant.minorHighSchoolQuestions -%>
           GUARDIAN INFORMATION
           --------------------
@@ -114,6 +101,11 @@ Address of Parent, Guardian or Custodian:
   Email address: <%= @applicant.minorQuestions.guardianEmail %>
 
 <% end -%>
-<%= parse_with_template_path('signatures') %>
+<% if yesno(@applicant.currentlyActiveDuty&.yes).eql?('YES') -%>
+As an active-duty service member, you have consulted with an Education Service Officer (ESO) regarding your education program.
+<% else -%>
+      Certification and Signature of Applicant
+Signature of Applicant                                               Date
+<% end -%>
 
 <%= parse_with_template_path('footer') %>

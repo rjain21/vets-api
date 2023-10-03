@@ -279,6 +279,60 @@ describe VAOS::V2::AppointmentsService do
     end
   end
 
+  describe '#get_most_recent_visited_clinic_appointment' do
+    subject { instance_of_class.get_most_recent_visited_clinic_appointment }
+
+    let(:instance_of_class) { described_class.new(user) }
+    let(:mock_appointment_one) { double('Appointment', kind: 'clinic', start: '2022-12-01') }
+    let(:mock_appointment_two) { double('Appointment', kind: 'telehealth', start: '2022-12-01T21:38:01.476Z') }
+    let(:mock_appointment_three) { double('Appointment', kind: 'clinic', start: '2022-12-09T21:38:01.476Z') }
+
+    context 'when appointments are available' do
+      before do
+        allow(instance_of_class).to receive(:get_appointments).and_return({ data: [mock_appointment_one,
+                                                                                   mock_appointment_two,
+                                                                                   mock_appointment_three] })
+      end
+
+      it 'returns the most recent clinic appointment' do
+        expect(subject).to eq(mock_appointment_three)
+      end
+    end
+
+    context 'when no appointments are available' do
+      before do
+        allow(instance_of_class).to receive(:get_appointments).and_return({ data: [] })
+      end
+
+      it 'returns nil' do
+        expect(subject).to be_nil
+      end
+    end
+
+    context 'when there are no clinic appointments' do
+      before do
+        allow(instance_of_class).to receive(:get_appointments).and_return({ data: [mock_appointment_two] })
+      end
+
+      it 'returns nil' do
+        expect(subject).to be_nil
+      end
+    end
+
+    context 'when the second interval search returns an appointment' do
+      before do
+        allow(instance_of_class).to receive(:get_appointments).and_return({ data: [mock_appointment_two] },
+                                                                          { data: [mock_appointment_one,
+                                                                                   mock_appointment_two,
+                                                                                   mock_appointment_three] })
+      end
+
+      it 'returns the most recent clinic appointment' do
+        expect(subject).to eq(mock_appointment_three)
+      end
+    end
+  end
+
   describe '#get_appointment' do
     context 'with an appointment' do
       context 'with Jacqueline Morgan' do
@@ -380,14 +434,14 @@ describe VAOS::V2::AppointmentsService do
     end
   end
 
-  describe '#get_facility_timezone' do
+  describe '#get_facility_timezone_memoized' do
     let(:facility_location_id) { '983' }
     let(:facility_error_msg) { 'Error fetching facility details' }
 
     context 'with a facility location id' do
       it 'returns the facility timezone' do
         allow_any_instance_of(VAOS::V2::AppointmentsService).to receive(:get_facility).and_return(mock_facility)
-        timezone = subject.send(:get_facility_timezone, facility_location_id)
+        timezone = subject.send(:get_facility_timezone_memoized, facility_location_id)
         expect(timezone).to eq('America/New_York')
       end
     end
@@ -395,7 +449,7 @@ describe VAOS::V2::AppointmentsService do
     context 'with an internal server error from the facilities call' do
       it 'returns nil for the timezone' do
         allow_any_instance_of(VAOS::V2::AppointmentsService).to receive(:get_facility).and_return(facility_error_msg)
-        timezone = subject.send(:get_facility_timezone, facility_location_id)
+        timezone = subject.send(:get_facility_timezone_memoized, facility_location_id)
         expect(timezone).to eq(nil)
       end
     end
@@ -604,6 +658,146 @@ describe VAOS::V2::AppointmentsService do
 
     it 'raises an ArgumentError when the appointment nil' do
       expect { subject.send(:booked?, nil) }.to raise_error(ArgumentError, 'Appointment cannot be nil')
+    end
+  end
+
+  describe '#non_empty_array_of_hashes?' do
+    context 'when argument is not an array' do
+      arg = 'not an array'
+
+      it 'returns false' do
+        expect(subject.send(:non_empty_array_of_hashes?, arg)).to be false
+      end
+    end
+
+    context 'when argument is an empty array' do
+      arg = []
+
+      it 'returns false' do
+        expect(subject.send(:non_empty_array_of_hashes?, arg)).to be false
+      end
+    end
+
+    context 'when argument is an array with non OpenStruct element' do
+      arg = [1, OpenStruct.new, 'a string']
+
+      it 'returns false' do
+        expect(subject.send(:non_empty_array_of_hashes?, arg)).to be false
+      end
+    end
+
+    context 'when argument is an array with only Hash elements' do
+      arg = [{}, {}]
+
+      it 'returns true' do
+        expect(subject.send(:non_empty_array_of_hashes?, arg)).to be true
+      end
+    end
+
+    context 'when argument is nil' do
+      it 'returns false' do
+        expect(subject.send(:non_empty_array_of_hashes?, nil)).to be false
+      end
+    end
+  end
+
+  describe '#extract_names' do
+    context 'when practitioners is not a non-empty array' do
+      practitioners = 'not a non-empty array'
+
+      it 'returns nil' do
+        expect(subject.send(:extract_names, practitioners)).to be_nil
+      end
+    end
+
+    context 'when practitioners is an array of practitioners' do
+      practitioners =
+        [
+          { name: { given: ['John'], family: 'Doe' } },
+          { name: { given: ['Jane'], family: 'Roe' } }
+        ]
+
+      it 'returns a string of practitioner full names joined by comma' do
+        expect(subject.send(:extract_names, practitioners)).to eq 'John Doe, Jane Roe'
+      end
+    end
+
+    context 'when practitioners is a single practitioner with two given names' do
+      practitioners =
+        [
+          { name: { given: %w[Jane Olivia], family: 'Roe' } }
+        ]
+
+      it 'returns the practitioner full name' do
+        expect(subject.send(:extract_names, practitioners)).to eq 'Jane Olivia Roe'
+      end
+    end
+
+    context 'when practitioners is a single practitioner with no given names' do
+      practitioners =
+        [
+          { name: { family: 'Roe' } }
+        ]
+
+      it 'returns a string of practitioner full names joined by comma' do
+        expect(subject.send(:extract_names, practitioners)).to eq 'Roe'
+      end
+    end
+
+    context 'when practitioners is a single practitioner with no name' do
+      practitioners =
+        [
+          {}
+        ]
+
+      it 'returns a string of practitioner full names joined by comma' do
+        expect(subject.send(:extract_names, practitioners)).to be_nil
+      end
+    end
+  end
+
+  describe '#log_telehealth_data' do
+    let(:appt) do
+      { id: '177402',
+        location_id: '983',
+        practitioners: [
+          { identifier: [
+              { system: 'dfn-983', value: '520647710' }
+            ],
+            name: {
+              family: 'Poldass', given: ['Aarathi']
+            },
+            practice_name: 'Cheyenne WY VAMC' }
+        ],
+        telehealth: { atlas: { site_code: 'VFW-VA-20151-07',
+                               confirmation_code: '272438',
+                               address: { street_address: 'AFS CHANTILLY WALMART',
+                                          city: ' CHANTILLY ',
+                                          state: 'VA',
+                                          zip_code: '20105',
+                                          country: 'USA',
+                                          latitutde: 38.91753,
+                                          longitude: 7.0,
+                                          additional_details: '' } },
+                      vvs_kind: 'ADHOC' },
+        extension: { patient_has_mobile_gfe: false } }
+    end
+
+    let(:arg1) { 'VAOS telehealth atlas details' }
+
+    let(:arg2) do
+      '{"VAOSTelehealthData":{"siteCode":"VFW-VA-20151-07","address":{"street_address"' \
+        ':"AFS CHANTILLY WALMART","city":" CHANTILLY ","state":"VA","zip_code":"20105",' \
+        '"country":"USA","latitutde":38.91753,"longitude":7.0,"additional_details":""}' \
+        ',"hasMobileGfe":false,"vvsKind":"ADHOC","siteId":"983",' \
+        '"clinicId":null,"provider":"Aarathi Poldass"}}'
+    end
+
+    context 'when a telehealth appointment is passed in' do
+      it 'logs the telehealth data' do
+        expect(Rails.logger).to receive(:info).with(arg1, arg2)
+        subject.send(:log_telehealth_data, appt)
+      end
     end
   end
 end

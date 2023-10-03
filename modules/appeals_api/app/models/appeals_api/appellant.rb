@@ -79,7 +79,16 @@ module AppealsApi
     end
 
     def country_code
-      address['countryCodeISO2']
+      # N.B. Decision Reviews uses a two-letter code, while segmented APIs use a three-letter code.
+      code = address['countryCodeISO2']
+      return code if code.present?
+
+      code = address['countryCodeIso3']
+      IsoCountryCodes.find(code).alpha2
+    rescue IsoCountryCodes::UnknownCodeError
+      # Model validations should have already rejected an invalid country code, but if the code is somehow invalid
+      # anyway, return it as-is:
+      code
     end
 
     def zip_code_5
@@ -120,9 +129,9 @@ module AppealsApi
 
     def signing_appellant?
       # claimant is signer if present
-      return true if claimant? && claimant_headers_present?
+      return true if claimant? && claimant_details_present?
 
-      veteran? && !claimant_headers_present?
+      veteran? && !claimant_details_present?
     end
 
     def veteran?
@@ -165,9 +174,8 @@ module AppealsApi
       form_data['address'] || {}
     end
 
-    def claimant_headers_present?
-      form_data.dig('data', 'attributes', 'claimant', 'lastName').present? ||
-        auth_headers.include?('X-VA-NonVeteranClaimant-Last-Name')
+    def claimant_details_present?
+      form_data['lastName'].present? || auth_headers.include?('X-VA-NonVeteranClaimant-Last-Name')
     end
 
     def mpi_veteran

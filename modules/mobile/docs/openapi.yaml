@@ -314,7 +314,7 @@ paths:
           $ref: '#/components/responses/504'
       security:
         - Bearer: []
-      summary: /v0/appointments/check-in (DRAFT)
+      summary: /v0/appointments/check-in
   /v0/appointments/check-in/demographics:
     get:
       description: Retrieves demographics confirmation information which includes a field indicating if insurance verification is needed, patient contact information, emergency contact information and next-of-kin contact information.
@@ -353,7 +353,7 @@ paths:
           $ref: '#/components/responses/504'
       security:
         - Bearer: [ ]
-      summary: /v0/appointments/check-in/demographics (DRAFT)
+      summary: /v0/appointments/check-in/demographics
     patch:
       description: Edit demographics confirmations.
       requestBody:
@@ -406,7 +406,7 @@ paths:
           $ref: '#/components/responses/504'
       security:
         - Bearer: [ ]
-      summary: /v0/appointments/check-in/demographics (DRAFT)
+      summary: /v0/appointments/check-in/demographics
   /v0/appointments/community_care/eligibility/{service_type}:
     get:
       description: Checks if user is eligible to make an appointment with Community Care for a type of service. Checks if user is registered at a site that is marked as accepting community care requests and community care eligibility api says that they're eligible for the type of care they chose
@@ -1421,6 +1421,8 @@ paths:
               schema:
                 $ref: ./schemas/FacilitiesInfo.yml
           description: OK
+        '400':
+          $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
         '403':
@@ -3733,6 +3735,35 @@ paths:
       security:
         - Bearer: []
       summary: /v0/user/logout
+  /v0/user/logged-in:
+    post:
+      description: Called by the mobile app after successful login to perform any actions needed to start a session.
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: []
+      summary: /v0/user/logged-in
   /v0/user/preferred_name:
     put:
       description: Updates a user's preferred name. Only users with id.me or login.gov accounts may use this

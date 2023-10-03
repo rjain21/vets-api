@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_08_03_151452) do
+ActiveRecord::Schema.define(version: 2023_09_14_180448) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -345,6 +345,7 @@ ActiveRecord::Schema.define(version: 2023_08_03_151452) do
     t.boolean "pkce"
     t.string "certificates", array: true
     t.text "description"
+    t.string "access_token_attributes", default: [], array: true
     t.index ["client_id"], name: "index_client_configs_on_client_id", unique: true
   end
 
@@ -615,6 +616,9 @@ ActiveRecord::Schema.define(version: 2023_08_03_151452) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.uuid "user_account_id"
+    t.jsonb "public_metadata"
+    t.integer "state", default: 0
+    t.string "error_message"
     t.index ["user_account_id"], name: "index_form5655_submissions_on_user_account_id"
     t.index ["user_uuid"], name: "index_form5655_submissions_on_user_uuid"
   end
@@ -768,6 +772,8 @@ ActiveRecord::Schema.define(version: 2023_08_03_151452) do
     t.bigint "user_verification_id", null: false
     t.string "credential_email"
     t.string "client_id", null: false
+    t.text "user_attributes_ciphertext"
+    t.text "encrypted_kms_key"
     t.index ["handle"], name: "index_oauth_sessions_on_handle", unique: true
     t.index ["hashed_refresh_token"], name: "index_oauth_sessions_on_hashed_refresh_token", unique: true
     t.index ["refresh_creation"], name: "index_oauth_sessions_on_refresh_creation"
@@ -970,6 +976,15 @@ ActiveRecord::Schema.define(version: 2023_08_03_151452) do
     t.uuid "user_account_id"
     t.index ["user_account_id"], name: "index_terms_and_conditions_acceptances_on_user_account_id"
     t.index ["user_uuid"], name: "index_terms_and_conditions_acceptances_on_user_uuid"
+  end
+
+  create_table "terms_of_use_agreements", force: :cascade do |t|
+    t.uuid "user_account_id", null: false
+    t.string "agreement_version", null: false
+    t.integer "response", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_account_id"], name: "index_terms_of_use_agreements_on_user_account_id"
   end
 
   create_table "test_user_dashboard_tud_account_availability_logs", force: :cascade do |t|
@@ -1246,6 +1261,7 @@ ActiveRecord::Schema.define(version: 2023_08_03_151452) do
   add_foreign_key "oauth_sessions", "user_accounts"
   add_foreign_key "oauth_sessions", "user_verifications"
   add_foreign_key "terms_and_conditions_acceptances", "user_accounts"
+  add_foreign_key "terms_of_use_agreements", "user_accounts"
   add_foreign_key "user_acceptable_verified_credentials", "user_accounts"
   add_foreign_key "user_credential_emails", "user_verifications"
   add_foreign_key "user_verifications", "user_accounts"

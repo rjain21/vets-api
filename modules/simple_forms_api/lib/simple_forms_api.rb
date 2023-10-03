@@ -26,6 +26,13 @@ module SimpleFormsApi
           words_to_remove += SimpleFormsApi::VBA214142.new(params).words_to_remove
         when '21-10210'
           words_to_remove += SimpleFormsApi::VBA2110210.new(params).words_to_remove
+        when '26-4555'
+          words_to_remove += SimpleFormsApi::VBA264555.new(params).words_to_remove
+        when '21P-0847'
+          words_to_remove += SimpleFormsApi::VBA21p0847.new(params).words_to_remove
+        else
+          return "something has gone wrong with your form, #{params[:form_number]} and the entire " \
+                 'error message has been redacted to keep PII from getting leaked'
         end
 
         words_to_remove.compact.each do |word|

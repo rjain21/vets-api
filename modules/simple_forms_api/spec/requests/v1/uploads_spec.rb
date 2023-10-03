@@ -36,7 +36,26 @@ RSpec.describe 'Dynamic forms uploader', type: :request do
     test_submit_request 'vba_21_10210.json'
     test_submit_request 'vba_21p_0847.json'
     test_submit_request 'vba_21_0972.json'
+    test_submit_request 'vba_21_0845.json'
 
+    def self.test_failed_request_scrubs_error_message_unhandled_form
+      it 'makes the request for an unhandled form and expects a failure' do
+        fixture_path = Rails.root.join('modules', 'simple_forms_api', 'spec', 'fixtures', 'form_json',
+                                       'form_with_dangerous_characters_unhandled.json')
+        data = JSON.parse(fixture_path.read)
+
+        post '/simple_forms_api/v1/simple_forms', params: data
+
+        expect(response).to have_http_status(:error)
+        expect(response.body).to include('something has gone wrong with your form')
+        expect(response.body).not_to include(data.dig('veteran', 'ssn')&.[](0..2))
+        expect(response.body).not_to include(data.dig('veteran', 'ssn')&.[](3..4))
+        expect(response.body).not_to include(data.dig('veteran', 'ssn')&.[](5..8))
+        expect(response.body).not_to include(data.dig('veteran', 'address', 'postal_code')&.[](0..4))
+      end
+    end
+
+    test_failed_request_scrubs_error_message_unhandled_form
     def self.test_failed_request_scrubs_error_message214142
       it 'makes the request for 21-4142 and expects a failure' do
         fixture_path = Rails.root.join('modules', 'simple_forms_api', 'spec', 'fixtures', 'form_json',
@@ -80,5 +99,133 @@ RSpec.describe 'Dynamic forms uploader', type: :request do
     end
 
     test_failed_request_scrubs_error_message2110210
+
+    def self.test_failed_request_scrubs_error_message264555
+      it 'makes the request for 26-4555 and expects a failure' do
+        fixture_path = Rails.root.join('modules', 'simple_forms_api', 'spec', 'fixtures', 'form_json',
+                                       'form_with_dangerous_characters_26_4555.json')
+        data = JSON.parse(fixture_path.read)
+
+        post '/simple_forms_api/v1/simple_forms', params: data
+
+        expect(response).to have_http_status(:error)
+        expect(response.body).to include('unexpected token at')
+        expect(response.body).not_to include(data.dig('veteran', 'ssn')&.[](0..2))
+        expect(response.body).not_to include(data.dig('veteran', 'ssn')&.[](3..4))
+        expect(response.body).not_to include(data.dig('veteran', 'ssn')&.[](5..8))
+        expect(response.body).not_to include(data.dig('veteran', 'address', 'postal_code')&.[](0..4))
+      end
+    end
+
+    test_failed_request_scrubs_error_message264555
+
+    def self.test_failed_request_scrubs_error_message21p0847
+      it 'makes the request for 21P-0847 and expects a failure' do
+        fixture_path = Rails.root.join('modules', 'simple_forms_api', 'spec', 'fixtures', 'form_json',
+                                       'form_with_dangerous_characters_21P_0847.json')
+        data = JSON.parse(fixture_path.read)
+
+        post '/simple_forms_api/v1/simple_forms', params: data
+
+        expect(response).to have_http_status(:error)
+        # 'unexpected token at' gets mangled by our scrubbing but this indicates that we're getting the right message
+        expect(response.body).to include('unexpected token t')
+        expect(response.body).not_to include(data['preparer_ssn']&.[](0..2))
+        expect(response.body).not_to include(data['preparer_ssn']&.[](3..4))
+        expect(response.body).not_to include(data['preparer_ssn']&.[](5..8))
+        expect(response.body).not_to include(data.dig('preparer_address', 'postal_code')&.[](0..4))
+        expect(response.body).not_to include(data['veteran_ssn']&.[](0..2))
+        expect(response.body).not_to include(data['veteran_ssn']&.[](3..4))
+        expect(response.body).not_to include(data['veteran_ssn']&.[](5..8))
+      end
+    end
+
+    test_failed_request_scrubs_error_message21p0847
+
+    describe 'email confirmations' do
+      let(:confirmation_number) { 'some_confirmation_number' }
+
+      describe '21_4142' do
+        let(:data) do
+          fixture_path = Rails.root.join(
+            'modules', 'simple_forms_api', 'spec', 'fixtures', 'form_json', 'vba_21_4142.json'
+          )
+          JSON.parse(fixture_path.read)
+        end
+
+        it 'successful submission' do
+          allow(VANotify::EmailJob).to receive(:perform_async)
+          allow_any_instance_of(SimpleFormsApi::V1::UploadsController)
+            .to receive(:upload_pdf_to_benefits_intake).and_return([200, confirmation_number])
+
+          post '/simple_forms_api/v1/simple_forms', params: data
+
+          expect(response).to have_http_status(:ok)
+
+          expect(VANotify::EmailJob).to have_received(:perform_async).with(
+            'veteran.surname@address.com',
+            'form21_4142_confirmation_email_template_id',
+            {
+              'first_name' => 'VETERAN',
+              'date_submitted' => Time.zone.today.strftime('%B %d, %Y'),
+              'confirmation_number' => confirmation_number
+            }
+          )
+        end
+
+        it 'unsuccessful submission' do
+          allow(VANotify::EmailJob).to receive(:perform_async)
+          allow_any_instance_of(SimpleFormsApi::V1::UploadsController)
+            .to receive(:upload_pdf_to_benefits_intake).and_return([500, confirmation_number])
+
+          post '/simple_forms_api/v1/simple_forms', params: data
+
+          expect(response).to have_http_status(:error)
+
+          expect(VANotify::EmailJob).not_to have_received(:perform_async)
+        end
+      end
+
+      describe '21_10210' do
+        let(:data) do
+          fixture_path = Rails.root.join(
+            'modules', 'simple_forms_api', 'spec', 'fixtures', 'form_json', 'vba_21_10210.json'
+          )
+          JSON.parse(fixture_path.read)
+        end
+
+        it 'successful submission' do
+          allow(VANotify::EmailJob).to receive(:perform_async)
+          allow_any_instance_of(SimpleFormsApi::V1::UploadsController)
+            .to receive(:upload_pdf_to_benefits_intake).and_return([200, confirmation_number])
+
+          post '/simple_forms_api/v1/simple_forms', params: data
+
+          expect(response).to have_http_status(:ok)
+
+          expect(VANotify::EmailJob).to have_received(:perform_async).with(
+            'my.long.email.address@email.com',
+            'form21_10210_confirmation_email_template_id',
+            {
+              'first_name' => 'JACK',
+              'date_submitted' => Time.zone.today.strftime('%B %d, %Y'),
+              'confirmation_number' => confirmation_number
+            }
+          )
+        end
+
+        it 'unsuccessful submission' do
+          allow(VANotify::EmailJob).to receive(:perform_async)
+          allow_any_instance_of(SimpleFormsApi::V1::UploadsController)
+            .to receive(:upload_pdf_to_benefits_intake).and_return([500, confirmation_number])
+
+          post '/simple_forms_api/v1/simple_forms', params: data
+
+          expect(response).to have_http_status(:error)
+
+          expect(VANotify::EmailJob).not_to have_received(:perform_async)
+        end
+      end
+    end
   end
 end

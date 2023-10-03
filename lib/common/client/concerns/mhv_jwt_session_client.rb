@@ -69,6 +69,10 @@ module Common
         # @return [MedicalRecords::ClientSession] if a MR (Medical Records) client session
         #
         def get_session
+          # Perform an async PHR refresh for the user
+          MHV::PhrUpdateJob.perform_async(session.icn, session.user_id)
+
+          validate_session_params
           env = get_session_tagged
           # req_headers = env.request_headers
           res_headers = env.response_headers
@@ -86,6 +90,7 @@ module Common
           expires = (DateTime.now + Rational(3600, 86_400)).rfc2822
           @session.class.new(user_id: session.user_id.to_s,
                              patient_fhir_id:,
+                             icn: session.icn,
                              # TODO: If MHV updates API to include this field, use the version from their headers
                              #  expires_at: res_headers['expires'],
                              expires_at: expires,
@@ -105,6 +110,11 @@ module Common
         end
 
         private
+
+        def validate_session_params
+          raise Common::Exceptions::ParameterMissing, 'MHV Correlation ID' if session.user_id.blank?
+          raise Common::Exceptions::ParameterMissing, 'MHV MR App Token' if config.app_token.blank?
+        end
 
         def get_session_tagged
           Raven.tags_context(error: 'mhv_session')

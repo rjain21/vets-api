@@ -366,6 +366,10 @@ Rails.application.routes.draw do
       post 'submit_coe_claim'
       post 'document_upload'
     end
+
+    get 'terms_of_use_agreements/:version/latest', to: 'terms_of_use_agreements#latest'
+    post 'terms_of_use_agreements/:version/accept', to: 'terms_of_use_agreements#accept'
+    post 'terms_of_use_agreements/:version/decline', to: 'terms_of_use_agreements#decline'
   end
 
   namespace :v1, defaults: { format: 'json' } do
@@ -434,6 +438,7 @@ Rails.application.routes.draw do
 
   # Modules
   mount AskVAApi::Engine, at: '/ask_va_api'
+  mount Avs::Engine, at: '/avs'
   mount CheckIn::Engine, at: '/check_in'
   mount CovidResearch::Engine, at: '/covid-research'
   mount CovidVaccine::Engine, at: '/covid_vaccine'

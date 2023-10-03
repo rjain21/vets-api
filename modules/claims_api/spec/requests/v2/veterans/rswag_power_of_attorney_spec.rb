@@ -3,6 +3,7 @@
 require 'swagger_helper'
 require Rails.root.join('spec', 'rswag_override.rb').to_s
 require 'rails_helper'
+require_relative '../../../rails_helper'
 require_relative '../../../support/swagger_shared_components/v2'
 require 'bgs_service/local_bgs'
 
@@ -10,6 +11,10 @@ require 'bgs_service/local_bgs'
 describe 'PowerOfAttorney',
          swagger_doc: Rswag::TextHelpers.new.claims_api_docs, document: false do
   let(:local_bgs) { ClaimsApi::LocalBGS }
+
+  before do
+    stub_jwt_valid_token_decode
+  end
 
   path '/veterans/{veteranId}/power-of-attorney' do
     get 'Find current Power of Attorney for a Veteran.' do
@@ -53,7 +58,7 @@ describe 'PowerOfAttorney',
                                                  first_name: 'Firstname',
                                                  last_name: 'Lastname',
                                                  phone: '555-555-5555').save!
-            with_okta_user(scopes) do |auth_header|
+            mock_ccg(scopes) do |auth_header|
               Authorization = auth_header # rubocop:disable Naming/ConstantName
               submit_request(example.metadata)
             end
@@ -81,7 +86,7 @@ describe 'PowerOfAttorney',
             expect_any_instance_of(local_bgs).to receive(:find_poa_by_participant_id).and_return(bgs_poa)
             allow_any_instance_of(local_bgs).to receive(:find_poa_history_by_ptcpnt_id)
               .and_return({ person_poa_history: nil })
-            with_okta_user(scopes) do |auth_header|
+            mock_ccg(scopes) do |auth_header|
               Authorization = auth_header # rubocop:disable Naming/ConstantName
               submit_request(example.metadata)
             end
@@ -121,34 +126,6 @@ describe 'PowerOfAttorney',
           end
 
           it 'returns a 401 response' do |example|
-            assert_response_matches_metadata(example.metadata)
-          end
-        end
-      end
-
-      describe 'Getting a 403 response' do
-        let(:veteranId) { 'not-the-same-id-as-tamara' } # rubocop:disable RSpec/VariableName
-
-        response '403', 'Forbidden' do
-          schema JSON.parse(File.read(Rails.root.join('spec', 'support', 'schemas', 'claims_api', 'v2', 'errors',
-                                                      'default.json')))
-
-          before do |example|
-            with_okta_user(scopes) do |auth_header|
-              Authorization = auth_header # rubocop:disable Naming/ConstantName
-              submit_request(example.metadata)
-            end
-          end
-
-          after do |example|
-            example.metadata[:response][:content] = {
-              'application/json' => {
-                example: JSON.parse(response.body, symbolize_names: true)
-              }
-            }
-          end
-
-          it 'returns a 403 response' do |example|
             assert_response_matches_metadata(example.metadata)
           end
         end
@@ -215,7 +192,7 @@ describe 'PowerOfAttorney',
                                                  first_name: 'Firstname',
                                                  last_name: 'Lastname',
                                                  phone: '555-555-5555').save!
-            with_okta_user(scopes) do |auth_header|
+            mock_ccg(scopes) do |auth_header|
               Authorization = auth_header # rubocop:disable Naming/ConstantName
               submit_request(example.metadata)
             end
@@ -260,41 +237,13 @@ describe 'PowerOfAttorney',
         end
       end
 
-      describe 'Getting a 403 response' do
-        let(:veteranId) { 'not-the-same-id-as-tamara' } # rubocop:disable RSpec/VariableName
-
-        response '403', 'Forbidden' do
-          schema JSON.parse(File.read(Rails.root.join('spec', 'support', 'schemas', 'claims_api', 'v2', 'errors',
-                                                      'default.json')))
-
-          before do |example|
-            with_okta_user(scopes) do |auth_header|
-              Authorization = auth_header # rubocop:disable Naming/ConstantName
-              submit_request(example.metadata)
-            end
-          end
-
-          after do |example|
-            example.metadata[:response][:content] = {
-              'application/json' => {
-                example: JSON.parse(response.body, symbolize_names: true)
-              }
-            }
-          end
-
-          it 'returns a 403 response' do |example|
-            assert_response_matches_metadata(example.metadata)
-          end
-        end
-      end
-
       describe 'Getting a 422 response' do
         response '422', 'Unprocessable Entity' do
           schema JSON.parse(File.read(Rails.root.join('spec', 'support', 'schemas', 'claims_api', 'v2', 'errors',
                                                       'default.json')))
 
           before do |example|
-            with_okta_user(scopes) do |auth_header|
+            mock_ccg(scopes) do |auth_header|
               allow_any_instance_of(local_bgs).to receive(:find_poa_history_by_ptcpnt_id)
                 .and_return({ person_poa_history: nil })
               Authorization = auth_header # rubocop:disable Naming/ConstantName
@@ -385,7 +334,7 @@ describe 'PowerOfAttorney',
             Veteran::Service::Organization.create(poa: organization_poa_code,
                                                   name: "#{organization_poa_code} - DISABLED AMERICAN VETERANS")
 
-            with_okta_user(scopes) do |auth_header|
+            mock_ccg(scopes) do |auth_header|
               Authorization = auth_header # rubocop:disable Naming/ConstantName
               submit_request(example.metadata)
             end
@@ -430,41 +379,13 @@ describe 'PowerOfAttorney',
         end
       end
 
-      describe 'Getting a 403 response' do
-        let(:veteranId) { 'not-the-same-id-as-tamara' } # rubocop:disable RSpec/VariableName
-
-        response '403', 'Forbidden' do
-          schema JSON.parse(File.read(Rails.root.join('spec', 'support', 'schemas', 'claims_api', 'v2', 'errors',
-                                                      'default.json')))
-
-          before do |example|
-            with_okta_user(scopes) do |auth_header|
-              Authorization = auth_header # rubocop:disable Naming/ConstantName
-              submit_request(example.metadata)
-            end
-          end
-
-          after do |example|
-            example.metadata[:response][:content] = {
-              'application/json' => {
-                example: JSON.parse(response.body, symbolize_names: true)
-              }
-            }
-          end
-
-          it 'returns a 403 response' do |example|
-            assert_response_matches_metadata(example.metadata)
-          end
-        end
-      end
-
       describe 'Getting a 422 response' do
         response '422', 'Unprocessable Entity' do
           schema JSON.parse(File.read(Rails.root.join('spec', 'support', 'schemas', 'claims_api', 'v2', 'errors',
                                                       'default.json')))
 
           before do |example|
-            with_okta_user(scopes) do |auth_header|
+            mock_ccg(scopes) do |auth_header|
               allow_any_instance_of(local_bgs).to receive(:find_poa_history_by_ptcpnt_id)
                 .and_return({ person_poa_history: nil })
               Authorization = auth_header # rubocop:disable Naming/ConstantName

@@ -3,10 +3,13 @@
 require 'common/exceptions'
 require 'common/client/errors'
 require 'json'
+require 'memoist'
 
 module VAOS
   module V2
     class AppointmentsService < VAOS::SessionService
+      extend Memoist
+
       DIRECT_SCHEDULE_ERROR_KEY = 'DirectScheduleError'
       VAOS_SERVICE_DATA_KEY = 'VAOSServiceTypesAndCategory'
       VAOS_TELEHEALTH_DATA_KEY = 'VAOSTelehealthData'
@@ -21,10 +24,8 @@ module VAOS
         with_monitoring do
           response = perform(:get, appointments_base_url, params, headers)
           response.body[:data].each do |appt|
-            # for CnP appointments set cancellable to false per GH#57824
-            set_cancellable_false(appt) if cnp?(appt)
-            # for covid appointments set cancellable to false per GH#58690
-            set_cancellable_false(appt) if covid?(appt)
+            # for CnP and covid appointments set cancellable to false per GH#57824, GH#58690
+            set_cancellable_false(appt) if cnp?(appt) || covid?(appt)
 
             # remove service type(s) for non-medical non-CnP appointments per GH#56197
             remove_service_type(appt) unless medical?(appt) || cnp?(appt) || no_service_cat?(appt)
@@ -32,7 +33,7 @@ module VAOS
             # set requestedPeriods to nil if the appointment is a booked cerner appointment per GH#62912
             appt[:requested_periods] = nil if booked?(appt) && cerner?(appt)
 
-            log_telehealth_data(appt[:telehealth]&.[](:atlas)) unless appt[:telehealth]&.[](:atlas).nil?
+            log_telehealth_data(appt) unless appt[:telehealth].nil?
             convert_appointment_time(appt)
           end
           {
@@ -48,10 +49,8 @@ module VAOS
           response = perform(:get, get_appointment_base_url(appointment_id), params, headers)
           convert_appointment_time(response.body[:data])
 
-          # for CnP appointments set cancellable to false per GH#57824
-          set_cancellable_false(response.body[:data]) if cnp?(response.body[:data])
-          # for covid appointments set cancellable to false per GH#58690
-          set_cancellable_false(response.body[:data]) if covid?(response.body[:data])
+          # for CnP and covid appointments set cancellable to false per GH#57824, GH#58690
+          set_cancellable_false(response.body[:data]) if cnp?(response.body[:data]) || covid?(response.body[:data])
 
           # remove service type(s) for non-medical non-CnP appointments per GH#56197
           unless medical?(response.body[:data]) || cnp?(response.body[:data]) || no_service_cat?(response.body[:data])
@@ -72,7 +71,7 @@ module VAOS
         params.compact_blank!
         with_monitoring do
           response = perform(:post, appointments_base_url, params, headers)
-          log_telehealth_data(response.body[:telehealth]&.[](:atlas)) unless response.body[:telehealth]&.[](:atlas).nil?
+          log_telehealth_data(response.body) unless response.body[:telehealth].nil?
           OpenStruct.new(response.body)
         rescue Common::Exceptions::BackendServiceException => e
           log_direct_schedule_submission_errors(e) if params[:status] == 'booked'
@@ -89,7 +88,43 @@ module VAOS
         end
       end
 
+      # Retrieves the most recent clinic appointment within the last year.
+      #
+      # Returns:
+      # - The most recent appointment of kind == 'clinic' or
+      # - nil if no appointment is found.
+      #
+      def get_most_recent_visited_clinic_appointment
+        current_check = Date.current.end_of_day.yesterday
+        three_month_interval = 3.months
+        look_back_limit = 1.year.ago
+        statuses = 'booked,fulfilled,arrived'
+
+        # starting yesterday loop in three month intervals until we find an appointment
+        # or we run into the look back limit
+        while current_check > look_back_limit
+          end_time = current_check
+          start_time = current_check - three_month_interval
+
+          appointments = fetch_clinic_appointments(start_time, end_time, statuses)
+
+          return most_recent_appointment(appointments) unless appointments.empty?
+
+          current_check -= three_month_interval
+        end
+
+        nil
+      end
+
       private
+
+      def fetch_clinic_appointments(start_time, end_time, statuses)
+        get_appointments(start_time, end_time, statuses)[:data].select { |appt| appt.kind == 'clinic' }
+      end
+
+      def most_recent_appointment(appointments)
+        appointments.max_by { |appointment| DateTime.parse(appointment.start) }
+      end
 
       def mobile_facility_service
         @mobile_facility_service ||=
@@ -213,11 +248,11 @@ module VAOS
       # with the appointment time to the convert_utc_to_local_time method which does the actual conversion.
       def convert_appointment_time(appt)
         if !appt[:start].nil?
-          facility_timezone = get_facility_timezone(appt[:location_id])
+          facility_timezone = get_facility_timezone_memoized(appt[:location_id])
           appt[:local_start_time] = convert_utc_to_local_time(appt[:start], facility_timezone)
         elsif !appt.dig(:requested_periods, 0, :start).nil?
           appt[:requested_periods].each do |period|
-            facility_timezone = get_facility_timezone(appt[:location_id])
+            facility_timezone = get_facility_timezone_memoized(appt[:location_id])
             period[:local_start_time] = convert_utc_to_local_time(period[:start], facility_timezone)
           end
         end
@@ -243,7 +278,7 @@ module VAOS
       end
 
       # Returns the facility timezone id (eg. 'America/New_York') associated with facility id (location_id)
-      def get_facility_timezone(facility_location_id)
+      def get_facility_timezone_memoized(facility_location_id)
         facility_info = get_facility(facility_location_id) unless facility_location_id.nil?
         if facility_info == FACILITY_ERROR_MSG || facility_info.nil?
           nil # returns nil if unable to fetch facility info, which will be handled by the timezone conversion
@@ -251,6 +286,7 @@ module VAOS
           facility_info[:timezone]&.[](:time_zone_id)
         end
       end
+      memoize :get_facility_timezone_memoized
 
       def get_facility(location_id)
         mobile_facility_service.get_facility_with_cache(location_id)
@@ -281,16 +317,74 @@ module VAOS
         }
       end
 
-      def log_telehealth_data(atlas_data)
-        atlas_entry = { VAOS_TELEHEALTH_DATA_KEY => atlas_details(atlas_data) }
-        Rails.logger.info('VAOS telehealth atlas details', atlas_entry.to_json)
+      def log_telehealth_data(appt)
+        atlas = atlas_details(appt)
+        gfe = gfe_details(appt)
+        misc = misc_details(appt)
+        message = { VAOS_TELEHEALTH_DATA_KEY => atlas.merge(gfe).merge(misc) }
+        Rails.logger.info('VAOS telehealth atlas details', message.to_json)
+      rescue => e
+        Rails.logger.warn("Error logging VAOS telehealth atlas details: #{e.message}")
       end
 
-      def atlas_details(atlas_data)
+      def atlas_details(appt)
         {
-          siteCode: atlas_data&.[](:site_code),
-          address: atlas_data&.[](:address)
+          siteCode: appt.dig(:telehealth, :atlas, :site_code),
+          address: appt.dig(:telehealth, :atlas, :address)
         }
+      end
+
+      def gfe_details(appt)
+        {
+          hasMobileGfe: appt.dig(:extension, :patient_has_mobile_gfe)
+        }
+      end
+
+      def misc_details(appt)
+        {
+          vvsKind: appt.dig(:telehealth, :vvs_kind),
+          siteId: appt[:location_id],
+          clinicId: appt[:clinic],
+          provider: extract_names(appt[:practitioners])
+        }
+      end
+
+      # Extracts the full names from each practitioner.
+      #
+      # @param [Array<Hash>] practitioners An array of Hash objects, each having practitioner information.
+      #   A practitioner hash should have a +:name+ key which itself is a hash with +:given+ and +:family+ keys.
+      #   The +:given+ key should point to an array of strings (first and middle names),
+      #   and +:family+ key should point to a single string (last name).
+      #
+      # @return [String] Returns the names of the practitioners as a comma separated string.
+      #   If the +practitioners+ array is empty or does not contain a +:name+, then it returns nil.
+      #
+      def extract_names(practitioners)
+        return nil unless non_empty_array_of_hashes?(practitioners)
+
+        names = []
+        practitioners.each do |practitioner|
+          given_names = practitioner.dig(:name, :given)&.join(' ')
+          family_name = practitioner.dig(:name, :family)
+          full_name = "#{given_names} #{family_name}"
+          names << full_name if full_name.present?
+        end
+        name_str = names.join(', ').strip
+        name_str.presence
+      end
+
+      # Checks if the provided argument is a non-empty array of Hash objects.
+      #
+      # This method checks whether the specified argument is of Array type,
+      # is not empty, and all of its elements are hashes.
+      #
+      # @param arg [Array] The argument to be checked
+      #
+      # @return [Boolean] true if the argument is a non-empty array and all
+      #   its elements are OpenStruct instances, false otherwise
+      #
+      def non_empty_array_of_hashes?(arg)
+        arg.is_a?(Array) && !arg.empty? && arg.all? { |elem| elem.is_a?(Hash) }
       end
 
       def deserialized_appointments(appointment_list)

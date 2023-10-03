@@ -5,11 +5,16 @@
       "informalConference": false,
       "benefitType": "lifeInsurance",
       "veteran": {
+        "icn": "1013062086V794840",
+        "ssn": "123456789",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "birthDate": "1969-12-31",
         "homeless": false,
         "address": {
           "addressLine1": "123 Some St.",
           "city": "Sometown",
-          "countryCodeISO2": "US",
+          "countryCodeIso3": "USA",
           "zipCode5": "12345"
         }
       }

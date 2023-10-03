@@ -6,6 +6,7 @@ require Rails.root.join('spec', 'rswag_override.rb').to_s
 require 'rails_helper'
 require AppealsApi::Engine.root.join('spec', 'spec_helper.rb')
 require AppealsApi::Engine.root.join('spec', 'support', 'doc_helpers.rb')
+require AppealsApi::Engine.root.join('spec', 'support', 'shared_examples_for_pdf_downloads.rb')
 
 def swagger_doc
   "modules/appeals_api/app/swagger/notice_of_disagreements/v0/swagger#{DocHelpers.doc_suffix}.json"
@@ -34,7 +35,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
         'all fields used' => { value: FixtureHelpers.fixture_as_json('notice_of_disagreements/v0/valid_10182_extra.json') }
       }
 
-      response '200', 'Info about a single Notice of Disagreement' do
+      response '201', 'Notice of Disagreement created' do
         let(:nod_body) { fixture_as_json('notice_of_disagreements/v0/valid_10182_minimum.json') }
 
         schema '$ref' => '#/components/schemas/nodCreateResponse'
@@ -46,7 +47,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
                         scopes:
       end
 
-      response '200', 'Info about a single Notice of Disagreement' do
+      response '201', 'Notice of Disagreement created' do
         schema '$ref' => '#/components/schemas/nodCreateResponse'
         let(:nod_body) { fixture_as_json('notice_of_disagreements/v0/valid_10182_extra.json') }
 
@@ -72,7 +73,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
     end
   end
 
-  path '/forms/10182/{uuid}' do
+  path '/forms/10182/{id}' do
     get 'Shows a specific Notice of Disagreement. (a.k.a. the Show endpoint)' do
       scopes = AppealsApi::NoticeOfDisagreements::V0::NoticeOfDisagreementsController::OAUTH_SCOPES[:GET]
       tags 'Notice of Disagreements'
@@ -80,15 +81,15 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
       description 'Returns all of the data associated with a specific Notice of Disagreement.'
       security DocHelpers.oauth_security_config(scopes)
       produces 'application/json'
-      parameter name: :uuid,
+      parameter name: :id,
                 in: :path,
-                type: :string,
                 description: 'Notice of Disagreement UUID',
-                example: '02bbbe56-443c-42fa-aaf2-ef6200a6eddd'
+                example: '02bbbe56-443c-42fa-aaf2-ef6200a6eddd',
+                schema: { type: :string, format: :uuid }
 
       response '200', 'Info about a single Notice of Disagreement' do
         schema '$ref' => '#/components/schemas/nodShowResponse'
-        let(:uuid) { FactoryBot.create(:notice_of_disagreement_v0).id }
+        let(:id) { FactoryBot.create(:notice_of_disagreement_v0).id }
 
         it_behaves_like 'rswag example',
                         desc: 'returns a 200 response',
@@ -98,12 +99,27 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
 
       response '404', 'Notice of Disagreement not found' do
         schema '$ref' => '#/components/schemas/errorModel'
-        let(:uuid) { 'invalid' }
+        let(:id) { '00000000-0000-0000-0000-000000000000' }
 
         it_behaves_like 'rswag example', desc: 'returns a 404 response', scopes:
       end
 
       it_behaves_like 'rswag 500 response'
+    end
+  end
+
+  path '/forms/10182/{id}/download' do
+    get 'Download a watermarked copy of a submitted Notice of Disagreement' do
+      scopes = AppealsApi::NoticeOfDisagreements::V0::NoticeOfDisagreementsController::OAUTH_SCOPES[:GET]
+      tags 'Notice of Disagreements'
+      operationId 'downloadNod'
+      security DocHelpers.oauth_security_config(scopes)
+
+      include_examples 'PDF download docs', {
+        factory: :notice_of_disagreement_v0,
+        appeal_type_display_name: 'Notice of Disagreement',
+        scopes:
+      }
     end
   end
 
@@ -186,6 +202,16 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
                         scopes:
       end
 
+      response '400', 'Bad request' do
+        schema '$ref' => '#/components/schemas/errorModel'
+        let(:nod_body) { nil }
+
+        it_behaves_like 'rswag example',
+                        desc: 'Not JSON object',
+                        extract_desc: true,
+                        scopes:
+      end
+
       response '422', 'Error' do
         schema '$ref' => '#/components/schemas/errorModel'
         let(:nod_body) do
@@ -196,16 +222,6 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
 
         it_behaves_like 'rswag example',
                         desc: 'Violates JSON schema',
-                        extract_desc: true,
-                        scopes:
-      end
-
-      response '422', 'Error' do
-        schema '$ref' => '#/components/schemas/errorModel'
-        let(:nod_body) { nil }
-
-        it_behaves_like 'rswag example',
-                        desc: 'Not JSON object',
                         extract_desc: true,
                         scopes:
       end
@@ -223,57 +239,86 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
         This is the first step to submitting supporting evidence for an NOD.  (See the Evidence Uploads section above for additional information.)
         The Notice of Disagreement GUID that is returned when the NOD is submitted, is supplied to this endpoint to ensure the NOD is in a valid state for sending supporting evidence documents.  Only NODs that selected the Evidence Submission lane are allowed to submit evidence documents up to 90 days after the NOD is received by VA.
       DESC
-      parameter name: :nod_uuid,
-                in: :query,
-                type: :string,
-                required: true,
-                description: 'Associated Notice of Disagreement UUID',
-                example: '9dbc8f83-a778-417e-9f8b-a9a36d710f70'
-      parameter AppealsApi::SwaggerSharedComponents.header_params[:veteran_file_number_header]
-      let(:'X-VA-File-Number') { '987654321' }
+
       security DocHelpers.oauth_security_config(scopes)
+
+      consumes 'application/json'
       produces 'application/json'
 
-      response '202', 'Accepted. Location generated' do
+      parameter name: :nod_es_body, in: :body, schema: { '$ref' => '#components/schemas/nodEvidenceSubmissionCreate' }
+
+      let(:nod) { FactoryBot.create(:notice_of_disagreement_v0, :board_review_evidence_submission) }
+      let(:nodId) { nod.id }
+      let(:fileNumber) { nod.veteran.file_number }
+      let(:nod_es_body) { { nodId:, fileNumber: } }
+
+      response '201', 'Location created' do
         schema '$ref' => '#/components/schemas/nodEvidenceSubmissionResponse'
-        let(:nod_uuid) { FactoryBot.create(:notice_of_disagreement_v0, :board_review_evidence_submission).id }
 
         before do
-          allow_any_instance_of(VBADocuments::UploadSubmission).to receive(:get_location).and_return(+'http://some.fakesite.com/path/uuid')
+          allow_any_instance_of(VBADocuments::UploadSubmission).to receive(:get_location).and_return(+'http://path.to.upload/location/uuid')
         end
 
         it_behaves_like 'rswag example',
-                        desc: 'returns a 202 response',
+                        desc: 'returns a 201 response',
                         response_wrapper: :normalize_evidence_submission_response,
                         scopes:
       end
 
-      response '400', 'Bad Request' do
-        schema '$ref' => '#/components/schemas/errorModel'
-        let(:nod_uuid) { nil }
-
-        it_behaves_like 'rswag example', desc: 'returns a 400 response', scopes:, skip_match: true
-      end
-
       response '404', 'Associated Notice of Disagreement not found' do
         schema '$ref' => '#/components/schemas/errorModel'
-        let(:nod_uuid) { '101010101010101010101010' }
+        let(:nod_es_body) { { nodId: '00000000-0000-0000-0000-000000000000', fileNumber: } }
 
         it_behaves_like 'rswag example', desc: 'returns a 404 response', scopes:
       end
 
-      response '422', 'Validation errors' do
-        let(:nod_uuid) { FactoryBot.create(:notice_of_disagreement_v0, :board_review_direct_review).id }
-        let(:'X-VA-File-Number') { '987654321' }
+      response '400', 'Bad request' do
         schema '$ref' => '#/components/schemas/errorModel'
-        it_behaves_like 'rswag example', desc: 'returns a 422 response', scopes:
+
+        let(:nod_es_body) { nil }
+
+        it_behaves_like 'rswag example',
+                        desc: 'Not JSON object',
+                        extract_desc: true,
+                        scopes:
+      end
+
+      response '422', 'Validation errors' do
+        schema '$ref' => '#/components/schemas/errorModel'
+        let(:nod_es_body) { { fileNumber: } }
+
+        it_behaves_like 'rswag example',
+                        desc: 'Missing Notice of Disagreement ID',
+                        extract_desc: true,
+                        scopes:
+      end
+
+      response '422', 'Validation errors' do
+        schema '$ref' => '#/components/schemas/errorModel'
+        let(:nod_es_body) { { nodId: } }
+
+        it_behaves_like 'rswag example',
+                        desc: 'Missing File Number',
+                        extract_desc: true,
+                        scopes:
+      end
+
+      response '422', 'Validation errors' do
+        schema '$ref' => '#/components/schemas/errorModel'
+
+        let(:nod) { FactoryBot.create(:notice_of_disagreement_v0, :board_review_direct_review) }
+
+        it_behaves_like 'rswag example',
+                        desc: 'Notice of Disagreement does not indicate an evidence submission',
+                        extract_desc: true,
+                        scopes:
       end
 
       it_behaves_like 'rswag 500 response'
     end
   end
 
-  path '/nod_upload_path' do
+  path '/nod-upload-path' do
     put 'Accepts Notice of Disagreement Evidence Submission document upload.' do
       scopes = AppealsApi::NoticeOfDisagreements::V0::NoticeOfDisagreementsController::OAUTH_SCOPES[:PUT]
       tags 'Notice of Disagreements'
@@ -324,7 +369,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
     end
   end
 
-  path '/evidence-submissions/{uuid}' do
+  path '/evidence-submissions/{id}' do
     get 'Returns all of the data associated with a specific Notice of Disagreement Evidence Submission.' do
       scopes = AppealsApi::NoticeOfDisagreements::V0::NoticeOfDisagreementsController::OAUTH_SCOPES[:GET]
       tags 'Notice of Disagreements'
@@ -332,7 +377,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
       description 'Returns all of the data associated with a specific Notice of Disagreement Evidence Submission.'
       security DocHelpers.oauth_security_config(scopes)
       produces 'application/json'
-      parameter name: :uuid,
+      parameter name: :id,
                 in: :path,
                 type: :string,
                 description: 'Notice of Disagreement UUID Evidence Submission',
@@ -340,7 +385,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
 
       response '200', 'Info about a single Notice of Disagreement Evidence Submission.' do
         schema '$ref' => '#/components/schemas/nodEvidenceSubmissionResponse'
-        let(:uuid) { FactoryBot.create(:evidence_submission).guid }
+        let(:id) { FactoryBot.create(:evidence_submission).guid }
 
         it_behaves_like 'rswag example',
                         desc: 'returns a 200 response',
@@ -350,7 +395,7 @@ RSpec.describe 'Notice of Disagreements', swagger_doc:, type: :request do
 
       response '404', 'Notice of Disagreement Evidence Submission not found' do
         schema '$ref' => '#/components/schemas/errorModel'
-        let(:uuid) { 'invalid' }
+        let(:id) { '00000000-0000-0000-0000-000000000000' }
         it_behaves_like 'rswag example', desc: 'returns a 404 response', scopes:
       end
 

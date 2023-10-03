@@ -14,8 +14,9 @@ module V0
       code_challenge_method = params[:code_challenge_method].presence
       client_id = params[:client_id].presence
       acr = params[:acr].presence
+      operation = params[:operation].presence || SignIn::Constants::Auth::AUTHORIZE
 
-      validate_authorize_params(type, client_id, acr)
+      validate_authorize_params(type, client_id, acr, operation)
 
       delete_cookies if token_cookies
 
@@ -26,13 +27,14 @@ module V0
                                                  client_config: client_config(client_id),
                                                  type:,
                                                  client_state:).perform
-      context = { type:, client_id:, acr: }
+      context = { type:, client_id:, acr:, operation: }
 
       sign_in_logger.info('authorize', context)
       StatsD.increment(SignIn::Constants::Statsd::STATSD_SIS_AUTHORIZE_SUCCESS,
-                       tags: ["type:#{type}", "client_id:#{client_id}", "acr:#{acr}"])
+                       tags: ["type:#{type}", "client_id:#{client_id}", "acr:#{acr}", "operation:#{operation}"])
 
-      render body: auth_service(type, client_id).render_auth(state:, acr: acr_for_type), content_type: 'text/html'
+      render body: auth_service(type, client_id).render_auth(state:, acr: acr_for_type, operation:),
+             content_type: 'text/html'
     rescue SignIn::Errors::StandardError => e
       sign_in_logger.info('authorize error', { errors: e.message, client_id:, type:, acr: })
       StatsD.increment(SignIn::Constants::Statsd::STATSD_SIS_AUTHORIZE_FAILURE)
@@ -62,7 +64,7 @@ module V0
                                state_payload.client_id).user_info(service_token_response[:access_token])
       credential_level = SignIn::CredentialLevelCreator.new(requested_acr: state_payload.acr,
                                                             type: state_payload.type,
-                                                            id_token: service_token_response[:id_token],
+                                                            logingov_acr: service_token_response[:logingov_acr],
                                                             user_info:).perform
       if credential_level.can_uplevel_credential?
         render_uplevel_credential(state_payload)
@@ -229,12 +231,15 @@ module V0
 
     private
 
-    def validate_authorize_params(type, client_id, acr)
+    def validate_authorize_params(type, client_id, acr, operation)
       if client_config(client_id).blank?
         raise SignIn::Errors::MalformedParamsError.new message: 'Client id is not valid'
       end
       unless SignIn::Constants::Auth::CSP_TYPES.include?(type)
-        raise SignIn::Errors::AuthorizeInvalidType.new message: 'Type is not valid'
+        raise SignIn::Errors::MalformedParamsError.new message: 'Type is not valid'
+      end
+      unless SignIn::Constants::Auth::OPERATION_TYPES.include?(operation)
+        raise SignIn::Errors::MalformedParamsError.new message: 'Operation is not valid'
       end
       unless SignIn::Constants::Auth::ACR_VALUES.include?(acr)
         raise SignIn::Errors::MalformedParamsError.new message: 'ACR is not valid'
@@ -305,8 +310,7 @@ module V0
                                                  client_config: client_config(state_payload.client_id),
                                                  type: state_payload.type,
                                                  client_state: state_payload.client_state).perform
-      render body: auth_service(state_payload.type,
-                                state_payload.client_id).render_auth(state:, acr: acr_for_type),
+      render body: auth_service(state_payload.type, state_payload.client_id).render_auth(state:, acr: acr_for_type),
              content_type: 'text/html'
     end
 
@@ -322,7 +326,8 @@ module V0
         type: state_payload.type,
         client_id: state_payload.client_id,
         ial: credential_level.current_ial,
-        acr: state_payload.acr
+        acr: state_payload.acr,
+        icn: verified_icn
       }
       sign_in_logger.info('callback', context)
       StatsD.increment(SignIn::Constants::Statsd::STATSD_SIS_CALLBACK_SUCCESS,

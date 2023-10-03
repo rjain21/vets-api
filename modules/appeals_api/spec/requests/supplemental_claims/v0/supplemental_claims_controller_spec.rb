@@ -102,12 +102,15 @@ describe AppealsApi::SupplementalClaims::V0::SupplementalClaimsController, type:
   describe '#create' do
     let(:path) { base_path 'forms/200995' }
     let(:data) { default_data }
+    let(:params) { data.to_json }
     let(:headers) { fixture_as_json 'supplemental_claims/v0/valid_200995_headers.json' }
 
     describe 'auth behavior' do
-      it_behaves_like('an endpoint with OpenID auth', scopes: described_class::OAUTH_SCOPES[:POST]) do
+      it_behaves_like(
+        'an endpoint with OpenID auth', scopes: described_class::OAUTH_SCOPES[:POST], success_status: :created
+      ) do
         def make_request(auth_header)
-          post(path, params: default_data.to_json, headers: headers.merge(auth_header))
+          post(path, params:, headers: headers.merge(auth_header))
         end
       end
     end
@@ -117,11 +120,13 @@ describe AppealsApi::SupplementalClaims::V0::SupplementalClaimsController, type:
 
       before do
         with_openid_auth(described_class::OAUTH_SCOPES[:POST]) do |auth_header|
-          post(path, params: data.to_json, headers: headers.merge(auth_header))
+          post(path, params:, headers: headers.merge(auth_header))
         end
       end
 
       it 'creates an SC record having api_version: "V0"' do
+        expect(response).to have_http_status(:created)
+
         created_record = AppealsApi::SupplementalClaim.find(json_body['data']['id'])
 
         expect(created_record.api_version).to eq('V0')
@@ -166,6 +171,14 @@ describe AppealsApi::SupplementalClaims::V0::SupplementalClaimsController, type:
           expect(parsed_response['errors'][0]['source']['pointer']).to eq('/data/attributes/claimant/birthDate')
         end
       end
+
+      context 'when body is not JSON' do
+        let(:params) { 'this-is-not-json' }
+
+        it 'returns a 400 error' do
+          expect(response).to have_http_status(:bad_request)
+        end
+      end
     end
   end
 
@@ -197,7 +210,7 @@ describe AppealsApi::SupplementalClaims::V0::SupplementalClaimsController, type:
     end
   end
 
-  describe '#download', skip: 'Waiting for v0 release' do
+  describe '#download' do
     it_behaves_like 'watermarked pdf download endpoint', { factory: :supplemental_claim_v0 }
   end
 end

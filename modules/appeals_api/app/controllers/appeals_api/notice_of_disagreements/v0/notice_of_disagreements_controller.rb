@@ -9,7 +9,10 @@ module AppealsApi::NoticeOfDisagreements::V0
 
     skip_before_action :new_notice_of_disagreement
     skip_before_action :find_notice_of_disagreement
+    skip_before_action :validate_icn_header
+    skip_before_action :validate_json_format
 
+    prepend_before_action :validate_json_body, if: -> { request.post? }
     before_action :validate_icn_parameter, only: %i[download]
 
     API_VERSION = 'V0'
@@ -57,14 +60,18 @@ module AppealsApi::NoticeOfDisagreements::V0
       nod.save
       AppealsApi::PdfSubmitJob.perform_async(nod.id, 'AppealsApi::NoticeOfDisagreement', 'v3')
 
-      render_notice_of_disagreement(nod)
+      render_notice_of_disagreement(nod, status: :created)
     end
 
     def download
       id = params[:id]
       notice_of_disagreement = AppealsApi::NoticeOfDisagreement.find(id)
 
-      render_appeal_pdf_download(notice_of_disagreement, "#{FORM_NUMBER}-notice-of-disagreement-#{id}.pdf")
+      render_appeal_pdf_download(
+        notice_of_disagreement,
+        "#{FORM_NUMBER}-notice-of-disagreement-#{id}.pdf",
+        params[:icn]
+      )
     rescue ActiveRecord::RecordNotFound
       render_notice_of_disagreement_not_found(params[:id])
     end
@@ -76,20 +83,19 @@ module AppealsApi::NoticeOfDisagreements::V0
     private
 
     def validate_icn_parameter
-      validation_errors = []
+      detail = nil
 
       if params[:icn].blank?
-        validation_errors << { status: 422, detail: "'icn' parameter is required" }
+        detail = "'icn' parameter is required"
       elsif !ICN_REGEX.match?(params[:icn])
-        validation_errors << { status: 422,
-                               detail: "'icn' parameter has an invalid format. Pattern: #{ICN_REGEX.inspect}" }
+        detail = "'icn' parameter has an invalid format. Pattern: #{ICN_REGEX.inspect}"
       end
 
-      render json: { errors: validation_errors }, status: :unprocessable_entity if validation_errors.present?
+      raise Common::Exceptions::UnprocessableEntity.new(detail:) if detail.present?
     end
 
-    def render_notice_of_disagreement(nod)
-      render json: AppealsApi::NoticeOfDisagreementSerializer.new(nod).serializable_hash
+    def render_notice_of_disagreement(nod, **)
+      render(json: NoticeOfDisagreementSerializer.new(nod).serializable_hash, **)
     end
 
     def render_notice_of_disagreement_not_found(id)

@@ -11,6 +11,7 @@ module SimpleFormsApi
 
       FORM_NUMBER_MAP = {
         '21-0972' => 'vba_21_0972',
+        '21-0845' => 'vba_21_0845',
         '21-10210' => 'vba_21_10210',
         '21-4142' => 'vba_21_4142',
         '21P-0847' => 'vba_21p_0847',
@@ -22,12 +23,19 @@ module SimpleFormsApi
         Datadog::Tracing.active_trace&.set_tag('form_id', params[:form_number])
 
         form_id = FORM_NUMBER_MAP[params[:form_number]]
-        filler = SimpleFormsApi::PdfFiller.new(form_number: form_id, data: JSON.parse(params.to_json))
+        parsed_form_data = JSON.parse(params.to_json)
+        filler = SimpleFormsApi::PdfFiller.new(form_number: form_id, data: parsed_form_data)
 
         file_path = filler.generate
         metadata = filler.metadata
 
         status, confirmation_number = upload_pdf_to_benefits_intake(file_path, metadata)
+
+        if status == 200 && Flipper.enabled?(:simple_forms_email_confirmations)
+          SimpleFormsApi::ConfirmationEmail.new(
+            form_data: parsed_form_data, form_number: form_id, confirmation_number:
+          ).send
+        end
 
         Rails.logger.info(
           "Simple forms api - sent to benefits intake: #{params[:form_number]},
@@ -52,6 +60,10 @@ module SimpleFormsApi
         lighthouse_service = SimpleFormsApiSubmission::Service.new
         uuid_and_location = get_upload_location_and_uuid(lighthouse_service)
 
+        Rails.logger.info(
+          "Simple forms api - preparing to upload PDF to benefits intake:
+            location: #{uuid_and_location[:location]}, uuid: #{uuid_and_location[:uuid]}"
+        )
         response = lighthouse_service.upload_doc(
           upload_url: uuid_and_location[:location],
           file: file_path,

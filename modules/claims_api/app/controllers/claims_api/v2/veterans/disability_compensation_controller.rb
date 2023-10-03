@@ -15,27 +15,63 @@ module ClaimsApi
         include ClaimsApi::V2::DisabilityCompensationValidation
 
         FORM_NUMBER = '526'
+        EVSS_DOCUMENT_TYPE = 'L023'
 
-        before_action :verify_access!
-        before_action :shared_validation, only: %i[submit validate]
+        before_action :shared_validation, :file_number_check, only: %i[submit validate]
 
-        def submit
+        def submit # rubocop:disable Metrics/MethodLength
           auto_claim = ClaimsApi::AutoEstablishedClaim.create(
             status: ClaimsApi::AutoEstablishedClaim::PENDING,
             auth_headers:,
             form_data: form_attributes,
+            flashes:,
             cid: token.payload['cid'],
             veteran_icn: target_veteran.mpi.icn
           )
+
+          # .create returns the resulting object whether the object was saved successfully to the database or not.
+          # If it's lacking the ID, that means the create was unsuccessful and an identical claim already exists.
+          # Find and return that claim instead.
+          unless auto_claim.id
+            existing_auto_claim = ClaimsApi::AutoEstablishedClaim.find_by(md5: auto_claim.md5)
+            auto_claim = existing_auto_claim if existing_auto_claim.present?
+          end
+
           track_pact_counter auto_claim
           pdf_data = get_pdf_data
           pdf_mapper_service(form_attributes, pdf_data, target_veteran).map_claim
 
-          evss_data = evss_mapper_service(auto_claim).map_claim
-          evss_service.submit(auto_claim, evss_data)
+          if auto_claim.evss_id.nil?
+            ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'Mapping EVSS Data')
+            evss_data = evss_mapper_service(auto_claim).map_claim
+            ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'Submitting to EVSS')
+            evss_res = evss_service.submit(auto_claim, evss_data)
+            ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'Successfully submitted to EVSS',
+                                            evss_id: evss_res[:claimId])
+            auto_claim.update(evss_id: evss_res[:claimId])
+          else
+            ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'EVSS Skipped',
+                                            evss_id: auto_claim.evss_id)
+          end
 
-          generate_526_pdf(pdf_data)
-
+          ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'Starting call to 526EZ PDF generator')
+          pdf_string = generate_526_pdf(pdf_data)
+          ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'Completed call to 526EZ PDF generator')
+          if pdf_string.empty?
+            ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: '526EZ PDF generator failed.')
+          elsif pdf_string
+            file_name = "#{SecureRandom.hex}.pdf"
+            path = ::Common::FileHelpers.generate_temp_file(pdf_string, file_name)
+            upload = ActionDispatch::Http::UploadedFile.new({
+                                                              filename: file_name,
+                                                              type: 'application/pdf',
+                                                              tempfile: File.open(path)
+                                                            })
+            auto_claim.set_file_data!(upload, EVSS_DOCUMENT_TYPE)
+            auto_claim.save!
+            ClaimsApi::Logger.log('526_v2', claim_id: auto_claim.id, detail: 'Uploaded 526EZ PDF to S3')
+            ::Common::FileHelpers.delete_file_if_exists(path)
+          end
           get_benefits_documents_auth_token unless Rails.env.test?
 
           render json: auto_claim
@@ -52,6 +88,17 @@ module ClaimsApi
         end
 
         private
+
+        def flashes
+          veteran_flashes = []
+          homelessness = form_attributes.dig('homeless', 'currentlyHomeless', 'homelessSituationOptions')
+          hardship = form_attributes.dig('homeless', 'riskOfBecomingHomeless', 'livingSituationOptions')
+
+          veteran_flashes.push('Homeless') if homelessness.present?
+          veteran_flashes.push('Hardship') if hardship.present?
+
+          veteran_flashes
+        end
 
         def shared_validation
           validate_json_schema
@@ -80,7 +127,7 @@ module ClaimsApi
         end
 
         def evss_mapper_service(auto_claim)
-          ClaimsApi::V2::DisabilityCompensationEvssMapper.new(auto_claim)
+          ClaimsApi::V2::DisabilityCompensationEvssMapper.new(auto_claim, @file_number)
         end
 
         def track_pact_counter(claim)
