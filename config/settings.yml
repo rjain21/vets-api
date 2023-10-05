@@ -418,7 +418,7 @@ evss:
     timeout: 55 # ~1 minute
     submit_timeout: 355 # ~6 minutes
   dvp:
-    url: <%= ENV['EVSS_DVP_URL'] %>
+    url: http://fake.dvp-docker-container
   letters:
     url: https://csraciapp6.evss.srarad.com
     timeout: 55
@@ -806,7 +806,6 @@ oidc:
     veteran_verification: ~
     claims: ~
   charon:
-    enabled: ~
     endpoint: ~
     audience: ~
   base_api_url: https://example.com
@@ -1029,6 +1028,7 @@ lighthouse:
       client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
       api_scope:
         - "launch"
+        - "patient/DiagnosticReport.read"
         - "patient/Patient.read"
         - "system/Patient.read"
         - "patient/Observation.read"
