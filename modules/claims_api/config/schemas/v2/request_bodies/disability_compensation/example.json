@@ -8,7 +8,7 @@
       "veteranIdentification": {
         "currentVaEmployee": false,
         "mailingAddress": {
-          "addressLine1": "1234 Couch Street",
+          "addressLine1": "1234 Test Street",
           "addressLine2": "Unit 4",
           "addressLine3": "Room 1",
           "city": "Portland",
@@ -135,7 +135,7 @@
             "state": "GA",
             "city": "Decatur"
           },
-          "beginDate": "03-1985"
+          "beginDate": "04-2009"
         },
         {
           "treatedDisabilityNames": ["Musculoskeletal - Foot"],
@@ -144,14 +144,14 @@
             "state": "GA",
             "city": "Decatur"
           },
-          "beginDate": "03-1985"
+          "beginDate": "03-2009"
         }
       ],
       "serviceInformation": {
         "servicePeriods": [
           {
             "serviceBranch": "Public Health Service",
-            "activeDutyBeginDate": "11-14-2023",
+            "activeDutyBeginDate": "11-14-2008",
             "activeDutyEndDate": "11-30-2025",
             "serviceComponent": "Active",
             "separationLocationCode": "25077"
@@ -169,7 +169,7 @@
         ],
         "federalActivation": {
           "anticipatedSeparationDate": "10-03-2025",
-          "activationDate": "02-11-2018"
+          "activationDate": "02-10-2023"
         },
         "reservesNationalGuardService": {
           "obligationTermsOfService": {

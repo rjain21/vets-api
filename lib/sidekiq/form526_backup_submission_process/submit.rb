@@ -47,6 +47,11 @@ module Sidekiq
         )
 
         StatsD.increment(STATSD_KEY)
+
+        Rails.logger.warn(
+          'Form 526 Backup Submission Retries exhausted',
+          { job_id:, error_class:, error_message:, timestamp:, form526_submission_id: }
+        )
       rescue => e
         Rails.logger.error(
           'Failure in Form526BackupSubmission#sidekiq_retries_exhausted',
@@ -66,8 +71,12 @@ module Sidekiq
       def perform(form526_submission_id)
         return unless Settings.form526_backup.enabled
 
-        job_status = Form526JobStatus.create!(job_class: 'BackupSubmission', status: 'pending',
-                                              form526_submission_id:, job_id: jid)
+        job_status = Form526JobStatus.find_or_initialize_by(job_id: jid)
+        job_status.assign_attributes(form526_submission_id:,
+                                     job_class: 'BackupSubmission',
+                                     status: 'pending')
+        job_status.save!
+
         Processor.new(form526_submission_id).process!
         job_status.update(status: Form526JobStatus::STATUS[:success])
       rescue => e
