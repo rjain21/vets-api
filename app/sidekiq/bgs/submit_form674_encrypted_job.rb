@@ -9,47 +9,75 @@ module BGS
     include Sidekiq::Job
     include SentryLogging
 
-    sidekiq_options retry: false
+    attr_reader :claim, :user, :in_progress_copy, :user_uuid, :saved_claim_id, :vet_info
 
-    # rubocop:disable Metrics/MethodLength
-    # method length is currently disabled due to the two flippers currently enabled in this method.
-    # when both are resolved we will be able to remove the method length disabling.
-    # BlockNesting is also disabled for the same reason.
-    def perform(user_uuid, icn, saved_claim_id, encrypted_vet_info, encrypted_user_struct_hash = nil)
+    sidekiq_options retry: 14
+
+    sidekiq_retries_exhausted do |msg|
+      user_uuid, icn, saved_claim_id, encrypted_vet_info, encrypted_user_struct_hash = msg['args']
       vet_info = JSON.parse(KmsEncrypted::Box.new.decrypt(encrypted_vet_info))
-      if encrypted_user_struct_hash.present?
-        user_struct_hash = JSON.parse(KmsEncrypted::Box.new.decrypt(encrypted_user_struct_hash))
+      Rails.logger.error('BGS::SubmitForm674Job failed!', { user_uuid:, saved_claim_id:, icn:, error: msg })
+      if Flipper.enabled?(:dependents_central_submission)
+        user ||= BGS::SubmitForm674EncryptedJob.generate_user_struct(encrypted_user_struct_hash, vet_info)
+        CentralMail::SubmitCentralForm686cJob.perform_async(saved_claim_id,
+                                                            KmsEncrypted::Box.new.encrypt(vet_info.to_json),
+                                                            KmsEncrypted::Box.new.encrypt(user.to_h.to_json))
+      else
+        DependentsApplicationFailureMailer.build(user).deliver_now if user&.email.present? # rubocop:disable Style/IfInsideElse # Temporary for flipper
       end
+    end
+
+    def perform(user_uuid, icn, saved_claim_id, encrypted_vet_info, encrypted_user_struct_hash = nil)
+      @vet_info = JSON.parse(KmsEncrypted::Box.new.decrypt(encrypted_vet_info))
       Rails.logger.info('BGS::SubmitForm674Job running!', { user_uuid:, saved_claim_id:, icn: })
+
+      @user = BGS::SubmitForm674EncryptedJob.generate_user_struct(encrypted_user_struct_hash, @vet_info)
+      @user_uuid = user_uuid
+      @saved_claim_id = saved_claim_id
+
       in_progress_form = InProgressForm.find_by(form_id: FORM_ID, user_uuid:)
-      in_progress_copy = in_progress_form_copy(in_progress_form)
-      claim_data = valid_claim_data(saved_claim_id, vet_info)
-      normalize_names_and_addresses!(claim_data)
-      user_struct = user_struct_hash.present? ? OpenStruct.new(user_struct_hash) : generate_user_struct(vet_info['veteran_information']) # rubocop:disable Layout/LineLength
+      @in_progress_copy = in_progress_form_copy(in_progress_form)
 
-      user = user_struct
-      BGS::Form674.new(user).submit(claim_data)
+      claim_data = normalize_names_and_addresses!(valid_claim_data)
 
-      send_confirmation_email(user)
+      BGS::Form674.new(user, claim).submit(claim_data)
+
+      send_confirmation_email
       in_progress_form&.destroy
       Rails.logger.info('BGS::SubmitForm674Job succeeded!', { user_uuid:, saved_claim_id:, icn: })
     rescue => e
-      Rails.logger.error('BGS::SubmitForm674Job failed!', { user_uuid:, saved_claim_id:, icn:, error: e.message })
-      log_message_to_sentry(e, :error, {}, { team: 'vfs-ebenefits' })
-      salvage_save_in_progress_form(FORM_ID, user_uuid, in_progress_copy)
-      if Flipper.enabled?(:dependents_central_submission)
-        CentralMail::SubmitCentralForm686cJob.perform_async(saved_claim_id, encrypted_vet_info,
-                                                            encrypted_user_struct_hash)
-      else
-        DependentsApplicationFailureMailer.build(user).deliver_now if user&.email.present? # rubocop:disable Style/IfInsideElse
-      end
+      Rails.logger.warn('BGS::SubmitForm674Job received error!',
+                        { user_uuid:, saved_claim_id:, icn:, error: e.message })
+      log_message_to_sentry(e, :warning, {}, { team: 'vfs-ebenefits' })
+      salvage_save_in_progress_form(FORM_ID, user_uuid, @in_progress_copy) if @in_progress_copy.present?
+      raise
     end
-    # rubocop:enable Metrics/MethodLength
+
+    def self.generate_user_struct(encrypted_user_struct, vet_info)
+      if encrypted_user_struct.present?
+        return OpenStruct.new(JSON.parse(KmsEncrypted::Box.new.decrypt(encrypted_user_struct)))
+      end
+
+      info = vet_info['veteran_information']
+      full_name = info['full_name']
+      OpenStruct.new(
+        first_name: full_name['first'],
+        last_name: full_name['last'],
+        middle_name: full_name['middle'],
+        ssn: info['ssn'],
+        email: info['email'],
+        va_profile_email: info['va_profile_email'],
+        participant_id: info['participant_id'],
+        icn: info['icn'],
+        uuid: info['uuid'],
+        common_name: info['common_name']
+      )
+    end
 
     private
 
-    def valid_claim_data(saved_claim_id, vet_info)
-      claim = SavedClaim::DependencyClaim.find(saved_claim_id)
+    def valid_claim_data
+      @claim = SavedClaim::DependencyClaim.find(saved_claim_id)
 
       claim.add_veteran_info(vet_info)
 
@@ -58,7 +86,7 @@ module BGS
       claim.formatted_674_data(vet_info)
     end
 
-    def send_confirmation_email(user)
+    def send_confirmation_email
       return if user.va_profile_email.blank?
 
       VANotify::ConfirmationEmail.send(
@@ -66,21 +94,6 @@ module BGS
         template_id: Settings.vanotify.services.va_gov.template_id.form686c_confirmation_email,
         first_name: user&.first_name&.upcase,
         user_uuid_and_form_id: "#{user.uuid}_#{FORM_ID}"
-      )
-    end
-
-    def generate_user_struct(vet_info)
-      OpenStruct.new(
-        first_name: vet_info['full_name']['first'],
-        last_name: vet_info['full_name']['last'],
-        middle_name: vet_info['full_name']['middle'],
-        ssn: vet_info['ssn'],
-        email: vet_info['email'],
-        va_profile_email: vet_info['va_profile_email'],
-        participant_id: vet_info['participant_id'],
-        icn: vet_info['icn'],
-        uuid: vet_info['uuid'],
-        common_name: vet_info['common_name']
       )
     end
   end

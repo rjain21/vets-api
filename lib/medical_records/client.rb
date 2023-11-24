@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'common/client/base'
-require 'common/client/concerns/mhv_jwt_session_client'
+require 'common/client/concerns/mhv_fhir_session_client'
 require 'medical_records/client_session'
 require 'medical_records/configuration'
 
@@ -10,7 +10,7 @@ module MedicalRecords
   # Core class responsible for Medical Records API interface operations
   #
   class Client < Common::Client::Base
-    include Common::Client::Concerns::MHVJwtSessionClient
+    include Common::Client::Concerns::MhvFhirSessionClient
 
     # Default number of records to request per call when searching
     DEFAULT_COUNT = 9999
@@ -73,7 +73,10 @@ module MedicalRecords
     end
 
     def get_patient_by_identifier(fhir_client, identifier)
-      result = fhir_client.search(FHIR::Patient, search: { parameters: { identifier: } })
+      result = fhir_client.search(FHIR::Patient, {
+                                    search: { parameters: { identifier: } },
+                                    headers: { 'Cache-Control': 'no-cache' }
+                                  })
       resource = result.resource
       handle_api_errors(result) if resource.nil?
       resource
@@ -81,7 +84,10 @@ module MedicalRecords
 
     def list_allergies
       bundle = fhir_search(FHIR::AllergyIntolerance,
-                           search: { parameters: { patient: patient_fhir_id, 'clinical-status': 'active' } })
+                           {
+                             search: { parameters: { patient: patient_fhir_id, 'clinical-status': 'active' } },
+                             headers: { 'Cache-Control': 'no-cache' }
+                           })
       sort_bundle(bundle, :recordedDate, :desc)
     end
 
@@ -115,8 +121,24 @@ module MedicalRecords
 
     def list_clinical_notes
       loinc_codes = "#{PHYSICIAN_PROCEDURE_NOTE},#{DISCHARGE_SUMMARY}"
-      fhir_search(FHIR::DocumentReference,
-                  search: { parameters: { patient: patient_fhir_id, type: loinc_codes } })
+      bundle = fhir_search(FHIR::DocumentReference,
+                           search: { parameters: { patient: patient_fhir_id, type: loinc_codes } })
+
+      # Sort the bundle of notes based on the date field appropriate to each note type.
+      sort_bundle_with_criteria(bundle, :desc) do |resource|
+        loinc_code = if resource.respond_to?(:type) && resource.type.respond_to?(:coding)
+                       resource.type.coding&.find do |coding|
+                         coding.respond_to?(:system) && coding.system == 'http://loinc.org'
+                       end&.code
+                     end
+
+        case loinc_code
+        when PHYSICIAN_PROCEDURE_NOTE
+          resource.date
+        when DISCHARGE_SUMMARY
+          resource.context&.period&.end
+        end
+      end
     end
 
     def get_clinical_note(note_id)
@@ -319,27 +341,49 @@ module MedicalRecords
     # is sorted to the end.
     #
     # @param bundle [FHIR::Bundle] the bundle to sort
-    # @param field [Symbol] the field to sort on
+    # @param field [Symbol, String] the field to sort on (supports nested fields with dot notation)
     # @param order [Symbol] the sort order, :asc (default) or :desc
     #
     def sort_bundle(bundle, field, order = :asc)
+      field = field.to_s
+      sort_bundle_with_criteria(bundle, order) do |resource|
+        fetch_nested_value(resource, field)
+      end
+    end
+
+    ##
+    # Sort the FHIR::Bundle entries based on a provided block. The block should handle different resource types
+    # and define how to extract the sorting value from each.
+    #
+    # @param bundle [FHIR::Bundle] the bundle to sort
+    # @param order [Symbol] the sort order, :asc (default) or :desc
+    #
+    def sort_bundle_with_criteria(bundle, order = :asc)
       sorted_entries = bundle.entry.sort do |entry1, entry2|
-        value1 = if entry1.resource.respond_to?(field) && !entry1.resource.send(field).nil?
-                   entry1.resource.send(field)
-                 end
-        value2 = if entry2.resource.respond_to?(field) && !entry2.resource.send(field).nil?
-                   entry2.resource.send(field)
-                 end
-        if value1.nil?
-          1
-        elsif value2.nil?
+        value1 = yield(entry1.resource)
+        value2 = yield(entry2.resource)
+        if value2.nil?
           -1
+        elsif value1.nil?
+          1
         else
           order == :asc ? value1 <=> value2 : value2 <=> value1
         end
       end
       bundle.entry = sorted_entries
       bundle
+    end
+
+    ##
+    # Fetches the value of a potentially nested field from a given object.
+    #
+    # @param object [Object] the object to fetch the value from
+    # @param field_path [String] the dot-separated path to the field
+    #
+    def fetch_nested_value(object, field_path)
+      field_path.split('.').reduce(object) do |obj, method|
+        obj.respond_to?(method) ? obj.send(method) : nil
+      end
     end
 
     ##
