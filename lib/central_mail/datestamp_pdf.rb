@@ -12,7 +12,7 @@ module CentralMail
 
     def run(settings)
       stamp_path = Common::FileHelpers.random_file_path
-      generate_stamp(stamp_path, settings[:text], settings[:x], settings[:y], settings[:text_only], settings[:size], settings[:page_number, settings[:template]])
+      generate_stamp(stamp_path, settings[:text], settings[:x], settings[:y], settings[:text_only], settings[:size], settings[:page_number], settings[:template])
       stamp(@file_path, stamp_path, multistamp: settings[:multistamp])
     ensure
       Common::FileHelpers.delete_file_if_exists(stamp_path) if defined?(stamp_path)
