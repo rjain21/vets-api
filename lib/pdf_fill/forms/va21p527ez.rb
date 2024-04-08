@@ -933,13 +933,19 @@ module PdfFill
         end
       end
 
+      def expand_signature(full_name, signature_date = Time.zone.today)
+        signature = combine_hash(full_name, %w[first last])
+        @form_data['signature'] = signature
+        @form_data['signatureDate'] = signature_date.to_s if signature.present?
+      end
+
       def expand_spouse_addr
         combine_both_addr(@form_data, 'spouseAddress')
       end
 
       # rubocop:disable Metrics/MethodLength
       def merge_fields(_options = {})
-        expand_signature(@form_data['veteranFullName'])
+        expand_signature(@form_data['veteranFullName'], created_at&.to_date || Time.zone.today)
         @form_data['veteranFullName'] = combine_full_name(@form_data['veteranFullName'])
 
         %w[

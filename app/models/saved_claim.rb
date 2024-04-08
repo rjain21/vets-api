@@ -93,7 +93,7 @@ class SavedClaim < ApplicationRecord
   end
 
   def to_pdf(file_name = nil)
-    PdfFill::Filler.fill_form(self, file_name)
+    PdfFill::Filler.fill_form(self, file_name, { created_at: })
   end
 
   def update_form(key, value)
