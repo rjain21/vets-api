@@ -945,7 +945,9 @@ module PdfFill
 
       # rubocop:disable Metrics/MethodLength
       def merge_fields(_options = {})
-        expand_signature(@form_data['veteranFullName'], created_at&.to_date || Time.zone.today)
+        created_at = options[:created_at] if options[:created_at].present?
+        expand_signature(@form_data['veteran_information']['full_name'], created_at&.to_date || Time.zone.today)
+        @form_data['signature_date'] = split_date(@form_data['signatureDate'])
         @form_data['veteranFullName'] = combine_full_name(@form_data['veteranFullName'])
 
         %w[
