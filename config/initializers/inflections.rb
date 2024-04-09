@@ -17,6 +17,7 @@ ActiveSupport::Inflector.inflections do |inflect|
   inflect.acronym 'HCA'
   inflect.acronym 'IAM'
   inflect.acronym 'IHub'
+  inflect.acronym 'LHDI' # Lighthouse Delivery Infrastructure
   inflect.acronym 'MDOT'
   inflect.acronym 'MHV' # My HealtheVet
   inflect.acronym 'MPI' # Master Persons Index (formerly MVI for Veteran instead of Persons)
