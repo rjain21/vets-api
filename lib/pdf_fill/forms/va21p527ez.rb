@@ -819,8 +819,8 @@ module PdfFill
       end
 
       def fill_financial_blanks(limit, financial_accts)
-        padding = limit - financial_accts.except('additionalSources').size - financial_accts['additionalSources'].size
-        additional = Array.new(padding) { |_| DEFAULT_FINANCIAL_ACCT }
+        # padding = limit - financial_accts.except('additionalSources').size - financial_accts['additionalSources'].size
+        additional = Array.new() { |_| DEFAULT_FINANCIAL_ACCT }
         expand_additional_sources('None', additional, financial_accts)
         financial_accts
       end
