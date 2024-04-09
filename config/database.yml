@@ -66,3 +66,13 @@ production:
   variables:
     statement_timeout: <%= ENV["STATEMENT_TIMEOUT"] || "60s" %>
     lock_timeout: 15s
+
+lhdi_production:
+  url: <%= Settings.lhdi_database_url %>
+  username: <%= Settings.lhdi_database_username %>
+  password: <%= Settings.lhdi_database_password %>
+  connect_timeout: 5
+  variables:
+    statement_timeout: <%= ENV["STATEMENT_TIMEOUT"] || "60s" %>
+    lock_timeout: 15s
+  migration_paths: db/lhdi_migrate
