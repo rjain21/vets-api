@@ -3,7 +3,7 @@
 require 'json_marshal/marshaller'
 
 module AppealsApi
-  class EvidenceSubmission < ApplicationRecord
+  class EvidenceSubmission < LHDIApplicationRecord
     include SetGuid
     belongs_to :supportable, polymorphic: true
     belongs_to :upload_submission,

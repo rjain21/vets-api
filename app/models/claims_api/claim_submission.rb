@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ClaimsApi
-  class ClaimSubmission < ApplicationRecord
+  class ClaimSubmission < LHDIApplicationRecord
     validates :claim_type, presence: true
     validates :consumer_label, presence: true
 

@@ -4,7 +4,7 @@ require 'json_marshal/marshaller'
 require 'common/file_helpers'
 
 module ClaimsApi
-  class PowerOfAttorney < ApplicationRecord
+  class PowerOfAttorney < LHDIApplicationRecord
     include FileData
     serialize :auth_headers, coder: JsonMarshal::Marshaller
     serialize :form_data, coder: JsonMarshal::Marshaller

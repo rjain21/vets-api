@@ -4,7 +4,7 @@ require 'json_marshal/marshaller'
 require 'common/exceptions'
 
 module AppealsApi
-  class NoticeOfDisagreement < ApplicationRecord
+  class NoticeOfDisagreement < LHDIApplicationRecord
     include NodStatus
     include PdfOutputPrep
     include ModelValidations

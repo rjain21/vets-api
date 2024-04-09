@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ClaimsApi
-  class SupportingDocument < ApplicationRecord
+  class SupportingDocument < LHDIApplicationRecord
     include FileData
 
     belongs_to :auto_established_claim

@@ -7,7 +7,7 @@
 # to asynchronously submit them to BGS, the existing model and database table should
 # be easily adapted.
 module ClaimsApi
-  class IntentToFile < ApplicationRecord
+  class IntentToFile < LHDIApplicationRecord
     validates :status, presence: true
     validates :cid, presence: true
 

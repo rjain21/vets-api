@@ -6,7 +6,7 @@ require 'vba_documents/upload_error'
 require 'vba_documents/webhooks_registrations'
 
 module VBADocuments
-  class UploadSubmission < ApplicationRecord
+  class UploadSubmission < LHDIApplicationRecord
     include SetGuid
     include SentryLogging
     include Webhooks

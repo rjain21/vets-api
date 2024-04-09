@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module VAForms
-  class Form < ApplicationRecord
+  class Form < LHDIApplicationRecord
     include PgSearch::Model
     pg_search_scope :search,
                     against: { tags: 'A',

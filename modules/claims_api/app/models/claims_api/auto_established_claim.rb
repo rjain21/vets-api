@@ -8,7 +8,7 @@ require 'claims_api/service_branch_mapper'
 require 'claims_api/claim_logger'
 
 module ClaimsApi
-  class AutoEstablishedClaim < ApplicationRecord
+  class AutoEstablishedClaim < LHDIApplicationRecord
     include FileData
     serialize :auth_headers, coder: JsonMarshal::Marshaller
     serialize :bgs_flash_responses, coder: JsonMarshal::Marshaller

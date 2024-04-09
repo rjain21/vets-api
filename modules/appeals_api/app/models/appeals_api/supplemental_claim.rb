@@ -3,7 +3,7 @@
 require 'json_marshal/marshaller'
 
 module AppealsApi
-  class SupplementalClaim < ApplicationRecord
+  class SupplementalClaim < LHDIApplicationRecord
     include ScStatus
     include PdfOutputPrep
     include ModelValidations

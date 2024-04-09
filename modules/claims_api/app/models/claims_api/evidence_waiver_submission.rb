@@ -2,7 +2,7 @@
 
 require 'json_marshal/marshaller'
 
-class ClaimsApi::EvidenceWaiverSubmission < ApplicationRecord
+class ClaimsApi::EvidenceWaiverSubmission < LHDIApplicationRecord
   validates :cid, presence: true
   serialize :auth_headers, coder: JsonMarshal::Marshaller
 

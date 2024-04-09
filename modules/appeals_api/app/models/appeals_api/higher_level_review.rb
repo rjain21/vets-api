@@ -4,7 +4,7 @@ require 'json_marshal/marshaller'
 require 'common/exceptions'
 
 module AppealsApi
-  class HigherLevelReview < ApplicationRecord
+  class HigherLevelReview < LHDIApplicationRecord
     include HlrStatus
     include PdfOutputPrep
     include ModelValidations
