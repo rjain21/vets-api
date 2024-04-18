@@ -20,7 +20,7 @@ module AskVAApi
       def test_create
         service = Crm::Service.new(icn: nil)
         payload = { reply: params[:reply] }
-        response = service.call(endpoint: params[:endpoint], method: :put, payload:)
+        response = service.call(endpoint: params[:endpoint], method: :post, payload:)
 
         render json: response.to_json, status: :ok
       end
