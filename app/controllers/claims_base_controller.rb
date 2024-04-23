@@ -43,6 +43,16 @@ class ClaimsBaseController < ApplicationController
     render(json: CentralMailSubmission.joins(:central_mail_claim).find_by(saved_claims: { guid: params[:id] }))
   end
 
+  def service_history
+    if current_user.icn
+      history = service.get_service_history(current_user.icn)
+    else
+      # find the current user icn via querying an auth endpoint
+    end
+
+    render(json: history)
+  end
+
   private
 
   def filtered_params
@@ -51,5 +61,9 @@ class ClaimsBaseController < ApplicationController
 
   def stats_key
     "api.#{short_name}"
+  end
+
+  def service
+    @service ||= VeteranVerification::Service.new
   end
 end
