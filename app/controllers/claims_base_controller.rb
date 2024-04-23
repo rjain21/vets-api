@@ -44,11 +44,12 @@ class ClaimsBaseController < ApplicationController
   end
 
   def service_history
-    if current_user.icn
-      history = service.get_service_history(current_user.icn)
-    else
-      # find the current user icn via querying an auth endpoint
-    end
+    history = if current_user.icn
+                service.get_service_history(current_user.icn)
+              else
+                # find the current user icn via querying an auth endpoint
+                { data: [] }
+              end
 
     render(json: history)
   end

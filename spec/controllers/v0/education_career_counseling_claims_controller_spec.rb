@@ -63,7 +63,7 @@ RSpec.describe V0::EducationCareerCounselingClaimsController, type: :controller 
     end
 
     context 'logged in user with icn' do
-      let(:icn) { '123498767V234859'}
+      let(:icn) { '123498767V234859' }
 
       it 'returns the service history' do
         VCR.use_cassette('lighthouse/veteran_verification/service_history/200_response') do
