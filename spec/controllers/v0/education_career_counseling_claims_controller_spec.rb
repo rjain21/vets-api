@@ -57,7 +57,7 @@ RSpec.describe V0::EducationCareerCounselingClaimsController, type: :controller 
   end
 
   describe 'GET service_history' do
-    before(:each) do
+    before do
       @service = VeteranVerification::Service.new
       allow_any_instance_of(Auth::ClientCredentials::Service).to receive(:get_token).and_return('blahblech')
     end
