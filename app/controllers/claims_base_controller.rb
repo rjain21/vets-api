@@ -66,4 +66,6 @@ class ClaimsBaseController < ApplicationController
   def service
     @service ||= VeteranVerification::Service.new
   end
+
+  def find_by_icn; end
 end
