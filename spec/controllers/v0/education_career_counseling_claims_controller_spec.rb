@@ -2,6 +2,8 @@
 
 require 'rails_helper'
 require 'support/controller_spec_helper'
+require 'lighthouse/veteran_verification/service'
+require 'lighthouse/service_exception'
 
 RSpec.describe V0::EducationCareerCounselingClaimsController, type: :controller do
   let(:loa3_user) { create(:evss_user) }
@@ -50,6 +52,24 @@ RSpec.describe V0::EducationCareerCounselingClaimsController, type: :controller 
             'form - can\'t be blank'
           )
         ).to eq(true)
+      end
+    end
+  end
+
+  describe 'GET service_history' do
+    before(:each) do
+      @service = VeteranVerification::Service.new
+      allow_any_instance_of(Auth::ClientCredentials::Service).to receive(:get_token).and_return('blahblech')
+    end
+
+    context 'logged in user with icn' do
+      let(:icn) { '123498767V234859'}
+
+      it 'returns the service history' do
+        VCR.use_cassette('lighthouse/veteran_verification/service_history/200_response') do
+          response = @service.get_service_history(icn, '', '')
+          expect(response['data'][0]['id']).to eq('2305d238-dee4-5c98-858a-f912e3c059f8')
+        end
       end
     end
   end
