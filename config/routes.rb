@@ -44,7 +44,7 @@ Rails.application.routes.draw do
     resource :claim_attachments, only: [:create], controller: :claim_documents
     resources :debts, only: %i[index show]
     resources :debt_letters, only: %i[index show]
-    resources :education_career_counseling_claims, only: :create
+    resources :education_career_counseling_claims, only: %i[create service_history]
     resources :veteran_readiness_employment_claims, only: :create
     resource :virtual_agent_token, only: [:create], controller: :virtual_agent_token
     resource :virtual_agent_token_msft, only: [:create], controller: :virtual_agent_token_msft
@@ -366,6 +366,7 @@ Rails.application.routes.draw do
       get 'document_download/:id', action: 'document_download'
       post 'submit_coe_claim'
       post 'document_upload'
+      get 'service_history/:icn'
     end
 
     get 'terms_of_use_agreements/:version/latest', to: 'terms_of_use_agreements#latest'
