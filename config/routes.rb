@@ -366,7 +366,6 @@ Rails.application.routes.draw do
       get 'document_download/:id', action: 'document_download'
       post 'submit_coe_claim'
       post 'document_upload'
-      get 'service_history/:icn'
     end
 
     get 'terms_of_use_agreements/:version/latest', to: 'terms_of_use_agreements#latest'

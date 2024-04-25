@@ -15,7 +15,7 @@ require 'common/exceptions/validation_errors'
 
 class ClaimsBaseController < ApplicationController
   skip_before_action(:authenticate)
-  before_action :load_user, only: :create
+  before_action :load_user, only: %i[create service_history]
 
   # Creates and validates an instance of the class, removing any copies of
   # the form that had been previously saved by the user.
@@ -44,14 +44,7 @@ class ClaimsBaseController < ApplicationController
   end
 
   def service_history
-    history = if current_user.icn
-                service.get_service_history(current_user.icn)
-              else
-                # find the current user icn via querying an auth endpoint
-                { data: [], status: 401 }
-              end
-
-    render(json: history)
+    render(json: service.get_service_history(current_user.icn))
   end
 
   private
@@ -68,5 +61,4 @@ class ClaimsBaseController < ApplicationController
     @service ||= VeteranVerification::Service.new
   end
 
-  def find_by_icn; end
 end
