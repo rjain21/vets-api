@@ -12,6 +12,8 @@
 
 require 'pension_burial/tag_sentry'
 require 'common/exceptions/validation_errors'
+require 'lighthouse/veteran_verification/service'
+
 
 class ClaimsBaseController < ApplicationController
   skip_before_action(:authenticate)
@@ -43,8 +45,10 @@ class ClaimsBaseController < ApplicationController
     render(json: CentralMailSubmission.joins(:central_mail_claim).find_by(saved_claims: { guid: params[:id] }))
   end
 
+  # Finds the service history for a Veteran from the
+  # Lighthouse Veteran Service History and Eligibility API
   def service_history
-    render(json: service.get_service_history(current_user.icn))
+    render json: service.get_service_history(current_user.icn)
   end
 
   private
