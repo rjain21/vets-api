@@ -48,7 +48,7 @@ class ClaimsBaseController < ApplicationController
                 service.get_service_history(current_user.icn)
               else
                 # find the current user icn via querying an auth endpoint
-                { data: [] }
+                { data: [], status: 401 }
               end
 
     render(json: history)
