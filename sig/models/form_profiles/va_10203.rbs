@@ -1,0 +1,27 @@
+module VA10203
+  FORM_ID: "22-10203"
+
+  class FormInstitutionInfo
+  end
+
+  class FormEntitlementInformation
+  end
+end
+
+class FormProfiles::VA10203 < FormProfile
+  @remaining_entitlement: untyped
+
+  @school_information: untyped
+
+  def prefill: () -> untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/applicant/information" }
+
+  private
+
+  def get_gi_bill_status: () -> untyped
+
+  def initialize_entitlement_information: (untyped gi_bill_status) -> (::Hash[untyped, untyped] | untyped)
+
+  def initialize_school_information: (untyped gi_bill_status) -> untyped
+end

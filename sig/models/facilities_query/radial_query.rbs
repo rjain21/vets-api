@@ -1,0 +1,13 @@
+module FacilitiesQuery
+  class RadialQuery < Base
+    METERS_PER_MILE: ::Float
+
+    def run: () -> untyped
+
+    # rubocop:disable Metrics/ParameterLists
+    def build_distance_result_set: (untyped lat, untyped long, untyped type, untyped services, untyped ids, ?untyped? limit) -> untyped
+
+    # The distance attribute is only set if lat/long are sent in as params
+    def distance_query: (untyped lat, untyped long) -> untyped
+  end
+end

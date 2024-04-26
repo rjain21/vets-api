@@ -1,0 +1,25 @@
+module MDOT
+  class FormContactInformation
+  end
+
+  class FormSupplyInformation
+  end
+end
+
+class FormProfiles::MDOT < FormProfile
+  @response: untyped
+
+  @mdot_contact_information: untyped
+
+  @mdot_supplies: untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/veteran-information" }
+
+  def prefill: () -> untyped
+
+  private
+
+  def initialize_mdot_contact_information: (untyped response) -> untyped
+
+  def initialize_mdot_supplies: (untyped response) -> untyped
+end

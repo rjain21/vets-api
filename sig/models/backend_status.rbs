@@ -1,0 +1,5 @@
+class BackendStatus
+  include ActiveModel::Serialization
+
+  include ActiveModel::Validations
+end

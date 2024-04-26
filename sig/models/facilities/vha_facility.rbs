@@ -1,0 +1,41 @@
+module Facilities
+  class VHAFacility < BaseFacility
+    def self.pull_source_data: () -> untyped
+
+    def self.get_all_the_facilities_data: () -> untyped
+
+    def self.add_websites: (untyped facilities) -> untyped
+
+    def self.add_mental_health: (untyped facilities) -> untyped
+
+    def self.format_mh_phone: (untyped phone, untyped ext) -> ("" | untyped)
+
+    def self.service_list: () -> ::Array["PrimaryCare" | "MentalHealthCare" | "DentalServices" | "UrgentCare" | "EmergencyCare" | "Audiology" | "Cardiology" | "Dermatology" | "Gastroenterology" | "Gynecology" | "Ophthalmology" | "Optometry" | "Orthopedics" | "Urology" | "WomensHealth"]
+
+    def self.zip_plus_four: (untyped attrs) -> untyped
+
+    def self.satisfaction_data: (untyped attrs) -> untyped
+
+    def self.wait_time_data: (untyped attrs) -> untyped
+
+    def self.with_services: (untyped services) -> untyped
+
+    def self.identifier: () -> "Sta_No"
+
+    def self.attribute_map: () -> ::Hash[::String, "Sta_No" | "NAME" | untyped | ::Hash[::String, "Sta_Phone" | "Sta_Fax" | "afterhoursphone" | "patientadvocatephone" | "enrollmentcoordinatorphone" | "pharmacyphone"] | ::Hash[::String, "Address2" | "Address1" | "Address3" | "MUNICIPALITY" | "STATE" | untyped] | ::Hash[::String, untyped] | "Mobile" | "Visn" | "Pod"]
+
+    def self.classification_mapping: (untyped facility) -> untyped
+
+    def self.health_services: () -> ::Hash[::String, ::Array[untyped] | ::Array["ImagingAndRadiology" | "LabServices"] | ::Array["OutpatientMHCare" | "OutpatientSpecMHCare" | "VocationalAssistance"] | untyped]
+
+    def self.outpatient_medical_specialty_list: () -> ::Array["AllergyAndImmunology" | "CardiologyCareServices" | "DermatologyCareServices" | "Diabetes" | "Dialysis" | "Endocrinology" | "Gastroenterology" | "Hematology" | "InfectiousDisease" | "InternalMedicine" | "Nephrology" | "Neurology" | "Oncology" | "PulmonaryRespiratoryDisease" | "Rheumatology" | "SleepMedicine"]
+
+    def self.outpatient_surgical_specialty_list: () -> ::Array["CardiacSurgery" | "ColoRectalSurgery" | "ENT" | "GeneralSurgery" | "Gynecology" | "Neurosurgery" | "Orthopedics" | "PainManagement" | "PlasticSurgery" | "Podiatry" | "ThoracicSurgery" | "Urology" | "VascularSurgery"]
+
+    def self.mapped_fields_list: () -> ::Array["Sta_No" | "NAME" | "CocClassificationID" | "LASTUPDATE" | "Address1" | "Address2" | "Address3" | "MUNICIPALITY" | "STATE" | "zip" | "Zip4" | "Sta_Phone" | "Sta_Fax" | "afterhoursphone" | "Mobile" | "Visn" | "patientadvocatephone" | "enrollmentcoordinatorphone" | "pharmacyphone" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday" | "Pod"]
+
+    private
+
+    def self.classification_map: () -> { 1 => "VA Medical Center (VAMC)", 2 => "Health Care Center (HCC)", 3 => "Multi-Specialty CBOC", 4 => "Primary Care CBOC", 5 => "Other Outpatient Services (OOS)", 7 => "Residential Care Site (MH RRTP/DRRTP) (Stand-Alone)", 8 => "Extended Care Site (Community Living Center) (Stand-Alone)" }
+  end
+end

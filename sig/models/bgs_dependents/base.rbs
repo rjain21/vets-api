@@ -1,0 +1,40 @@
+module BGSDependents
+  class Base < Common::Base
+    include ActiveModel::Validations
+
+    MILITARY_POST_OFFICE_TYPE_CODES: ::Array["APO" | "DPO" | "FPO"]
+
+    # Gets the person's address based on the lives with veteran flag
+    #
+    # @param dependents_application [Hash] the submitted form information
+    # @param lives_with_vet [Boolean] does live with veteran indicator
+    # @param alt_address [Hash] alternate address
+    # @return [Hash] address information
+    #
+    def dependent_address: (dependents_application: untyped, lives_with_vet: untyped, alt_address: untyped) -> untyped
+
+    def relationship_type: (untyped info) -> ({ participant: "Guardian", family: "Other" } | { participant: untyped, family: untyped } | nil)
+
+    def serialize_dependent_result: (untyped participant, untyped participant_relationship_type, untyped family_relationship_type, ?::Hash[untyped, untyped] optional_fields) -> { vnp_participant_id: untyped, participant_relationship_type_name: untyped, family_relationship_type_name: untyped, begin_date: untyped, end_date: untyped, event_date: untyped, marriage_state: untyped, marriage_city: untyped, marriage_country: untyped, divorce_state: untyped, divorce_city: untyped, divorce_country: untyped, marriage_termination_type_code: untyped, living_expenses_paid_amount: untyped, child_prevly_married_ind: untyped, guardian_particpant_id: untyped, type: untyped, dep_has_income_ind: untyped }
+
+    def create_person_params: (untyped proc_id, untyped participant_id, untyped payload) -> { vnp_proc_id: untyped, vnp_ptcpnt_id: untyped, first_nm: untyped, middle_nm: untyped, last_nm: untyped, suffix_nm: untyped, brthdy_dt: untyped, birth_cntry_nm: untyped, birth_state_cd: untyped, birth_city_nm: untyped, file_nbr: untyped, ssn_nbr: untyped, death_dt: untyped, ever_maried_ind: untyped, vet_ind: untyped, martl_status_type_cd: untyped, vnp_srusly_dsabld_ind: untyped }
+
+    # Converts a string "00/00/0000" to standard iso8601 format
+    #
+    # @return [String] formatted date
+    #
+    def format_date: (untyped date) -> (nil | untyped)
+
+    def generate_address: (untyped address) -> untyped
+
+    # BGS will not accept address lines longer than 20 characters
+    def adjust_address_lines_for!: (address: untyped) -> untyped
+
+    # This method converts ISO 3166-1 Alpha-3 country codes to ISO 3166-1 country names.
+    def adjust_country_name_for!: (address: untyped) -> (nil | untyped)
+
+    def create_address_params: (untyped proc_id, untyped participant_id, untyped payload) -> { efctv_dt: untyped, vnp_ptcpnt_id: untyped, vnp_proc_id: untyped, ptcpnt_addrs_type_nm: "Mailing", shared_addrs_ind: "N", addrs_one_txt: untyped, addrs_two_txt: untyped, addrs_three_txt: untyped, city_nm: untyped, cntry_nm: untyped, postal_cd: untyped, frgn_postal_cd: untyped, mlty_postal_type_cd: untyped, mlty_post_office_type_cd: untyped, zip_prefix_nbr: untyped, prvnc_nm: untyped, email_addrs_txt: untyped }
+
+    def formatted_boolean: (untyped bool_attribute) -> (nil | untyped)
+  end
+end

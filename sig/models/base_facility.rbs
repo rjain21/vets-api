@@ -1,0 +1,61 @@
+class BaseFacility < ApplicationRecord
+  self.@validate_on_load: untyped
+
+  YES: "YES"
+
+  HOURS_STANDARD_MAP: ::Hash[::String, "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday"]
+
+  HEALTH: "health"
+
+  CEMETERY: "cemetery"
+
+  BENEFITS: "benefits"
+
+  VET_CENTER: "vet_center"
+
+  DOD_HEALTH: "dod_health"
+
+  TYPES: ::Array[untyped]
+
+  PREFIX_MAP: ::Hash[::String, "vha" | "vba" | "nca" | "vc"]
+
+  FACILITY_MAPPINGS: ::Hash[::String, "Facilities::NCAFacility" | "Facilities::VBAFacility" | "Facilities::VCFacility" | "Facilities::VHAFacility" | "Facilities::DODFacility"]
+
+  TYPE_MAP: ::Hash[untyped, "Facilities::NCAFacility" | "Facilities::VHAFacility" | "Facilities::VBAFacility" | "Facilities::VCFacility" | "Facilities::DODFacility"]
+
+  TYPE_NAME_MAP: ::Hash[untyped, "va_cemetery" | "va_health_facility" | "va_benefits_facility" | "vet_center" | "dod_health"]
+
+  PENSION_LOCATIONS: ::Array["310" | "330" | "335"]
+
+  # This is only mutated in specs for the purpose of testing
+  # rubocop:disable ThreadSafety/ClassAndModuleAttributes
+  attr_writer self.validate_on_load: untyped
+
+  def self.to_date: (untyped dtstring) -> untyped
+
+  def self.validate_on_load: () -> untyped
+
+  def self.find_sti_class: (untyped type_name) -> untyped
+
+  def self.sti_name: () -> untyped
+
+  def self.find_facility_by_id: (untyped id) -> (nil | untyped)
+
+  def self.query: (untyped params) -> untyped
+
+  def self.per_page: () -> 10
+
+  def self.max_per_page: () -> 100
+
+  def self.suggested: (untyped facility_types, untyped name_part) -> untyped
+
+  DAYS: untyped
+
+  def facility_type_prefix: () -> untyped
+
+  private
+
+  def generate_location: () -> (untyped | nil)
+
+  def generate_fingerprint: () -> (untyped | nil)
+end

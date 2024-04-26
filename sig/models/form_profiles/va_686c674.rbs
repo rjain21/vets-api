@@ -1,0 +1,14 @@
+class FormProfiles::VA686c674 < FormProfile
+  @form_address: untyped
+
+  class FormAddress
+  end
+
+  def prefill: () -> untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/686-options-selection" }
+
+  private
+
+  def prefill_form_address: () -> (nil | untyped)
+end

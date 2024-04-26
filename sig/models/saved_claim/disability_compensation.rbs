@@ -1,0 +1,7 @@
+class SavedClaim::DisabilityCompensation < SavedClaim
+  attr_accessor form_hash: untyped
+
+  def self.from_hash: (untyped hash) -> untyped
+
+  def to_submission_data: (untyped user) -> untyped
+end

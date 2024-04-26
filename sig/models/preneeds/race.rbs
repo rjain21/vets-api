@@ -1,0 +1,9 @@
+module Preneeds
+  class Race < Preneeds::Base
+    ATTRIBUTE_MAPPING: ::Hash[::String, :is_american_indian_or_alaskan_native | :is_asian | :is_black_or_african_american | :is_spanish_hispanic_latino | :not_spanish_hispanic_latino | :is_native_hawaiian_or_other_pacific_islander | :is_white]
+
+    def as_eoas: () -> untyped
+
+    def self.permitted_params: () -> untyped
+  end
+end

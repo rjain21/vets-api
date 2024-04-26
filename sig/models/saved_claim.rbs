@@ -1,0 +1,40 @@
+class SavedClaim < ApplicationRecord
+  @application: untyped
+
+  @parsed_form: untyped
+
+  include SetGuid
+
+  def self.add_form_and_validation: (untyped form_id) -> untyped
+
+  # Run after a claim is saved, this processes any files and workflows that are present
+  # and sends them to our internal partners for processing.
+  def process_attachments!: () -> untyped
+
+  def submit_to_structured_data_services!: () -> untyped
+
+  def confirmation_number: () -> untyped
+
+  # Convert the json into an OStruct
+  def open_struct_form: () -> untyped
+
+  def parsed_form: () -> untyped
+
+  def submitted_at: () -> untyped
+
+  def form_is_string: () -> untyped
+
+  def form_must_be_string: () -> (untyped | nil)
+
+  def form_matches_schema: () -> (nil | untyped)
+
+  def to_pdf: (?untyped? file_name) -> untyped
+
+  def update_form: (untyped key, untyped value) -> untyped
+
+  def business_line: () -> ""
+
+  private
+
+  def attachment_keys: () -> ::Array[untyped]
+end

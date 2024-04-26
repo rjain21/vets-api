@@ -1,0 +1,81 @@
+# Facade for MVI. User model delegates MVI correlation id and VA profile (golden record) methods to this class.
+# When a profile is requested from one of the delegates it is returned from either a cached response in Redis
+# or from the MVI SOAP service.
+class MPIData < Common::RedisStore
+  @mvi_response: untyped
+
+  @service: untyped
+
+  include Common::CacheAside
+
+  include SentryLogging
+
+  REDIS_CONFIG_KEY: :mpi_profile_response
+
+  attr_accessor user_loa3: untyped
+
+  attr_accessor user_icn: untyped
+
+  attr_accessor user_first_name: untyped
+
+  attr_accessor user_last_name: untyped
+
+  attr_accessor user_birth_date: untyped
+
+  attr_accessor user_ssn: untyped
+
+  attr_accessor user_edipi: untyped
+
+  attr_accessor user_logingov_uuid: untyped
+
+  attr_accessor user_idme_uuid: untyped
+
+  attr_accessor user_uuid: untyped
+
+  # Creates a new MPIData instance for a user identity.
+  #
+  # @param user [UserIdentity] the user identity to query MVI for
+  # @return [MPIData] an instance of this class
+  def self.for_user: (untyped user_identity) -> untyped
+
+  # The profile returned from the MVI service. Either returned from cached response in Redis or the MVI service.
+  #
+  # @return [MPI::Models::MviProfile] patient 'golden record' data from MVI
+  def profile: () -> (nil | untyped)
+
+  # The status of the last MVI response or not authorized for for users < LOA 3
+  #
+  # @return [String] the status of the last MVI response
+  def status: () -> (:not_authorized | untyped)
+
+  # The error experienced when reaching out to the MVI service.
+  #
+  # @return [Common::Exceptions::BackendServiceException]
+  def error: () -> untyped
+
+  # @return [MPI::Responses::FindProfileResponse] the response returned from MVI
+  def mvi_response: (?user_key: untyped) -> untyped
+
+  def mpi_response_is_cached?: (?user_key: untyped) -> untyped
+
+  # The status of the MPI Add Person Proxy Add call. An Orchestrated MVI Search needs to be made before an
+  # MPI add person proxy addcall is made. The response is recached afterwards so the new ids can be accessed
+  # on the next call.
+  def add_person_proxy: () -> untyped
+
+  private
+
+  def get_user_key: () -> untyped
+
+  def find_profile: () -> untyped
+
+  def add_ids: (untyped response) -> untyped
+
+  def response_from_redis_or_service: (user_key: untyped) -> untyped
+
+  def mpi_service: () -> untyped
+
+  def save: () -> untyped
+
+  def record_ttl: () -> untyped
+end

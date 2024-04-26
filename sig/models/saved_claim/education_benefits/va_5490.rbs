@@ -1,0 +1,7 @@
+class SavedClaim::EducationBenefits::VA5490 < SavedClaim::EducationBenefits
+  def after_submit: (untyped _user) -> (nil | untyped)
+
+  private
+
+  def send_confirmation_email: (untyped parsed_form_data, untyped email) -> untyped
+end

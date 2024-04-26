@@ -1,0 +1,13 @@
+class SavedClaim::EducationBenefits < SavedClaim
+  def self.form_class: (untyped form_type) -> untyped
+
+  def in_progress_form_id: () -> untyped
+
+  def after_submit: (untyped user) -> nil
+
+  private
+
+  def regional_office_address: () -> untyped
+
+  def add_education_benefits_claim: () -> (untyped | nil)
+end

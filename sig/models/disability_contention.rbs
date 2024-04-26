@@ -1,0 +1,3 @@
+class DisabilityContention < ApplicationRecord
+  def self.suggested: (untyped name_part) -> untyped
+end

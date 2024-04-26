@@ -1,0 +1,17 @@
+module Facilities
+  class NCAFacility < BaseFacility
+    def self.pull_source_data: () -> untyped
+
+    def self.get_all_the_facilities_data: () -> untyped
+
+    def self.add_websites: (untyped facilities) -> untyped
+
+    def self.service_list: () -> ::Array[untyped]
+
+    def self.arcgis_type: () -> "NCA_Facilities"
+
+    def self.sort_field: () -> "SITE_ID"
+
+    def self.attribute_map: () -> ::Hash[::String, "SITE_ID" | "FULL_NAME" | "SITE_TYPE" | ::Hash[::String, "PHONE" | "FAX"] | ::Hash[::String, "SITE_ADDRESS1" | "SITE_ADDRESS2" | "" | "SITE_CITY" | "SITE_STATE" | "SITE_ZIP"] | ::Hash[::String, "MAIL_ADDRESS1" | "MAIL_ADDRESS2" | "" | "MAIL_CITY" | "MAIL_STATE" | "MAIL_ZIP"] | ::Hash[::String, "VISITATION_HOURS_WEEKDAY" | "VISITATION_HOURS_WEEKEND"] | ::Array["SITE_ID" | "FULL_NAME" | "SITE_TYPE" | "Website_URL" | "SITE_ADDRESS1" | "SITE_ADDRESS2" | "SITE_CITY" | "SITE_STATE" | "SITE_ZIP" | "MAIL_ADDRESS1" | "MAIL_ADDRESS2" | "MAIL_CITY" | "MAIL_STATE" | "MAIL_ZIP" | "PHONE" | "FAX" | "VISITATION_HOURS_WEEKDAY" | "VISITATION_HOURS_WEEKEND"]]
+  end
+end

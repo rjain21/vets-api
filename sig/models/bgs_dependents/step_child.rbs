@@ -1,0 +1,11 @@
+module BGSDependents
+  class StepChild < Base
+    @stepchild_info: untyped
+
+    EXPENSE_PAID_CONVERTER: ::Hash[::String, ".5" | ".75" | ".25"]
+
+    def initialize: (untyped stepchild_info) -> void
+
+    def format_info: () -> untyped
+  end
+end

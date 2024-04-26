@@ -1,0 +1,10 @@
+# Folder model
+class Folder < Common::Base
+  include ActiveModel::Validations
+
+  include RedisCaching
+
+  alias system_folder? system_folder
+
+  def <=>: (untyped other) -> untyped
+end

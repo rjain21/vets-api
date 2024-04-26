@@ -1,0 +1,24 @@
+module Preneeds
+  # Models service record information for a {Preneeds::BurialForm} form
+  #
+  # @!attribute service_branch
+  #   @return (see Preneeds::BranchesOfService#code)
+  # @!attribute discharge_type
+  #   @return (see Preneeds::DischargeType#id)
+  # @!attribute highest_rank
+  #   @return [String] highest rank achieved
+  # @!attribute national_guard_state
+  #   @return [String] state - for national guard service only
+  # @!attribute date_range
+  #   @return [Preneeds::DateRange] service date range
+  #
+  class ServiceRecord < Preneeds::Base
+    # (see Preneeds::BurialForm#as_eoas)
+    #
+    def as_eoas: () -> untyped
+
+    # (see Preneeds::Applicant.permitted_params)
+    #
+    def self.permitted_params: () -> ::Array[:service_branch | :discharge_type | :highest_rank | :national_guard_state | { date_range: untyped }]
+  end
+end

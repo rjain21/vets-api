@@ -1,0 +1,2 @@
+class FormProfiles::VA0996 < FormProfiles::DecisionReview
+end

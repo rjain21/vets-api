@@ -1,0 +1,3 @@
+class HCAAttachment < FormAttachment
+  ATTACHMENT_UPLOADER_CLASS: untyped
+end

@@ -1,0 +1,3 @@
+class PrescriptionDetails < Prescription
+  def sorted_dispensed_date: () -> untyped
+end

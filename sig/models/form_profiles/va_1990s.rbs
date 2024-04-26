@@ -1,0 +1,20 @@
+module VA1990s
+  FORM_ID: "22-1990s"
+
+  class FormPaymentAccountInformation
+  end
+end
+
+class FormProfiles::VA1990s < FormProfile
+  @payment_information: untyped
+
+  def prefill: () -> untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/apply" }
+
+  private
+
+  def initialize_payment_information: () -> untyped
+
+  def mask: (untyped number) -> untyped
+end

@@ -1,0 +1,11 @@
+module FacilitiesQuery
+  class BoundingBoxQuery < Base
+    def run: () -> untyped
+
+    # Naive distance calculation, but accurate enough for map display sorting.
+    # If greater precision is ever needed, use Haversine formula.
+    def dist_from_center: (untyped bbox) -> untyped
+
+    def build_result_set: (untyped bbox_num, untyped type, untyped services) -> untyped
+  end
+end

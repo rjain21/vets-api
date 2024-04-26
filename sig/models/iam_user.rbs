@@ -1,0 +1,46 @@
+# Subclasses the `User` model. Adds a unique redis namespace for IAM users.
+# Adds IAM sourced versions of ICN, EDIPI, and SEC ID and methods to use them
+# or hit MPI via the mpi_profile.
+#
+class IAMUser < ::User
+  @identity: untyped
+
+  alias mhv_correlation_id iam_mhv_id
+
+  # Builds an user instance from a IAMUserIdentity
+  #
+  # @param iam_identity [IAMUserIdentity] the IAM identity object.
+  # @return [IAMUser] an instance of this class
+  #
+  def self.build_from_user_identity: (untyped user_identity) -> untyped
+
+  # Where to get the edipi from
+  # If iam_edipi available return that otherwise hit MVI
+  # @return [String] the users DoD EDIPI
+  #
+  def edipi: () -> untyped
+
+  # Return the uuid as the id for the user. This id is generated
+  # within the IAMUserIdentity class.
+  # @return [String] UUID that is unique to this user
+  #
+  def id: () -> untyped
+
+  def common_name: () -> ::String
+
+  def identity: () -> untyped
+
+  def sec_id: () -> untyped
+
+  def mhv_account_type: () -> untyped
+
+  # This is not the correct way of determining VA patient status,
+  # but it works for authorizing access for existing MHV premium users
+  # If we are going to enable account creation/upgrade, then we'll need
+  # to  derive the list of facilities from the IAM introspection payload.
+  def va_patient?: () -> untyped
+
+  def set_expire: () -> untyped
+
+  def vet360_contact_info: () -> untyped
+end

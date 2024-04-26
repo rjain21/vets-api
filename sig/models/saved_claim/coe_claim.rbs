@@ -1,0 +1,31 @@
+class SavedClaim::CoeClaim < SavedClaim
+  @edipi: untyped
+
+  @icn: untyped
+
+  @lgy_service: untyped
+
+  include SentryLogging
+
+  FORM: "26-1880"
+
+  def send_to_lgy: (edipi: untyped, icn: untyped) -> untyped
+
+  def regional_office: () -> ::Array[untyped]
+
+  private
+
+  # rubocop:disable Metrics/MethodLength
+  def prepare_form_data: () -> untyped
+
+  def lgy_service: () -> untyped
+
+  # rubocop:disable Metrics/MethodLength
+  def relevant_prior_loans: (untyped form_copy) -> untyped
+
+  def periods_of_service: (untyped form_copy) -> untyped
+
+  def process_attachments!: () -> untyped
+
+  def prepare_document_data: () -> untyped
+end

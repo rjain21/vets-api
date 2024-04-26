@@ -1,0 +1,9 @@
+class EvssClaimsServiceProvider
+  @service: untyped
+
+  include ClaimsServiceProvider
+
+  def initialize: (untyped auth_headers) -> void
+
+  def all_claims: (?untyped? _client_id, ?untyped? _rsa_key) -> untyped
+end

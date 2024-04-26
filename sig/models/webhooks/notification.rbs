@@ -1,0 +1,5 @@
+module Webhooks
+  class Notification < ApplicationRecord
+    def final_attempt: () -> (nil | untyped)
+  end
+end

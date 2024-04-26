@@ -1,0 +1,21 @@
+class EducationStemAutomatedDecision < ApplicationRecord
+  @auth_headers_hash: untyped
+
+  INIT: "init"
+
+  PROCESSED: "processed"
+
+  DENIED: "denied"
+
+  DECISION_STATES: ::Array[untyped]
+
+  def self.init: () -> untyped
+
+  def self.processed: () -> untyped
+
+  def self.denied: () -> untyped
+
+  # @return [Hash] parsed auth headers
+  #
+  def auth_headers: () -> (nil | untyped)
+end

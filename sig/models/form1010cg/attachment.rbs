@@ -1,0 +1,7 @@
+module Form1010cg
+  class Attachment < FormAttachment
+    ATTACHMENT_UPLOADER_CLASS: untyped
+
+    def to_local_file: () -> untyped
+  end
+end

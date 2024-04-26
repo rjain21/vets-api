@@ -1,0 +1,4 @@
+module SchemaContract
+  class Validation < ApplicationRecord
+  end
+end

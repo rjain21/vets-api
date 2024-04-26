@@ -1,0 +1,14 @@
+module KmsEncryptedModelPatch
+  extend ::KmsEncryptedModelPatch
+
+  # rubocop:disable Naming/PredicateName
+  def has_kms_key: () -> untyped
+
+  def kms_version: () -> untyped
+
+  private
+
+  def kms_key_rotation_date: () -> untyped
+
+  def kms_options: () -> { version: untyped, previous_versions: untyped }
+end

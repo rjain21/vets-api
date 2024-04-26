@@ -1,0 +1,68 @@
+# Preneeds namespace
+#
+module Preneeds
+  # Models a Preneeds Burial form. This class (and associationed classes) is used to store form details and to
+  # generate the XML request for submission to the EOAS service
+  #
+  # @!attribute application_status
+  #   @return [String] currently always blank
+  # @!attribute preneed_attachments
+  #   @return [Array<PreneedAttachmentHash>] documents provided by the end user
+  # @!attribute has_currently_buried
+  #   @return [String] '1' for Yes, '2' for No, '3' for Don't know
+  # @!attribute sending_application
+  #   @return [String] hard coded as 'va.gov'
+  # @!attribute sending_code
+  #   @return [String] currently always blank
+  # @!attribute sent_time
+  #   @return [Time] current time
+  # @!attribute tracking_number
+  #   @return [String] SecureRandom generated tracking number sent with submission to EOAS
+  # @!attribute applicant
+  #   @return [Preneeds::Applicant] Applicant object. Applicant is person filling out the form.
+  # @!attribute claimant
+  #   @return [Preneeds::Claimant] Claimant object. Claimant is the person applying for the
+  #     benefit (veteran or relative)
+  # @!attribute currently_buried_persons
+  #   @return [Array<Preneeds::CurrentlyBuriedPerson>] CurrentlyBuriedPerson objects representing individuals burried in
+  #     VA national cemeteries under the sponsor's eligibility
+  # @!attribute veteran
+  #   @return [Preneeds::Veteran] Veteran object.  Veteran is the person who is the owner of the benefit.
+  #
+  class BurialForm < Preneeds::Base
+    @attachments: untyped
+
+    # Preneeds Burial Form official form id
+    #
+    FORM: "40-10007"
+
+    # keeping this name because it matches the previous attribute
+    # @return [Boolean]
+    #
+    # rubocop:disable Naming/PredicateName
+    def has_attachments: () -> untyped
+
+    # @return [Array<Preneeds::Attachment>] #preneed_attachments converted to Array of {Preneeds::Attachment}
+    #
+    def attachments: () -> untyped
+
+    # @return [Time] current UTC time
+    #
+    def current_time: () -> untyped
+
+    # @return [String] randomly generated tracking number
+    #
+    def generate_tracking_number: () -> ::String
+
+    # Converts object attributes to a hash to be used when constructing a SOAP request body.
+    # Hash attributes must correspond to XSD ordering or API call will fail
+    #
+    # @return [Hash] object attributes and association objects converted to EOAS service compatible hash
+    #
+    def as_eoas: () -> untyped
+
+    # @return [Array<String>] array of strings detailing schema validation failures. empty array if form is valid
+    #
+    def self.validate: (untyped schema, untyped form, ?::String root) -> untyped
+  end
+end

@@ -1,0 +1,2 @@
+class SavedClaim::EducationBenefits::VA1990n < SavedClaim::EducationBenefits
+end

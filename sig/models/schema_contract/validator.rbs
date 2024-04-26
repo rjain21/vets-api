@@ -1,0 +1,26 @@
+module SchemaContract
+  class Validator
+    @record_id: untyped
+
+    @result: untyped
+
+    @record: untyped
+
+    @schema_file: untyped
+
+    class SchemaContractValidationError < StandardError
+    end
+
+    def initialize: (untyped record_id) -> void
+
+    def validate: () -> untyped
+
+    private
+
+    def record: () -> untyped
+
+    def schema_file: () -> untyped
+
+    def parsed_schema: () -> untyped
+  end
+end

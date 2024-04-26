@@ -1,0 +1,13 @@
+# Stores attributes used to identify a user. Serves as a set of inputs to an MVI lookup. Also serves
+# as the receiver of identity attributes received from alternative sources during the SSO flow.
+class UserIdentity < Common::RedisStore
+  # LOA3 no longer just means ID.me FICAM LOA3.
+  # It could also be DSLogon or MHV Premium users.
+  # It could also be DSLogon or MHV NON PREMIUM users who have done ID.me FICAM LOA3.
+  # Additionally, LOA3 does not automatically mean user has opted to have MFA.
+  def loa3?: () -> untyped
+
+  private
+
+  def loa_highest_present: () -> (untyped | nil)
+end

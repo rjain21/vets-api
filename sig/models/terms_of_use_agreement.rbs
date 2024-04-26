@@ -1,0 +1,3 @@
+class TermsOfUseAgreement < ApplicationRecord
+  CURRENT_VERSION: untyped
+end

@@ -1,0 +1,58 @@
+class SavedClaim::VeteranReadinessEmploymentClaim < SavedClaim
+  @sent_to_cmp: untyped
+
+  @office_location: untyped
+
+  @service: untyped
+
+  include SentryLogging
+
+  FORM: "28-1900"
+
+  # We will be adding numbers here and eventually completeley removing this and the caller to open up VRE submissions
+  # to all vets
+  PERMITTED_OFFICE_LOCATIONS: ::Array[untyped]
+
+  REGIONAL_OFFICE_EMAILS: ::Hash[::String, "VRC.VBABOS@va.gov" | "VRE.VBAPRO@va.gov" | "VRE.VBANYN@va.gov" | "VRC.VBABUF@va.gov" | "VRE.VBAHAR@va.gov" | "vre.vbanew@va.gov" | "VREBDD.VBAPHI@va.gov" | "VRE.VBAPIT@va.gov" | "VRE.VBABAL@va.gov" | "VRE.VBAROA@va.gov" | "VRE.VBAHUN@va.gov" | "VRETMP.VBAATG@va.gov" | "VRE281900.VBASPT@va.gov" | "VRC.VBAWIN@va.gov" | "VRC.VBACMS@va.gov" | "VREAPPS.VBANAS@va.gov" | "VRC.VBANOL@va.gov" | "VRE.VBAMGY@va.gov" | "VRE.VBAJAC@va.gov" | "VRE.VBACLE@va.gov" | "VRE.VBAIND@va.gov" | "VRE.VBALOU@va.gov" | "VAVBACHI.VRE@va.gov" | "VRE.VBADET@va.gov" | "VREApplications.VBAMIW@va.gov" | "VRC.VBASTL@va.gov" | "VRE.VBADES@va.gov" | "VRE.VBALIN@va.gov" | "VRC.VBASPL@va.gov" | "VRE.VBADEN@va.gov" | "VRC.VBAALB@va.gov" | "VRE.VBASLC@va.gov" | "VRC.VBAOAK@va.gov" | "ROVRC.VBALAN@va.gov" | "VRE.VBAPHO@va.gov" | "VRE.VBASEA@va.gov" | "VRE.VBABOI@va.gov" | "VRE.VBAPOR@va.gov" | "VREAPPS.VBAWAC@va.gov" | "VRE.VBALIT@va.gov" | "VREBDD.VBAMUS@va.gov" | "VRE.VBAREN@va.gov" | "MBVRE.VBASAJ@va.gov" | "VRE.VBAMPI@va.gov" | "VRE.VBAHOU@va.gov" | "VRE.VBAWAS@va.gov" | "VRE.VBAMAN@va.gov" | "EBENAPPS.VBASDC@va.gov" | "VRE.VBATOG@va.gov" | "VRC.VBAFHM@va.gov" | "VRC.VBAFAR@va.gov" | "VRE.VBAWIC@va.gov" | "VRC.VBAHON@va.gov" | "VAVBA/WIM/RO/VR&E@vba.va.gov" | "VRE.VBAANC@va.gov"]
+
+  def initialize: (untyped args) -> void
+
+  def add_claimant_info: (untyped user) -> (nil | untyped)
+
+  def add_veteran_info: (untyped updated_form, untyped user) -> untyped
+
+  def add_office_location: (untyped updated_form) -> untyped
+
+  def send_to_vre: (untyped user) -> untyped
+
+  def upload_to_vbms: (?doc_type: ::String) -> untyped
+
+  def send_to_central_mail!: (untyped user) -> untyped
+
+  def send_vre_email_form: (untyped user) -> (nil | untyped)
+
+  # SavedClaims require regional_office to be defined
+  def regional_office: () -> ::Array[untyped]
+
+  def send_vbms_confirmation_email: (untyped user) -> (nil | untyped)
+
+  def send_central_mail_confirmation_email: (untyped user) -> (nil | untyped)
+
+  def process_attachments!: () -> untyped
+
+  def business_line: () -> "VRE"
+
+  private
+
+  def check_office_location: () -> untyped
+
+  def bgs_client: () -> untyped
+
+  def external_key: () -> untyped
+
+  def veteran_information: () -> (untyped | nil)
+
+  def veteran_va_file_number: (untyped user) -> untyped
+
+  def log_to_statsd: (untyped service) { () -> untyped } -> untyped
+end

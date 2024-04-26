@@ -1,0 +1,11 @@
+class SavedClaim::DependencyVerificationClaim < CentralMailClaim
+  include SentryLogging
+
+  FORM: "21-0538"
+
+  def regional_office: () -> ::Array[untyped]
+
+  def send_to_central_mail!: () -> untyped
+
+  def add_claimant_info: (untyped user) -> untyped
+end

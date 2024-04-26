@@ -1,0 +1,38 @@
+module VAProfileRedis
+  class VeteranStatus < Common::RedisStore
+    @response: untyped
+
+    @service: untyped
+
+    include Common::CacheAside
+
+    attr_accessor user: untyped
+
+    def self.for_user: (untyped user) -> untyped
+
+    def veteran?: () -> untyped
+
+    def title38_status: () -> (nil | untyped)
+
+    # Returns boolean for user being/not being considered a military person, by VA Profile,
+    # based on their Title 38 Status Code.
+    #
+    # @return [Boolean]
+    #
+    def military_person?: () -> untyped
+
+    def status: () -> untyped
+
+    def response: () -> untyped
+
+    def populate_from_redis: () -> untyped
+
+    private
+
+    def value_for: (untyped key) -> untyped
+
+    def response_from_redis_or_service: () -> untyped
+
+    def veteran_status_service: () -> untyped
+  end
+end

@@ -1,0 +1,14 @@
+module DisabilityCompensation
+  module ApiProvider
+    class IntentToFile
+      include ActiveModel::Serialization
+
+      # The spelling of these status types has been validated with the partner team
+      STATUS_TYPES: ::Array["active" | "claim_recieved" | "duplicate" | "expired" | "incomplete" | "canceled"]
+    end
+
+    class IntentToFilesResponse
+      include ActiveModel::Serialization
+    end
+  end
+end

@@ -1,0 +1,2 @@
+class AppealSubmissionUpload < ApplicationRecord
+end

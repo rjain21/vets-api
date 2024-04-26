@@ -1,0 +1,58 @@
+class UserSessionForm
+  @saml_uuid: untyped
+
+  @user_identity: untyped
+
+  @user: untyped
+
+  @session: untyped
+
+  @errors_message: untyped
+
+  include ActiveModel::Validations
+
+  include SentryLogging
+
+  VALIDATIONS_FAILED_ERROR_CODE: "004"
+
+  SAML_REPLAY_VALID_SESSION_ERROR_CODE: "002"
+
+  ERRORS: { validations_failed: { code: untyped, tag: :validations_failed, short_message: "on User/Session Validation", level: :error }, saml_replay_valid_session: { code: untyped, tag: :saml_replay_valid_session, short_message: "SamlResponse is too late but user has current session", level: :warn } }
+
+  attr_reader user: untyped
+
+  attr_reader user_identity: untyped
+
+  attr_reader session: untyped
+
+  attr_reader saml_uuid: untyped
+
+  # rubocop:disable Metrics/MethodLength
+  def initialize: (untyped saml_response) -> void
+
+  def normalize_saml: (untyped saml_user) -> untyped
+
+  def add_csp_id_to_mpi: (untyped saml_user_attributes, untyped idme_uuid) -> (nil | untyped)
+
+  def uuid_from_account: (untyped identifier) -> (nil | untyped)
+
+  def valid?: () -> untyped
+
+  def get_session_errors: () -> untyped
+
+  def save: () -> untyped
+
+  def persist: () -> (::Array[untyped] | ::Array[nil])
+
+  def errors_message: () -> (untyped | nil)
+
+  def errors_hash: () -> (untyped | nil)
+
+  def errors_context: () -> untyped
+
+  def mvi_context: () -> untyped
+
+  def error_code: () -> (untyped | nil)
+
+  def error_instrumentation_code: () -> (::String | nil)
+end

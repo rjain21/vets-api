@@ -1,0 +1,4 @@
+module ClaimsApi
+  class ClaimSubmission < ApplicationRecord
+  end
+end

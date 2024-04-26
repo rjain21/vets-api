@@ -1,0 +1,7 @@
+class LighthouseGeneratePdfProvider
+  include GeneratePdfProvider
+
+  def initialize: (untyped _auth_headers) -> void
+
+  def generate_526_pdf: (untyped _form_content) -> nil
+end

@@ -1,0 +1,4 @@
+module SignIn
+  class StateCode < Common::RedisStore
+  end
+end

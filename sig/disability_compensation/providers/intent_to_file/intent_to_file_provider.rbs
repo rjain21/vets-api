@@ -1,0 +1,5 @@
+module IntentToFileProvider
+  def self.get_intent_to_file: () -> untyped
+
+  def self.create_intent_to_file: (untyped type) -> untyped
+end

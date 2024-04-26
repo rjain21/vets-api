@@ -1,0 +1,13 @@
+# data structures built up at class load time then frozen.  This is threadsafe.
+module Webhooks
+  module Utilities
+    module ClassMethods
+      # We assume the subscription parameter has already been through validate_subscription()
+      def register_webhook: (untyped consumer_id, untyped consumer_name, untyped subscription, untyped api_guid) -> untyped
+
+      def record_notifications: (consumer_id: untyped, consumer_name: untyped, event: untyped, api_guid: untyped, msg: untyped) -> (::Array[untyped] | untyped)
+    end
+
+    extend ClassMethods
+  end
+end

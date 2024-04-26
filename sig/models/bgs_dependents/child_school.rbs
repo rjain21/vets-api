@@ -1,0 +1,12 @@
+module BGSDependents
+  class ChildSchool < Base
+    @proc_id: untyped
+
+    @vnp_participant_id: untyped
+
+    def initialize: (untyped dependents_application, untyped proc_id, untyped vnp_participant_id) -> void
+
+    # rubocop:disable Metrics/MethodLength
+    def params_for_686c: () -> { vnp_proc_id: untyped, vnp_ptcpnt_id: untyped, last_term_start_dt: untyped, last_term_end_dt: untyped, prev_hours_per_wk_num: untyped, prev_sessns_per_wk_num: untyped, prev_school_nm: untyped, prev_school_cntry_nm: untyped, prev_school_addrs_one_txt: untyped, prev_school_addrs_two_txt: untyped, prev_school_addrs_three_txt: untyped, prev_school_city_nm: untyped, prev_school_postal_cd: untyped, prev_school_addrs_zip_nbr: untyped, curnt_school_nm: untyped, curnt_school_addrs_one_txt: untyped, curnt_school_addrs_two_txt: untyped, curnt_school_addrs_three_txt: untyped, curnt_school_postal_cd: untyped, curnt_school_city_nm: untyped, curnt_school_addrs_zip_nbr: untyped, curnt_school_cntry_nm: untyped, course_name_txt: untyped, curnt_sessns_per_wk_num: untyped, curnt_hours_per_wk_num: untyped, school_actual_expctd_start_dt: untyped, school_term_start_dt: untyped, gradtn_dt: untyped, full_time_studnt_type_cd: untyped, part_time_school_subjct_txt: untyped }
+  end
+end

@@ -1,0 +1,9 @@
+class ApplicationRecord < ActiveRecord::Base
+  def self.lockbox_options: () -> { previous_versions: ::Array[{ padding: false } | { padding: false, master_key: untyped }] }
+
+  def self.descendants_using_encryption: () -> untyped
+
+  def timestamp_attributes_for_update_in_model: () -> untyped
+
+  def valid?: (?untyped? context) -> untyped
+end

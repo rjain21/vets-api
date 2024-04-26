@@ -1,0 +1,16 @@
+class AccreditedOrganization < ApplicationRecord
+  #
+  # Find all [AccreditedOrganizations] that are located within a distance of a specific location
+  # @param long [Float] longitude of the location of interest
+  # @param lat [Float] latitude of the location of interest
+  # @param max_distance [Float] the maximum search distance in meters
+  #
+  # @return [AccreditedOrganization::ActiveRecord_Relation] an ActiveRecord_Relation of
+  #   all organizations matching the search criteria
+  def self.find_within_max_distance: (untyped long, untyped lat, ?untyped max_distance) -> untyped
+
+  # return all registration_numbers associated with the individual
+  #
+  # @return [Array<String>]
+  def registration_numbers: () -> untyped
+end

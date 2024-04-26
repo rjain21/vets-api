@@ -1,0 +1,16 @@
+module DisabilityCompensation
+  module ApiProvider
+    # Used in conjunction with the PPIU/Direct Deposit Provider
+    class ClaimPhaseDates
+      include ActiveModel::Serialization
+    end
+
+    class Claim
+      include ActiveModel::Serialization
+    end
+
+    class ClaimsServiceResponse
+      include ActiveModel::Serialization
+    end
+  end
+end

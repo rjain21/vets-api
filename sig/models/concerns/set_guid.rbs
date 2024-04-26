@@ -1,0 +1,3 @@
+module SetGuid
+  extend ActiveSupport::Concern
+end

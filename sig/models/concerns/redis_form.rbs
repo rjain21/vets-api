@@ -1,0 +1,17 @@
+module RedisForm
+  @parsed_form: untyped
+
+  @parsed_response: untyped
+
+  extend ActiveSupport::Concern
+
+  def parsed_form: () -> untyped
+
+  def parsed_response: () -> (nil | untyped)
+
+  def save: () -> untyped
+
+  private
+
+  def form_matches_schema: () -> (untyped | nil)
+end

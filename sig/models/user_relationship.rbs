@@ -1,0 +1,35 @@
+class UserRelationship
+  attr_accessor first_name: untyped
+
+  attr_accessor last_name: untyped
+
+  attr_accessor birth_date: untyped
+
+  attr_accessor ssn: untyped
+
+  attr_accessor gender: untyped
+
+  attr_accessor veteran_status: untyped
+
+  attr_accessor participant_id: untyped
+
+  attr_accessor icn: untyped
+
+  PERSON_TYPE_VETERAN: "VET"
+
+  # Initializer with a single 'person' from a BGS get_dependents call
+  def self.from_bgs_dependent: (untyped bgs_dependent) -> untyped
+
+  # Initializer with a single 'person' from an MPI response RelationshipHolder stanza
+  def self.from_mpi_relationship: (untyped mpi_relationship) -> untyped
+
+  # Sparse hash to serialize to frontend
+  def to_hash: () -> { first_name: untyped, last_name: untyped, birth_date: untyped }
+
+  # Full MPI Profile object
+  def get_full_attributes: () -> untyped
+
+  private
+
+  def build_user_identity: () -> untyped
+end

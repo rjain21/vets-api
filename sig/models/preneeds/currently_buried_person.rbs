@@ -1,0 +1,18 @@
+module Preneeds
+  # Models a currently buried person under a veteran's benefit from a {Preneeds::BurialForm} form
+  #
+  # @!attribute cemetery_number
+  #   @return [String] cemetery number
+  # @!attribute name
+  #   @return [Preneeds::FullName] currently buried person's full name
+  #
+  class CurrentlyBuriedPerson < Preneeds::Base
+    # (see Preneeds::BurialForm#as_eoas)
+    #
+    def as_eoas: () -> { cemeteryNumber: untyped, name: untyped }
+
+    # (see Preneeds::Applicant.permitted_params)
+    #
+    def self.permitted_params: () -> ::Array[:cemetery_number | { name: untyped }]
+  end
+end

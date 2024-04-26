@@ -1,0 +1,6 @@
+class SpoolFileEvent < ApplicationRecord
+  # Look for an existing row with same filename and RPO
+  # and increase retry attempt if wasn't successful from previous attempt
+  # Otherwise create a new event
+  def self.build_event: (untyped rpo, untyped filename) -> untyped
+end

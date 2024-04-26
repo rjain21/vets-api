@@ -1,0 +1,4 @@
+module InheritedProofing
+  class MHVIdentityData < Common::RedisStore
+  end
+end

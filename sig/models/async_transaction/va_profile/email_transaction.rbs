@@ -1,0 +1,6 @@
+module AsyncTransaction
+  module VAProfile
+    class EmailTransaction < AsyncTransaction::VAProfile::Base
+    end
+  end
+end

@@ -1,0 +1,9 @@
+class EvssBRDProvider
+  @service: untyped
+
+  include BRDProvider
+
+  def initialize: (untyped current_user) -> void
+
+  def get_separation_locations: () -> untyped
+end

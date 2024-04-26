@@ -1,0 +1,11 @@
+class SavedClaim::EducationBenefits::VA1995 < SavedClaim::EducationBenefits
+  # Pulled from https://github.com/department-of-veterans-affairs/vets-website/src/applications/edu-benefits/utils/helpers.jsx#L100
+  # & https://github.com/department-of-veterans-affairs/vets-website/blob/main/src/applications/edu-benefits/utils/labels.jsx
+  BENEFIT_TITLE_FOR_1995: ::Hash[::String, "Montgomery GI Bill (MGIB, Chapter 30)" | "Post-9/11 GI Bill (Chapter 33)" | "Fry Scholarship (Chapter 33)" | "Montgomery GI Bill Selected Reserve (MGIB-SR, Chapter 1606)" | ::String | "Transfer of Entitlement Program (TOE)"]
+
+  def after_submit: (untyped _user) -> (nil | untyped)
+
+  private
+
+  def send_confirmation_email: (untyped parsed_form_data, untyped email) -> untyped
+end

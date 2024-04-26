@@ -1,0 +1,30 @@
+module BGSDependents
+  class Child < Base
+    @child_info: untyped
+
+    CHILD_STATUS: ::Hash[::String, "Stepchild" | "Biological" | "Adopted Child" | "Other"]
+
+    def initialize: (untyped child_info) -> void
+
+    # Sets a hash with child attributes
+    #
+    # @return [Hash] child attributes including name, address and birth info
+    #
+    def format_info: () -> untyped
+
+    # Sets a hash with address information based on the submitted form information
+    #
+    # @param dependents_application [Hash] the submitted form information
+    # @return [Hash] child address
+    #
+    def address: (untyped dependents_application) -> untyped
+
+    private
+
+    def child_attributes: () -> untyped
+
+    def child_status: () -> untyped
+
+    def marriage_indicator: () -> ("Y" | "N")
+  end
+end

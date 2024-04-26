@@ -1,0 +1,13 @@
+module AsyncTransaction
+  class Base < ApplicationRecord
+    REQUESTED: "requested"
+
+    COMPLETED: "completed"
+
+    DELETE_COMPLETED_AFTER: untyped
+
+    def serialize_metadata: () -> (untyped | nil)
+
+    def parsed_metadata: () -> untyped
+  end
+end

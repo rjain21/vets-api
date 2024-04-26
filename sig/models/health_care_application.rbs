@@ -1,0 +1,78 @@
+class HealthCareApplication < ApplicationRecord
+  @parsed_form: untyped
+
+  include SentryLogging
+
+  include VA1010Forms::Utils
+
+  FORM_ID: "10-10EZ"
+
+  ACTIVEDUTY_ELIGIBILITY: "TRICARE"
+
+  DISABILITY_THRESHOLD: 50
+
+  LOCKBOX: untyped
+
+  attr_accessor user: untyped
+
+  attr_accessor async_compatible: untyped
+
+  attr_accessor google_analytics_client_id: untyped
+
+  attr_accessor form: untyped
+
+  # @param [Account] user
+  # @return [Hash]
+  def self.get_user_identifier: (untyped user) -> (nil | ::Hash[::String, untyped])
+
+  def form_id: () -> untyped
+
+  def success?: () -> untyped
+
+  def failed?: () -> untyped
+
+  def short_form?: () -> untyped
+
+  def submit_sync: () -> untyped
+
+  def process!: () -> untyped
+
+  def self.determine_active_duty: (untyped primary_eligibility, untyped veteran) -> untyped
+
+  def self.determine_non_military: (untyped primary_eligibility, untyped veteran, untyped parsed_status) -> untyped
+
+  EE_DATA_SELECTED_KEYS: ::Array[:application_date | :enrollment_date | :preferred_facility | :effective_date | :primary_eligibility | :priority_group | :can_submit_financial_info]
+
+  def self.parsed_ee_data: (untyped ee_data, untyped loa3) -> (untyped | { parsed_status: untyped })
+
+  def self.enrollment_status: (untyped icn, untyped loa3) -> untyped
+
+  def self.user_icn: (untyped user_attributes) -> untyped
+
+  def self.user_attributes: (untyped form) -> untyped
+
+  def set_result_on_success!: (untyped result) -> untyped
+
+  def form_submission_id: () -> untyped
+
+  def parsed_form: () -> untyped
+
+  private
+
+  def long_form_required_fields: () -> (nil | untyped)
+
+  def prefill_fields: () -> (nil | untyped)
+
+  def submit_async: (untyped has_email) -> self
+
+  def log_submission_failure: () -> untyped
+
+  def send_failure_mail: () -> untyped
+
+  # If the hca_use_facilities_API flag is on then vaMedicalFacility will only
+  # validate for a string, else it will validate through the enum.  This avoids
+  # changes to vets-website and vets-json-schema having to deploy simultaneously.
+  def form_matches_schema: () -> (untyped | nil)
+
+  def current_schema: () -> untyped
+end

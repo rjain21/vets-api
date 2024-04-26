@@ -1,0 +1,126 @@
+module Requests
+  class Dates
+    include ActiveModel::Serialization
+  end
+
+  class ContactNumber
+    include ActiveModel::Serialization
+  end
+
+  class UnitPhone
+    include ActiveModel::Serialization
+  end
+
+  class MailingAddress
+    include ActiveModel::Serialization
+  end
+
+  class EmailAddress
+    include ActiveModel::Serialization
+  end
+
+  class VeteranNumber
+    include ActiveModel::Serialization
+  end
+
+  class GulfWarHazardService
+    include ActiveModel::Serialization
+  end
+
+  class HerbicideHazardService
+    include ActiveModel::Serialization
+  end
+
+  class AdditionalHazardExposures
+    include ActiveModel::Serialization
+  end
+
+  class MultipleExposures
+    include ActiveModel::Serialization
+  end
+
+  class SecondaryDisability
+    include ActiveModel::Serialization
+  end
+
+  class Disability
+    include ActiveModel::Serialization
+  end
+
+  class Center
+    include ActiveModel::Serialization
+  end
+
+  class Treatment
+    include ActiveModel::Serialization
+  end
+
+  class ServicePeriod
+    include ActiveModel::Serialization
+  end
+
+  class Confinement
+    include ActiveModel::Serialization
+  end
+
+  class ObligationTermsOfService
+    include ActiveModel::Serialization
+  end
+
+  # used to be "Title10Activation"
+  class FederalActivation
+    include ActiveModel::Serialization
+  end
+
+  class ReservesNationalGuardService
+    include ActiveModel::Serialization
+  end
+
+  class SeparationSeverancePay
+    include ActiveModel::Serialization
+  end
+
+  class MilitaryRetiredPay
+    include ActiveModel::Serialization
+  end
+
+  class DirectDeposit
+    include ActiveModel::Serialization
+  end
+
+  class ServiceInformation
+    include ActiveModel::Serialization
+  end
+
+  class VeteranIdentification
+    include ActiveModel::Serialization
+  end
+
+  class CurrentlyHomeless
+    include ActiveModel::Serialization
+  end
+
+  class RiskOfBecomingHomeless
+    include ActiveModel::Serialization
+  end
+
+  class Homeless
+    include ActiveModel::Serialization
+  end
+
+  class ToxicExposure
+    include ActiveModel::Serialization
+  end
+
+  class ChangeOfAddress
+    include ActiveModel::Serialization
+  end
+
+  class ServicePay
+    include ActiveModel::Serialization
+  end
+
+  class Form526
+    include ActiveModel::Serialization
+  end
+end

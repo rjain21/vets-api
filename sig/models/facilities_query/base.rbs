@@ -1,0 +1,18 @@
+module FacilitiesQuery
+  class Base
+    @params: untyped
+
+    attr_reader params: untyped
+
+    def initialize: (untyped params) -> void
+
+    # This is the default response. It is overriden in the child classes
+    def run: () -> untyped
+
+    def get_facility_data: (untyped conditions, untyped type, untyped facility_type, untyped services, ?untyped? additional_data) -> untyped
+
+    def service_condition: (untyped type, untyped service) -> untyped
+
+    def ids_for_types: (untyped ids) -> untyped
+  end
+end

@@ -1,0 +1,17 @@
+module Facilities
+  class VBAFacility < BaseFacility
+    def self.pull_source_data: () -> untyped
+
+    def self.service_list: () -> ::Array["ApplyingForBenefits" | "BurialClaimAssistance" | "DisabilityClaimAssistance" | "eBenefitsRegistrationAssistance" | "EducationAndCareerCounseling" | "EducationClaimAssistance" | "FamilyMemberClaimAssistance" | "HomelessAssistance" | "VAHomeLoanAssistance" | "Pensions" | "InsuranceClaimAssistanceAndFinancialCounseling" | "PreDischargeClaimAssistance" | "IntegratedDisabilityEvaluationSystemAssistance" | "TransitionAssistance" | "VocationalRehabilitationAndEmploymentAssistance" | "UpdatingDirectDepositInformation"]
+
+    def self.arcgis_type: () -> "VBA_Facilities"
+
+    def self.sort_field: () -> "Facility_Number"
+
+    def self.attribute_map: () -> ::Hash[::String, "Facility_Number" | "Facility_Name" | "Facility_Type" | "Website_URL" | ::Hash[::String, "Phone" | "Fax"] | ::Hash[::String, "Address_1" | "Address_2" | "" | "City" | "State" | "Zip"] | untyped]
+
+    def self.benefits_services: () -> ::Hash[::String, "Applying_for_Benefits" | "Burial_Claim_assistance" | "Disability_Claim_assistance" | "eBenefits_Registration" | "Education_and_Career_Counseling" | "Education_Claim_Assistance" | "Family_Member_Claim_Assistance" | "Homeless_Assistance" | "VA_Home_Loan_Assistance" | "Insurance_Claim_Assistance" | "IDES" | "Pre_Discharge_Claim_Assistance" | "Transition_Assistance" | "Updating_Direct_Deposit_Informa" | "Vocational_Rehabilitation_Emplo"]
+
+    def self.mapped_fields_list: () -> ::Array["Facility_Number" | "Facility_Name" | "Facility_Type" | "Website_URL" | "Lat" | "Long" | "Other_Services" | "Address_1" | "Address_2" | "City" | "State" | "Zip" | "Phone" | "Fax" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday" | "Applying_for_Benefits" | "Burial_Claim_assistance" | "Disability_Claim_assistance" | "eBenefits_Registration" | "Education_and_Career_Counseling" | "Education_Claim_Assistance" | "Family_Member_Claim_Assistance" | "Homeless_Assistance" | "VA_Home_Loan_Assistance" | "Insurance_Claim_Assistance" | "IDES" | "Pre_Discharge_Claim_Assistance" | "Transition_Assistance" | "Updating_Direct_Deposit_Informa" | "Vocational_Rehabilitation_Emplo"]
+  end
+end

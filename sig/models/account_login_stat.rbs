@@ -1,0 +1,5 @@
+# It's important that the datetime columns on this table fit a "#{name}_at" pattern
+# where the name matches one of the service_names in the SAML::User::AUTHN_CONTEXTS hash.
+class AccountLoginStat < ApplicationRecord
+  VERIFICATION_LEVELS: ::Array["loa1" | "loa3" | "ial1" | "ial2"]
+end

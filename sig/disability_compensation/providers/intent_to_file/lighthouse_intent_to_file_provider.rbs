@@ -1,0 +1,17 @@
+class LighthouseIntentToFileProvider
+  @current_user: untyped
+
+  @service: untyped
+
+  include IntentToFileProvider
+
+  def initialize: (untyped current_user) -> void
+
+  def get_intent_to_file: (untyped type, untyped lighthouse_client_id, untyped lighthouse_rsa_key_path) -> untyped
+
+  def create_intent_to_file: (untyped type, untyped lighthouse_client_id, untyped lighthouse_rsa_key_path) -> untyped
+
+  private
+
+  def transform: (untyped data) -> untyped
+end

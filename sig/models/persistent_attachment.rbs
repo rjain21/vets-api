@@ -1,0 +1,9 @@
+class PersistentAttachment < ApplicationRecord
+  include SetGuid
+
+  def to_pdf: () -> untyped
+
+  private
+
+  def stamp_text: () -> untyped
+end

@@ -1,0 +1,7 @@
+class FormProfiles::FeedbackTool < FormProfile
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/applicant-relationship" }
+
+  def convert_country!: (untyped form_data) -> untyped
+
+  def prefill: (*untyped args) -> untyped
+end

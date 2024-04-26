@@ -1,0 +1,13 @@
+class LighthouseClaimsServiceProvider
+  @service: untyped
+
+  include ClaimsServiceProvider
+
+  def initialize: (untyped icn) -> void
+
+  def all_claims: (?untyped? lighthouse_client_id, ?untyped? lighthouse_rsa_key_path) -> untyped
+
+  private
+
+  def transform: (untyped data) -> untyped
+end

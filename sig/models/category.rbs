@@ -1,0 +1,7 @@
+# Category model
+class Category < Common::Base
+  def category_id: () -> 0
+
+  # Categories are simply an array and have no id.
+  def <=>: (untyped other) -> untyped
+end

@@ -1,0 +1,3 @@
+class DrivetimeBand < ApplicationRecord
+  def self.find_within_max_distance: (untyped lat, untyped lng, untyped drive_time, untyped ids) -> untyped
+end

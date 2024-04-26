@@ -1,0 +1,18 @@
+#
+# Models Message draft
+# @note drafts are essentially messages with an implied folder (drafts), and if a reply, an implied message
+#
+# @!attribute has_message
+#   @return [Boolean]
+#
+class MessageDraft < Message
+  attr_accessor original_attributes: untyped
+
+  def message?: () -> untyped
+
+  private
+
+  def check_as_replydraft: () -> (untyped | nil)
+
+  def check_as_draft: () -> (untyped | nil)
+end

@@ -1,0 +1,11 @@
+module Webhooks
+  class Subscription < ApplicationRecord
+    def self.get_notification_urls: (api_name: untyped, consumer_id: untyped, event: untyped, ?api_guid: untyped?) -> untyped
+
+    def self.get_observers_by_guid: (api_name: untyped, consumer_id: untyped, api_guid: untyped) -> (::Array[untyped] | untyped)
+
+    def self.retrieve_event_urls: (untyped sql, *untyped args) -> untyped
+
+    def self.retrieve_observers_by_guid: (untyped sql, *untyped args) -> untyped
+  end
+end

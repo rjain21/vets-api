@@ -1,0 +1,25 @@
+module SignIn
+  class ClientConfig < ApplicationRecord
+    @client_assertion_public_keys: untyped
+
+    def self.valid_client_id?: (client_id: untyped) -> untyped
+
+    def client_assertion_public_keys: () -> untyped
+
+    def cookie_auth?: () -> untyped
+
+    def api_auth?: () -> untyped
+
+    def mock_auth?: () -> untyped
+
+    def va_terms_enforced?: () -> untyped
+
+    def valid_credential_service_provider?: (untyped type) -> untyped
+
+    def valid_service_level?: (untyped acr) -> untyped
+
+    private
+
+    def appropriate_mock_environment?: () -> untyped
+  end
+end

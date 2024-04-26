@@ -1,0 +1,7 @@
+class EVSSClaim < ApplicationRecord
+  def self.for_user: (untyped user) -> untyped
+
+  def self.claim_for_user_uuid: (untyped user_uuid) -> untyped
+
+  def self.claim_for_user_account: (untyped user_account) -> untyped
+end

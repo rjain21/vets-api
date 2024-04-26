@@ -1,0 +1,20 @@
+module VA0994
+  FORM_ID: "22-0994"
+
+  class FormPaymentAccountInformation
+  end
+end
+
+class FormProfiles::VA0994 < FormProfile
+  @payment_information: untyped
+
+  def prefill: () -> untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/applicant/information" }
+
+  private
+
+  def initialize_payment_information: () -> untyped
+
+  def mask: (untyped number) -> untyped
+end

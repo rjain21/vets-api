@@ -1,0 +1,29 @@
+class Form1095B < ApplicationRecord
+  @data: untyped
+
+  # methods
+  def txt_file: () -> untyped
+
+  def pdf_file: () -> untyped
+
+  private
+
+  def pdf_template_path: () -> ::String
+
+  def txt_template_path: () -> ::String
+
+  def country_and_zip: () -> ::String
+
+  def middle_initial: () -> (untyped | "")
+
+  def txt_form_data: () -> untyped
+
+  # rubocop:disable Metrics/MethodLength
+  def generate_pdf: (untyped pdftk, untyped tmp_file) -> untyped
+
+  def form_data_schema: () -> { type: "object", required: ::Array["first_name" | "middle_name" | "last_name" | "address" | "city" | "country" | "coverage_months"], properties: { first_name: { type: "string" }, middle_name: { type: "string" }, last_name: { type: "string" }, last_4_ssn: { type: "string", pattern: "[0-9]{4}|^$" }, birth_date: { type: "string", format: "date" }, address: { type: "string" }, city: { type: "string" }, state: { type: "string" }, province: { type: "string" }, country: { type: "string" }, zip_code: { type: "string" }, foreign_zip: { type: "string" }, is_beneficiary: { type: "boolean" }, is_corrected: { type: "boolean" }, coverage_months: { type: "array", items: { type: "boolean" }, minItems: 13, maxItems: 13 } } }
+
+  def data: () -> untyped
+
+  def proper_form_data_schema: () -> untyped
+end

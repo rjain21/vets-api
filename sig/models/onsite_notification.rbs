@@ -1,0 +1,3 @@
+class OnsiteNotification < ApplicationRecord
+  def self.for_user: (untyped user, ?include_dismissed: bool) -> untyped
+end

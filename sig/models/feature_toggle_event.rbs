@@ -1,0 +1,2 @@
+class FeatureToggleEvent < ApplicationRecord
+end

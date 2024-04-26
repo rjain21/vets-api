@@ -1,0 +1,3 @@
+module ClaimsServiceProvider
+  def self.all_claims: () -> untyped
+end

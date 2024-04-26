@@ -1,0 +1,2 @@
+class TransactionNotification < Common::RedisStore
+end

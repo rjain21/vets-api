@@ -1,0 +1,5 @@
+module SchemaContract
+  class ValidationInitiator
+    def self.call: (user: untyped, response: untyped, contract_name: untyped) -> untyped
+  end
+end

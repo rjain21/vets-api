@@ -1,0 +1,14 @@
+module Preneeds
+  # Models a date range from a {Preneeds::BurialForm} form
+  #
+  # @!attribute from
+  #   @return [String] 'from' date
+  # @!attribute to
+  #   @return [String] 'to' date
+  #
+  class DateRange < Preneeds::Base
+    # (see Preneeds::Applicant.permitted_params)
+    #
+    def self.permitted_params: () -> ::Array[:from | :to]
+  end
+end

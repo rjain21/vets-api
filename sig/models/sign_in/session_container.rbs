@@ -1,0 +1,29 @@
+module SignIn
+  class SessionContainer
+    @session: untyped
+
+    @refresh_token: untyped
+
+    @access_token: untyped
+
+    @anti_csrf_token: untyped
+
+    @client_config: untyped
+
+    include ActiveModel::Validations
+
+    attr_reader session: untyped
+
+    attr_reader refresh_token: untyped
+
+    attr_reader access_token: untyped
+
+    attr_reader anti_csrf_token: untyped
+
+    attr_reader client_config: untyped
+
+    def initialize: (session: untyped, refresh_token: untyped, access_token: untyped, anti_csrf_token: untyped, client_config: untyped) -> void
+
+    def persisted?: () -> false
+  end
+end

@@ -1,0 +1,7 @@
+module SignIn
+  class CodeContainer < Common::RedisStore
+    private
+
+    def confirm_client_id: () -> (untyped | nil)
+  end
+end

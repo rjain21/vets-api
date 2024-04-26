@@ -1,0 +1,3 @@
+module PPIUProvider
+  def self.get_payment_information: (?untyped? _client_id, ?untyped? _rsa_key_path) -> untyped
+end

@@ -1,0 +1,4 @@
+module Webhooks
+  class NotificationAttempt < ApplicationRecord
+  end
+end

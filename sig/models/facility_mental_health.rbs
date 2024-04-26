@@ -1,0 +1,2 @@
+class FacilityMentalHealth < Common::RedisStore
+end

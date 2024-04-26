@@ -1,0 +1,9 @@
+class PersistentAttachments::PensionBurial < PersistentAttachment
+  UPLOAD_TO_API_EMAILS: ::Array["lihan@adhocteam.us"]
+
+  def can_upload_to_api?: () -> untyped
+
+  private
+
+  def delete_file: () -> untyped
+end

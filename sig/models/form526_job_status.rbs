@@ -1,0 +1,7 @@
+class Form526JobStatus < ApplicationRecord
+  STATUS: { try: "try", success: "success", retryable_error: "retryable_error", non_retryable_error: "non_retryable_error", exhausted: "exhausted" }
+
+  def success?: () -> untyped
+
+  def unsuccessful?: () -> untyped
+end

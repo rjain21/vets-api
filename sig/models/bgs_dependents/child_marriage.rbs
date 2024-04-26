@@ -1,0 +1,9 @@
+module BGSDependents
+  class ChildMarriage < Base
+    @child_marriage: untyped
+
+    def initialize: (untyped child_marriage) -> void
+
+    def format_info: () -> untyped
+  end
+end

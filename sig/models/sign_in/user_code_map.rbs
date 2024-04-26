@@ -1,0 +1,29 @@
+module SignIn
+  class UserCodeMap
+    @login_code: untyped
+
+    @type: untyped
+
+    @client_config: untyped
+
+    @client_state: untyped
+
+    @terms_code: untyped
+
+    include ActiveModel::Validations
+
+    attr_reader login_code: untyped
+
+    attr_reader type: untyped
+
+    attr_reader client_state: untyped
+
+    attr_reader client_config: untyped
+
+    attr_reader terms_code: untyped
+
+    def initialize: (login_code: untyped, type: untyped, client_config: untyped, client_state: untyped, terms_code: untyped) -> void
+
+    def persisted?: () -> false
+  end
+end

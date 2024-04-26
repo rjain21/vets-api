@@ -1,0 +1,11 @@
+class EvssIntentToFileProvider
+  @service: untyped
+
+  include IntentToFileProvider
+
+  def initialize: (?untyped? current_user, ?untyped? auth_headers) -> void
+
+  def get_intent_to_file: (untyped _type, untyped _client_id, untyped _rsa_key_path) -> untyped
+
+  def create_intent_to_file: (untyped type, untyped _client_id, untyped _rsa_key_path) -> untyped
+end

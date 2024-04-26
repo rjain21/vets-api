@@ -1,0 +1,30 @@
+class SavedClaim::EducationBenefits::VA10203 < SavedClaim::EducationBenefits
+  @user: untyped
+
+  @gi_bill_status: untyped
+
+  include SentryLogging
+
+  class Submit10203EVSSError < StandardError
+  end
+
+  def after_submit: (untyped user) -> untyped
+
+  def create_stem_automated_decision: () -> untyped
+
+  def email_sent: (untyped sco_email_sent) -> untyped
+
+  def get_user_poa: () -> untyped
+
+  private
+
+  def get_gi_bill_status: () -> untyped
+
+  def get_facility_code: () -> (::Hash[untyped, untyped] | untyped)
+
+  def remaining_entitlement: () -> (nil | untyped)
+
+  def less_than_six_months?: () -> (false | untyped)
+
+  def send_confirmation_email: () -> (nil | untyped)
+end

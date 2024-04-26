@@ -1,0 +1,21 @@
+class FormAttachment < ApplicationRecord
+  @parsed_file_data: untyped
+
+  @au: untyped
+
+  include SetGuid
+
+  include SentryLogging
+
+  def set_file_data!: (untyped file, ?untyped? file_password) -> untyped
+
+  def parsed_file_data: () -> untyped
+
+  def get_file: () -> untyped
+
+  private
+
+  def unlock_pdf: (untyped file, untyped file_password) -> untyped
+
+  def get_attachment_uploader: () -> untyped
+end

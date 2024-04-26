@@ -1,0 +1,9 @@
+module BGSDependents
+  class Death < Base
+    @death_info: untyped
+
+    def initialize: (untyped death_info) -> void
+
+    def format_info: () -> untyped
+  end
+end

@@ -1,0 +1,5 @@
+class PensionIpfNotification < ApplicationRecord
+  private
+
+  def serialize_payload: () -> (untyped | nil)
+end

@@ -1,0 +1,39 @@
+class SavedClaim::DependencyClaim < CentralMailClaim
+  FORM: "686C-674"
+
+  STUDENT_ATTENDING_COLLEGE_KEYS: ::Array["student_name_and_ssn" | "student_address_marriage_tuition" | "last_term_school_information" | "school_information" | "program_information" | "current_term_dates" | "student_earnings_from_school_year" | "student_networth_information" | "student_expected_earnings_next_year" | "student_does_have_networth" | "student_does_earn_income" | "student_will_earn_income_next_year" | "student_did_attend_school_last_term"]
+
+  DEPENDENT_CLAIM_FLOWS: ::Array["report_death" | "report_divorce" | "add_child" | "report_stepchild_not_in_household" | "report_marriage_of_child_under18" | "child_marriage" | "report_child18_or_older_is_not_attending_school" | "add_spouse"]
+
+  def upload_pdf: (untyped form_id, ?doc_type: ::String) -> (nil | untyped)
+
+  def process_pdf: (untyped pdf_path, ?untyped? timestamp, ?untyped? form_id) -> untyped
+
+  def add_veteran_info: (untyped va_file_number_with_payload) -> untyped
+
+  def formatted_686_data: (untyped va_file_number_with_payload) -> untyped
+
+  def formatted_674_data: (untyped va_file_number_with_payload) -> untyped
+
+  def submittable_686?: () -> (true | false)
+
+  def submittable_674?: () -> (false | true)
+
+  def address_exists: () -> (untyped | nil)
+
+  def validate_686_form_data: () -> untyped
+
+  # SavedClaims require regional_office to be defined
+  def regional_office: () -> ::Array[untyped]
+
+  # Run after a claim is saved, this processes any files/supporting documents that are present
+  def process_attachments!: () -> untyped
+
+  def upload_to_vbms: (path: untyped, ?doc_type: ::String) -> untyped
+
+  def to_pdf: (?form_id: untyped) -> untyped
+
+  private
+
+  def partitioned_686_674_params: () -> { college_student_data: untyped, dependent_data: untyped }
+end

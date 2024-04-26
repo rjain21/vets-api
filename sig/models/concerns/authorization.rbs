@@ -1,0 +1,5 @@
+module Authorization
+  extend ActiveSupport::Concern
+
+  def authorize: (untyped policy, untyped method) -> untyped
+end

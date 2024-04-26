@@ -1,0 +1,61 @@
+module VA526ez
+  class FormSpecialIssue
+  end
+
+  class FormRatedDisability
+  end
+
+  class FormRatedDisabilities
+  end
+
+  class FormPaymentAccountInformation
+  end
+
+  class FormAddress
+  end
+
+  class FormContactInformation
+  end
+
+  class FormVeteranContactInformation
+  end
+end
+
+class FormProfiles::VA526ez < FormProfile
+  @rated_disabilities_information: untyped
+
+  @veteran_contact_information: untyped
+
+  @payment_information: untyped
+
+  FORM_ID: "21-526EZ"
+
+  def prefill: () -> untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/veteran-information" }
+
+  def initialize_rated_disabilities_information: () -> (::Hash[untyped, untyped] | untyped)
+
+  private
+
+  def initialize_vets360_contact_info: () -> (::Hash[untyped, untyped] | untyped)
+
+  def initialize_veteran_contact_information: () -> (::Hash[untyped, untyped] | untyped)
+
+  def convert_vets360_address: (untyped address) -> (nil | untyped)
+
+  # Convert PCIU address to a Common address type
+  def get_common_address: () -> untyped
+
+  def prefill_domestic_address: (untyped address) -> untyped
+
+  def prefill_international_address: (untyped address) -> untyped
+
+  def prefill_military_address: (untyped address) -> untyped
+
+  def initialize_payment_information: () -> untyped
+
+  def log_ppiu_error: (untyped e, untyped provider) -> untyped
+
+  def mask: (untyped number) -> untyped
+end

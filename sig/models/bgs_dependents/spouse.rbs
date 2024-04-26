@@ -1,0 +1,31 @@
+module BGSDependents
+  class Spouse < Base
+    @dependents_application: untyped
+
+    @spouse_information: untyped
+
+    def initialize: (untyped dependents_application) -> void
+
+    # Sets a hash with spouse attributes
+    #
+    # @return [Hash] spouse attributes including name, address and marital info
+    #
+    def format_info: () -> untyped
+
+    private
+
+    # Sets a hash with spouse attributes
+    #
+    # @return [Hash] spouse info including name and address info
+    #
+    def spouse_attributes: () -> untyped
+
+    def lives_with_vet: () -> untyped
+
+    def spouse_is_veteran: () -> ("Y" | "N")
+
+    def marital_status: () -> ("Married" | "Separated")
+
+    def spouse_address: () -> untyped
+  end
+end

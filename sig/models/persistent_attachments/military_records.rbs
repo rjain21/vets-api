@@ -1,0 +1,5 @@
+class PersistentAttachments::MilitaryRecords < PersistentAttachment
+  private
+
+  def delete_file: () -> untyped
+end

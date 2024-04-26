@@ -1,0 +1,4 @@
+# facility extract statuses, part of PHR refresh.
+class ExtractStatus < Common::Base
+  def id: () -> untyped
+end

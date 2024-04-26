@@ -1,0 +1,17 @@
+class LighthousePPIUProvider
+  @service: untyped
+
+  include PPIUProvider
+
+  def initialize: (untyped current_user) -> void
+
+  def get_payment_information: (?untyped? _lighthouse_client_id, ?untyped? _lighthouse_rsa_key_path) -> untyped
+
+  private
+
+  def transform: (untyped data) -> untyped
+
+  def populate_control_information: (untyped data) -> untyped
+
+  def populate_payment_account: (untyped data) -> untyped
+end

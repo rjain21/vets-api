@@ -1,0 +1,15 @@
+class SavedClaim::EducationBenefits::VA1990 < SavedClaim::EducationBenefits
+  # pulled from https://github.com/department-of-veterans-affairs/vets-website/blob/f27b8a5ffe4e2f9357d6c501c9a6a73dacdad0e1/src/applications/edu-benefits/utils/helpers.jsx#L100
+  BENEFIT_TITLE_FOR_1990: ::Hash[::String, "Montgomery GI Bill (MGIB or Chapter 30) Education Assistance Program" | "Post-9/11 GI Bill (Chapter 33)" | "Montgomery GI Bill Selected Reserve (MGIB-SR or Chapter 1606) Educational Assistance Program" | ::String]
+
+  # pulled from https://github.com/department-of-veterans-affairs/vets-website/blob/f27b8a5ffe4e2f9357d6c501c9a6a73dacdad0e1/src/applications/edu-benefits/1990/helpers.jsx#L88
+  BENEFIT_RELINQUISHED_TITLE_FOR_1990: ::Hash[::String, ::String | "Montgomery GI Bill (MGIB-AD, Chapter 30)" | "Montgomery GI Bill Selected Reserve (MGIB-SR, Chapter 1606)" | "Reserve Educational Assistance Program (REAP, Chapter 1607)"]
+
+  def after_submit: (untyped _user) -> (nil | untyped)
+
+  private
+
+  def send_confirmation_email: (untyped parsed_form_data, untyped email) -> untyped
+
+  def benefits_claimed: (untyped parsed_form_data) -> untyped
+end

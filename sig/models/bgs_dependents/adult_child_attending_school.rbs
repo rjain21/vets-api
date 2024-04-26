@@ -1,0 +1,33 @@
+module BGSDependents
+  class AdultChildAttendingSchool < Base
+    @dependents_application: untyped
+
+    @ssn: untyped
+
+    @full_name: untyped
+
+    @birth_date: untyped
+
+    @was_married: untyped
+
+    @dependent_income: untyped
+
+    def initialize: (untyped dependents_application) -> void
+
+    # Sets a hash with AdultChildAttendingSchool attributes
+    #
+    # @return [Hash] AdultChildAttendingSchool attributes including name and address info
+    #
+    def format_info: () -> untyped
+
+    # Sets a hash with the student's address based on the submitted form information
+    #
+    # @return [Hash] the student's address
+    #
+    def address: () -> untyped
+
+    private
+
+    def described_class_attribute_hash: () -> untyped
+  end
+end

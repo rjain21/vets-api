@@ -1,0 +1,17 @@
+module VA0873
+  FORM_ID: "0873"
+
+  class ServiceDateRange
+    def self.permitted_params: () -> ::Array[:from | :to]
+  end
+
+  class VeteranServiceInformation
+  end
+end
+
+class FormProfiles::VA0873 < FormProfile
+  class FormAddress
+  end
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/topic" }
+end

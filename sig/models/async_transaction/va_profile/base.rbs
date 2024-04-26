@@ -1,0 +1,72 @@
+module AsyncTransaction
+  module VAProfile
+    class Base < AsyncTransaction::Base
+      FINAL_STATUSES: ::Array["REJECTED" | "COMPLETED_SUCCESS" | "COMPLETED_NO_CHANGES_DETECTED" | "COMPLETED_FAILURE"]
+
+      REQUESTED: "requested"
+
+      COMPLETED: "completed"
+
+      # Get most recent requested transaction for a user
+      #
+      # @param user [User] The user associated with the transaction
+      # @return [AsyncTransaction::VAProfile::Base] A AsyncTransaction::VAProfile::Base record,
+      #   be it Email, Address, etc.
+      #
+      def self.last_requested_for_user: (untyped user) -> untyped
+
+      # Creates an initial AsyncTransaction record for ongoing tracking
+      #
+      # @param user [User] The user associated with the transaction
+      # @param response [VAProfile::ContactInformation::TransactionResponse] An instance of
+      #   a VAProfile::ContactInformation::TransactionResponse class, be it Email, Address, etc.
+      # @return [AsyncTransaction::VAProfile::Base] A AsyncTransaction::VAProfile::Base record,
+      #   be it Email, Address, etc.
+      #
+      def self.start: (untyped user, untyped response) -> untyped
+
+      # Updates the status and transaction_status with fresh API data
+      # @param user [User] the user whose tx data is being updated
+      # @param service [VAProfile::ContactInformation::Service] an initialized VAProfile client
+      # @param tx_id [int] the transaction_id
+      # @return [AsyncTransaction::VAProfile::Base]
+      def self.refresh_transaction_status: (untyped user, untyped service, ?untyped? tx_id) -> untyped
+
+      # Requests a transaction from VAProfile for an app transaction
+      # @param user [User] the user whose tx data is being updated
+      # @param transaction_record [AsyncTransaction::VAProfile::Base] the tx record to be checked
+      # @param service [VAProfile::ContactInformation::Service] an initialized VAProfile client
+      # @return [VAProfile::Models::Transaction]
+      def self.fetch_transaction: (untyped transaction_record, untyped service) -> untyped
+
+      # Finds a transaction by transaction_id for a user
+      # @param user_uuid [String] the user's UUID
+      # @param transaction_id [String] the transaction UUID
+      # @return [AddressTransaction, EmailTransaction, TelephoneTransaction]
+      def self.find_transaction!: (untyped user_uuid, untyped transaction_id) -> untyped
+
+      def self.update_transaction_from_api: (untyped transaction_record, untyped api_response) -> untyped
+
+      # Returns true or false if a transaction is "over"
+      # @return [Boolean] true if status is "over"
+      # @note this checks transaction_status status fields, which should be redundant
+      def finished?: () -> untyped
+
+      # Wrapper for .refresh_transaction_status which finds any outstanding transactions
+      #   for a user and refreshes them
+      # @param user [User] the user whose transactions we're checking
+      # @param service [VAProfile::ContactInformation::Service] an initialized VAProfile client
+      # @return [Array] An array with any outstanding transactions refreshed. Empty if none.
+      def self.refresh_transaction_statuses: (untyped user, untyped service) -> untyped
+
+      # Find the most recent address, email, or telelphone transactions for a user
+      # @praram user [User] the user whose transactions we're finding
+      # @return [Array] an array of any outstanding transactions
+      def self.last_ongoing_transactions_for_user: (untyped user) -> untyped
+
+      private
+
+      def initialize_person?: () -> untyped
+    end
+  end
+end

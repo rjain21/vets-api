@@ -1,0 +1,2 @@
+class DeprecatedUserAccount < ApplicationRecord
+end

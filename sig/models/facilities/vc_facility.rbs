@@ -1,0 +1,13 @@
+module Facilities
+  class VCFacility < BaseFacility
+    def self.pull_source_data: () -> untyped
+
+    def self.service_list: () -> ::Array[untyped]
+
+    def self.arcgis_type: () -> "VHA_VetCenters"
+
+    def self.sort_field: () -> "stationno"
+
+    def self.attribute_map: () -> ::Hash[::String, "stationno" | "stationname" | "vet_center" | ::Hash[::String, "sta_phone"] | ::Hash[::String, "address2" | "address3" | "" | "city" | "st" | "zip"] | untyped | ::Array["stationno" | "stationname" | "lat" | "lon" | "address2" | "address3" | "city" | "st" | "zip" | "sta_phone" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"]]
+  end
+end

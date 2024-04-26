@@ -1,0 +1,26 @@
+module Preneeds
+  # Models an address from a {Preneeds::BurialForm} form
+  #
+  # @!attribute street
+  #   @return [String] address line 1
+  # @!attribute street2
+  #   @return [String] address line 2
+  # @!attribute city
+  #   @return [String] address city
+  # @!attribute country
+  #   @return [String] address country
+  # @!attribute state
+  #   @return [String] address state
+  # @!attribute postal_code
+  #   @return [String] address postal code
+  #
+  class Address < Preneeds::Base
+    # (see Preneeds::BurialForm#as_eoas)
+    #
+    def as_eoas: () -> untyped
+
+    # (see Preneeds::Applicant.permitted_params)
+    #
+    def self.permitted_params: () -> untyped
+  end
+end

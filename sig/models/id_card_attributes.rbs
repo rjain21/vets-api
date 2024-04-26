@@ -1,0 +1,23 @@
+class IdCardAttributes
+  @military_info: untyped
+
+  attr_accessor user: untyped
+
+  def self.for_user: (untyped user) -> untyped
+
+  # Return dict of traits in canonical order
+  def traits: () -> ::Hash[::String, untyped]
+
+  private
+
+  # Mapping from VA Profile branch of service keys to value expected by VIC
+  SERVICE_KEYS: ::Hash[::String, "AF" | "ARMY" | "CG" | "MC" | "NAVY" | "NOAA" | "PHS"]
+
+  def title38_status_code: () -> untyped
+
+  def branches_of_service: () -> untyped
+
+  def discharge_types: () -> untyped
+
+  def military_info: () -> untyped
+end

@@ -1,0 +1,3 @@
+class BankName < Common::RedisStore
+  def self.get_bank_name: (untyped user, untyped routing_number) -> (nil | untyped)
+end

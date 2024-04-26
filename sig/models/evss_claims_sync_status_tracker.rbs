@@ -1,0 +1,21 @@
+class EVSSClaimsSyncStatusTracker < Common::RedisStore
+  attr_accessor claim_id: untyped
+
+  def get_collection_status: () -> untyped
+
+  def get_single_status: () -> untyped
+
+  def set_collection_status: (untyped status) -> untyped
+
+  def set_single_status: (untyped status) -> untyped
+
+  def delete_collection_status: () -> untyped
+
+  def delete_single_status: () -> untyped
+
+  private
+
+  def collection_key: () -> "all"
+
+  def single_record_key: () -> ::String
+end

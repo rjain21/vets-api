@@ -1,0 +1,13 @@
+class FormProfiles::VA21p530 < FormProfile
+  @identity_information: untyped
+
+  @contact_information: untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/claimant-information" }
+
+  def prefill: () -> { form_data: untyped, metadata: untyped }
+
+  private
+
+  def convert_to_iso2: (untyped country_code) -> untyped
+end

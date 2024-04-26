@@ -1,0 +1,10 @@
+class EvssGeneratePdfProvider
+  # both of these services implement `get_form526`
+  @service: untyped
+
+  include GeneratePdfProvider
+
+  def initialize: (untyped auth_headers, ?breakered: bool) -> void
+
+  def generate_526_pdf: (untyped form_content) -> untyped
+end

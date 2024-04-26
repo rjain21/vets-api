@@ -1,0 +1,9 @@
+class FormProfiles::VA1010ezr < FormProfile
+  @ezr_data: untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/veteran-information/personal-information" }
+
+  def ezr_data: () -> untyped
+
+  def clean!: (untyped hash) -> untyped
+end

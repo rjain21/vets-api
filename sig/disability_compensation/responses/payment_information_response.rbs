@@ -1,0 +1,24 @@
+module DisabilityCompensation
+  module ApiProvider
+    class ControlInformation
+    end
+
+    class PaymentAccount
+      include ActiveModel::Validations
+
+      include ActiveModel::Serialization
+    end
+
+    class PaymentAddress
+    end
+
+    # Used in conjunction with the PPIU/Direct Deposit Provider
+    class PaymentInformation
+      include ActiveModel::Serialization
+    end
+
+    class PaymentInformationResponse
+      include ActiveModel::Serialization
+    end
+  end
+end

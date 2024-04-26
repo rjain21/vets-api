@@ -1,0 +1,13 @@
+class LighthouseBRDProvider
+  @service: untyped
+
+  include BRDProvider
+
+  def initialize: (untyped _current_user) -> void
+
+  def get_separation_locations: () -> untyped
+
+  private
+
+  def transform: (untyped data) -> untyped
+end

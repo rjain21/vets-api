@@ -1,0 +1,9 @@
+class UserAccount < ApplicationRecord
+  def verified?: () -> untyped
+
+  def needs_accepted_terms_of_use?: () -> untyped
+
+  private
+
+  def accepted_current_terms_of_use?: () -> untyped
+end

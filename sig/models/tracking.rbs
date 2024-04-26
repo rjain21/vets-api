@@ -1,0 +1,4 @@
+# Tracking Model
+class Tracking < Common::Base
+  def <=>: (untyped other) -> untyped
+end

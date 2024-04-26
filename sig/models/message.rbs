@@ -1,0 +1,70 @@
+#
+# Models a secure message
+#
+# @!attribute id
+#   @return [Integer]
+# @!attribute category
+#   @return [String]
+# @!attribute subject
+#   @return [String]
+# @!attribute body
+#   @return [String]
+# @!attribute attachment
+#   @return [Boolean]
+# @!attribute sent_date
+#   @return [Common::UTCTime]
+# @!attribute sender_id
+#   @return [Integer]
+# @!attribute sender_name
+#   @return [String]
+# @!attribute recipient_id
+#   @return [Integer]
+# @!attribute recipient_name
+#   @return [String]
+# @!attribute read_receipt
+#   @return [String]
+# @!attribute triage_group_name
+#   @return [String]
+# @!attribute proxy_sender_name
+#   @return [String]
+# @!attribute attachments
+#   @return [Array[Attachment]] an array of Attachments
+#
+class Message < Common::Base
+  @reply: untyped
+
+  MAX_TOTAL_FILE_SIZE_MB: ::Float
+
+  MAX_SINGLE_FILE_SIZE_MB: ::Float
+
+  include ActiveModel::Validations
+
+  include RedisCaching
+
+  alias attachment? attachment
+
+  def initialize: (?::Hash[untyped, untyped] attributes) -> void
+
+  #
+  # @note Default sort should be sent date in descending order
+  #
+  def <=>: (untyped other) -> untyped
+
+  #
+  # @note This returns self so that it can be chained: Message.new(params).as_reply
+  #
+  def as_reply: () -> self
+
+  #
+  # @return [Boolean] is there a reply?
+  #
+  def reply?: () -> untyped
+
+  private
+
+  def total_upload_size: () -> (0 | untyped)
+
+  def total_upload_size_validation: () -> (nil | untyped)
+
+  def each_upload_size_validation: () -> untyped
+end

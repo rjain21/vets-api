@@ -1,0 +1,3 @@
+module GeneratePdfProvider
+  def self.generate_526_pdf: (untyped _form_content) -> untyped
+end

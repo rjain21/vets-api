@@ -1,0 +1,6 @@
+# TriageTeam model
+class TriageTeam < Common::Base
+  include RedisCaching
+
+  def <=>: (untyped other) -> untyped
+end

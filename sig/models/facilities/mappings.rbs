@@ -1,0 +1,7 @@
+module Facilities
+  class Mappings
+    CLASS_MAP: ::Hash[::String, untyped]
+
+    PATHMAP: ::Hash[::String, untyped]
+  end
+end

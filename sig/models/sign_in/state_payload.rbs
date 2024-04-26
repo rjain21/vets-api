@@ -1,0 +1,42 @@
+module SignIn
+  class StatePayload
+    @acr: untyped
+
+    @client_id: untyped
+
+    @type: untyped
+
+    @code_challenge: untyped
+
+    @client_state: untyped
+
+    @code: untyped
+
+    @created_at: untyped
+
+    include ActiveModel::Validations
+
+    attr_reader acr: untyped
+
+    attr_reader client_id: untyped
+
+    attr_reader type: untyped
+
+    attr_reader code_challenge: untyped
+
+    attr_reader client_state: untyped
+
+    attr_reader code: untyped
+
+    attr_reader created_at: untyped
+
+    # rubocop:disable Metrics/ParameterLists
+    def initialize: (acr: untyped, client_id: untyped, type: untyped, code: untyped, ?code_challenge: untyped?, ?client_state: untyped?, ?created_at: untyped?) -> void
+
+    def persisted?: () -> false
+
+    private
+
+    def confirm_client_id: () -> (untyped | nil)
+  end
+end

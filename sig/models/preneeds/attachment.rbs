@@ -1,0 +1,34 @@
+module Preneeds
+  # Models a {Preneeds::BurialForm} form attachment
+  #
+  # @!attribute attachment_type
+  #   @return [Preneeds::AttachmentType] {Preneeds::AttachmentType} object
+  # @!attribute sending_source
+  #   @return [String] sending source; currently hard coded
+  # @!attribute file
+  #   @return [CarrierWave::Storage::AWSFile, CarrierWave::SanitizedFile]
+  # @!attribute name
+  #   @return [String] attachment name
+  # @!attribute data_handler
+  #   @return [String] auto-generated attachment id
+  #
+  class Attachment
+    @data_handler: untyped
+
+    # string to populate #sending_source
+    #
+    VETS_GOV: "vets.gov"
+
+    attr_reader data_handler: untyped
+
+    # Creates a new instance of {Preneeds::Attachment}
+    #
+    # @param args [Hash] hash with keys that correspond to attributes
+    #
+    def initialize: (*untyped args) -> void
+
+    # (see Preneeds::BurialForm#as_eoas)
+    #
+    def as_eoas: () -> { attachmentType: { attachmentTypeId: untyped }, dataHandler: { :"inc:Include" => "", :attributes! => { :"inc:Include" => { href: ::String, :"xmlns:inc" => "http://www.w3.org/2004/08/xop/include" } } }, description: untyped, sendingName: untyped, sendingSource: untyped }
+  end
+end

@@ -1,0 +1,46 @@
+module SignIn
+  class RefreshToken
+    @user_uuid: untyped
+
+    @uuid: untyped
+
+    @session_handle: untyped
+
+    @parent_refresh_token_hash: untyped
+
+    @anti_csrf_token: untyped
+
+    @nonce: untyped
+
+    @version: untyped
+
+    include ActiveModel::Validations
+
+    attr_reader user_uuid: untyped
+
+    attr_reader uuid: untyped
+
+    attr_reader session_handle: untyped
+
+    attr_reader parent_refresh_token_hash: untyped
+
+    attr_reader anti_csrf_token: untyped
+
+    attr_reader nonce: untyped
+
+    attr_reader version: untyped
+
+    # rubocop:disable Metrics/ParameterLists
+    def initialize: (session_handle: untyped, user_uuid: untyped, anti_csrf_token: untyped, ?uuid: untyped, ?parent_refresh_token_hash: untyped?, ?nonce: untyped, ?version: untyped) -> void
+
+    def persisted?: () -> false
+
+    def to_s: () -> { uuid: untyped, user_uuid: untyped, session_handle: untyped, version: untyped }
+
+    private
+
+    def create_uuid: () -> untyped
+
+    def create_nonce: () -> untyped
+  end
+end

@@ -1,0 +1,3 @@
+class MessageThread < Common::Base
+  def initialize: (?::Hash[untyped, untyped] attributes) -> void
+end

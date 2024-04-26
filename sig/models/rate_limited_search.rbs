@@ -1,0 +1,8 @@
+class RateLimitedSearch < Common::RedisStore
+  COUNT_LIMIT: 3
+
+  class RateLimitedError < Common::Exceptions::TooManyRequests
+  end
+
+  def self.create_or_increment_count: (untyped search_params) -> untyped
+end

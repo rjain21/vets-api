@@ -1,0 +1,3 @@
+class MHVOptInFlag < ApplicationRecord
+  FEATURES: ::Array["secure_messaging"]
+end

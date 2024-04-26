@@ -1,0 +1,3 @@
+# BlueButton EligibleDataClass
+class EligibleDataClass < Common::Base
+end

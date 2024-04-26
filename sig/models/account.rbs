@@ -1,0 +1,23 @@
+# Account's purpose is to correlate unique identifiers, and to
+# remove our dependency on third party services for a user's
+# unique identifier.
+#
+# The account.uuid is intended to become the Vets-API user's uuid.
+#
+class Account < ApplicationRecord
+  # @param user_uuid [String] The uuid of current_user in ApplicationController;
+  #                           may refer to the idme_uuid (preferred) or logingov_uuid
+  def self.lookup_by_user_uuid: (untyped user_uuid) -> (nil | untyped)
+
+  # @param user_uuid [String] The uuid of current_user in ApplicationController;
+  #                           refers to id for UserAccount table
+  def self.lookup_by_user_account_uuid: (untyped user_uuid) -> (nil | untyped)
+
+  private
+
+  def initialize_uuid: () -> untyped
+
+  def unique?: (untyped new_uuid) -> (true | nil)
+
+  def generate_uuid: () -> untyped
+end

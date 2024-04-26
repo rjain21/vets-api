@@ -1,0 +1,9 @@
+module BGSDependents
+  class Divorce < Base
+    @divorce_info: untyped
+
+    def initialize: (untyped divorce_info) -> void
+
+    def format_info: () -> untyped
+  end
+end

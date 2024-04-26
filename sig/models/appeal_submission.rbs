@@ -1,0 +1,7 @@
+class AppealSubmission < ApplicationRecord
+  APPEAL_TYPES: ::Array["HLR" | "NOD" | "SC"]
+
+  def self.submit_nod: (request_body_hash: untyped, current_user: untyped, ?decision_review_service: untyped?, ?version_number: ::String) -> untyped
+
+  def enqueue_uploads: (untyped uploads_arr, untyped _user, untyped version_number) -> untyped
+end

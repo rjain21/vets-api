@@ -1,0 +1,5 @@
+module RatedDisabilitiesProvider
+  # @param [string] _client_id: the lighthouse_client_id requested from Lighthouse
+  # @param [string] _rsa_key_path: path to the private RSA key used to create the lighthouse_client_id
+  def self.get_rated_disabilities: (?untyped? _client_id, ?untyped? _rsa_key_path) -> untyped
+end

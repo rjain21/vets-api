@@ -1,0 +1,17 @@
+class ExpiryScanner
+  REMAINING_DAYS: 60
+
+  URGENT_REMAINING_DAYS: 30
+
+  API_PATH: "https://slack.com/api/chat.postMessage"
+
+  def self.scan_certs: () -> untyped
+
+  def self.define_expiry_urgency: (untyped cert_path) -> (nil | untyped)
+
+  def self.request_body: (untyped message) -> untyped
+
+  def self.request_headers: () -> ::Hash[::String, "application/json; charset=utf-8" | ::String]
+
+  def self.directories: () -> untyped
+end

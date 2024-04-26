@@ -1,0 +1,2 @@
+class SingleLogoutRequest < Common::RedisStore
+end

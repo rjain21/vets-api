@@ -1,0 +1,14 @@
+module DisabilityCompensation
+  module ApiProvider
+    class SpecialIssue
+    end
+
+    class RatedDisability
+      include ActiveModel::Serialization
+    end
+
+    class RatedDisabilitiesResponse
+      include ActiveModel::Serialization
+    end
+  end
+end

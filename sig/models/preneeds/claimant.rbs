@@ -1,0 +1,30 @@
+module Preneeds
+  # Models an Claimant from a {Preneeds::BurialForm} form
+  #
+  # @!attribute date_of_birth
+  #   @return [String] claimant date of birth
+  # @!attribute desired_cemetery
+  #   @return [String] cemetery number
+  # @!attribute email
+  #   @return [String] claimant email
+  # @!attribute phone_number
+  #   @return [String] claimant phone number
+  # @!attribute relationship_to_vet
+  #   @return [String] code representing claimant's relationship to servicemember; one of '1', '2', '3', or '4'
+  # @!attribute ssn
+  #   @return [String] claimant's social security number
+  # @!attribute name
+  #   @return [Preneeds::FullName] claimant's full name
+  # @!attribute address
+  #   @return [Preneeds::Address] claimant's address
+  #
+  class Claimant < Preneeds::Base
+    # (see Preneeds::BurialForm#as_eoas)
+    #
+    def as_eoas: () -> untyped
+
+    # (see Preneeds::Applicant.permitted_params)
+    #
+    def self.permitted_params: () -> ::Array[:date_of_birth | :desired_cemetery | :email | :completing_reason | :phone_number | :relationship_to_vet | :ssn | { address: untyped, name: untyped }]
+  end
+end

@@ -1,0 +1,5 @@
+class PersistentAttachments::LgyClaim < PersistentAttachment
+  private
+
+  def delete_file: () -> untyped
+end

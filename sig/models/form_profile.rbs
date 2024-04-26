@@ -1,0 +1,122 @@
+# TODO(AJD): Virtus POROs for now, will become ActiveRecord when the profile is persisted
+class FormFullName
+end
+
+class FormDate
+end
+
+class FormMilitaryInformation
+end
+
+class FormAddress
+end
+
+class FormIdentityInformation
+  def hyphenated_ssn: () -> untyped
+
+  def ssn_last_four: () -> untyped
+end
+
+class FormContactInformation
+end
+
+class FormProfile
+  self.@mappings: untyped
+
+  @form_id: untyped
+
+  @user: untyped
+
+  @identity_information: untyped
+
+  @contact_information: untyped
+
+  @military_information: untyped
+
+  @vet360_contact_info_retrieved: untyped
+
+  @vet360_contact_info: untyped
+
+  @pciu_primary_phone: untyped
+
+  include SentryLogging
+
+  MAPPINGS: untyped
+
+  ALL_FORMS: { edu: ::Array["22-1990" | "22-1990N" | "22-1990E" | "22-1990EMEB" | "22-1995" | "22-5490" | "22-5490E" | "22-5495" | "22-0993" | "22-0994" | "FEEDBACK-TOOL" | "22-10203" | "22-1990S" | "22-1990EZ"], evss: ::Array["21-526EZ"], hca: ::Array["1010ez" | "10-10EZR"], pension_burial: ::Array["21P-530" | "21P-527EZ" | "21P-530V2"], dependents: ::Array["686C-674"], decision_review: ::Array["20-0995" | "20-0996" | "10182"], mdot: ::Array["MDOT"], fsr: ::Array["5655"], vre_counseling: ::Array["28-8832"], vre_readiness: ::Array["28-1900"], coe: ::Array["26-1880"], adapted_housing: ::Array["26-4555"], intent_to_file: ::Array["21-0966"], ivc_champva: ::Array["10-7959F-1"] }
+
+  FORM_ID_TO_CLASS: ::Hash[::String, untyped]
+
+  APT_REGEX: ::Regexp
+
+  attr_reader form_id: untyped
+
+  attr_reader user: untyped
+
+  def self.prefill_enabled_forms: () -> untyped
+
+  # lookup FormProfile subclass by form_id and initialize (or use FormProfile if lookup fails)
+  def self.for: (form_id: untyped, user: untyped) -> untyped
+
+  def initialize: (form_id: untyped, user: untyped) -> void
+
+  def metadata: () -> ::Hash[untyped, untyped]
+
+  def self.mappings_for_form: (untyped form_id) -> untyped
+
+  def self.load_form_mapping: (untyped form_id) -> untyped
+
+  # Collects data the VA has on hand for a user. The data may come from many databases/services.
+  # In case of collisions, preference is given in this order:
+  # * The form profile cache (the record for this class)
+  # * ID.me
+  # * MVI
+  # * TODO(AJD): MIS (military history)
+  #
+  def prefill: () -> untyped
+
+  def initialize_military_information: () -> (::Hash[untyped, untyped] | untyped)
+
+  private
+
+  def initialize_va_profile_prefill_military_information: () -> untyped
+
+  def initialize_identity_information: () -> untyped
+
+  def vet360_mailing_address_hash: () -> untyped
+
+  def vets360_contact_info_hash: () -> untyped
+
+  def initialize_contact_information: () -> untyped
+
+  # doing this (below) instead of `@vet360_contact_info ||= Settings...` to cache nil too
+  def vet360_contact_info: () -> untyped
+
+  def vet360_mailing_address: () -> untyped
+
+  def user_address_hash: () -> { street: untyped, street2: untyped, city: untyped, state: untyped, country: untyped, postal_code: untyped }
+
+  def format_for_schema_compatibility: (untyped opt) -> untyped
+
+  def extract_pciu_data: (untyped method) -> untyped
+
+  def pciu_us_phone: () -> ("" | untyped)
+
+  # returns the veteran's phone number as an object
+  # preference: vet360 mobile -> vet360 home -> pciu
+  def phone_object: () -> untyped
+
+  def pciu_primary_phone: () -> untyped
+
+  def convert_mapping: (untyped hash) -> untyped
+
+  def convert_value: (untyped val) -> untyped
+
+  def generate_prefill: (untyped mappings) -> untyped
+
+  def call_methods: (untyped methods) -> untyped
+
+  def clean!: (untyped value) -> untyped
+
+  def clean_hash!: (untyped hash) -> untyped
+end

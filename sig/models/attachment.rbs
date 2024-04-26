@@ -1,0 +1,3 @@
+# Attachment model
+class Attachment < Common::Base
+end

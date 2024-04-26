@@ -1,0 +1,28 @@
+class GIBillFeedback < Common::RedisStore
+  include RedisForm
+
+  FORM_ID: "FEEDBACK-TOOL"
+
+  FEEDBACK_MAPPINGS: ::Hash[::String, "Post-9/11 Ch 33" | "MGIB-AD Ch 30" | "MGIB-SR Ch 1606" | "TATU" | "REAP" | "DEA Ch 35" | "VRE Ch 31" | "TA" | "TA-AGR" | "MyCAA" | "FFA"]
+
+  def get_user_details: () -> ::Hash[::String, untyped]
+
+  # rubocop:disable Metrics/MethodLength
+  def transform_form: () -> untyped
+
+  private
+
+  def fix_options: (untyped options_hash, untyped key) -> untyped
+
+  def remove_malformed_options: (untyped options_hash) -> untyped
+
+  def transform_malformed_options: (untyped options_hash) -> untyped
+
+  def transform_school_address: (untyped address) -> (nil | untyped)
+
+  def anonymous?: () -> untyped
+
+  def transform_keys_into_array: (untyped hash) -> (::Array[untyped] | untyped)
+
+  def create_submission_job: () -> untyped
+end

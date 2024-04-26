@@ -1,0 +1,2 @@
+class FacilitySatisfaction < Common::RedisStore
+end

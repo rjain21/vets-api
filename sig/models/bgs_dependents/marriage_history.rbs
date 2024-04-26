@@ -1,0 +1,9 @@
+module BGSDependents
+  class MarriageHistory < Base
+    @former_spouse: untyped
+
+    def initialize: (untyped former_spouse) -> void
+
+    def format_info: () -> untyped
+  end
+end

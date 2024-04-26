@@ -1,0 +1,3 @@
+module BRDProvider
+  def self.get_separation_locations: () -> untyped
+end

@@ -60,7 +60,7 @@ gem 'combine_pdf'
 gem 'config'
 gem 'connect_vbms', git: 'https://github.com/adhocteam/connect_vbms', tag: 'v2.0.0.rc', require: 'vbms'
 gem 'date_validator'
-gem 'ddtrace'
+gem 'ddtrace', '1.20.0'
 gem 'dogstatsd-ruby', '5.6.1'
 gem 'dry-struct'
 gem 'dry-types'
@@ -217,7 +217,9 @@ group :development, :test do
   gem 'rubocop-rspec'
   gem 'rubocop-thread_safety'
   gem 'sidekiq', '~> 7.2.0'
+  gem 'steep', require: false
   gem 'timecop'
+  gem 'typeprof'
   gem 'webmock'
   gem 'yard'
 end

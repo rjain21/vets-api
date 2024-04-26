@@ -1,0 +1,3 @@
+module RedisCaching
+  extend ActiveSupport::Concern
+end

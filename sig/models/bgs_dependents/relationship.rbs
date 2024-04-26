@@ -1,0 +1,9 @@
+module BGSDependents
+  class Relationship < Base
+    @proc_id: untyped
+
+    def initialize: (untyped proc_id) -> void
+
+    def params_for_686c: (untyped participant_a_id, untyped dependent) -> { vnp_proc_id: untyped, vnp_ptcpnt_id_a: untyped, vnp_ptcpnt_id_b: untyped, ptcpnt_rlnshp_type_nm: untyped, family_rlnshp_type_nm: untyped, event_dt: untyped, begin_dt: untyped, end_dt: untyped, marage_cntry_nm: untyped, marage_state_cd: untyped, marage_city_nm: untyped, marage_trmntn_cntry_nm: untyped, marage_trmntn_state_cd: untyped, marage_trmntn_city_nm: untyped, marage_trmntn_type_cd: untyped, mthly_support_from_vet_amt: untyped, child_prevly_married_ind: untyped, dep_has_income_ind: untyped }
+  end
+end

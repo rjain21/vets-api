@@ -1,0 +1,17 @@
+module SignIn
+  class OAuthSession < ApplicationRecord
+    @user_attributes_hash: untyped
+
+    def active?: () -> untyped
+
+    def user_attributes_hash: () -> untyped
+
+    private
+
+    def refresh_valid?: () -> untyped
+
+    def session_max_valid?: () -> untyped
+
+    def confirm_client_id: () -> (untyped | nil)
+  end
+end

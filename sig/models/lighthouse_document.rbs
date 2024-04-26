@@ -1,0 +1,39 @@
+class LighthouseDocument < Common::Base
+  @password: untyped
+
+  include ActiveModel::Validations
+
+  include ActiveModel::Validations::Callbacks
+
+  include SentryLogging
+
+  # rubocop:disable Layout/LineLength
+  DOCUMENT_TYPES: ::Hash[::String, "Hypertension Rapid Ready For Decision Summary PDF" | "Buddy/Lay Statement" | "Civilian Police Reports" | "Other Correspondence" | "Copy of a DD214" | "Military Personnel Record" | "Medical Treatment Record - Government Facility" | "Medical Treatment Record - Non-Government Facility" | "Photographs" | "VA Form 21-2680 - Examination for Housebound Status or Permanent Need for Regular Aid & Attendance" | "VA Form 21-4142 - Authorization To Disclose Information" | "VA Form 21-4192 - Request for Employment Information in Connection with Claim for Disability" | "VA Form 21-4502 - Application for Automobile or Other Conveyance and Adaptive Equipment Under 38 U.S.C. 3901-3904" | "VA Form 21-674 - Request for Approval of School Attendance" | "VA Form 21-686c - Declaration of Status of Dependents" | "VA Form 21-8940 - Veterans Application for Increased Compensation Based on Un-employability" | "VA Form 26-4555 - Application in Acquiring Specially Adapted Housing or Special Home Adaptation Grant" | "VA Form 21-0779 - Request for Nursing Home Information in Connection with Claim for Aid & Attendance" | "VA Form 21-0781 - Statement in Support of Claim for PTSD" | "VA Form 21-0781a - Statement in Support of Claim for PTSD Secondary to Personal Assault" | "STR - Dental - Photocopy" | "STR - Medical - Photocopy" | "Medical Treatment Records - Furnished by SSA" | "Disability Benefits Questionnaire (DBQ)" | "Goldmann Perimetry Chart/Field Of Vision Chart" | "VA Form 21-4142a - General Release for Medical Provider Information" | "Automated Review Summary Document"]
+
+  LIGHTHOUSE_TEXT_ENCODING: "ascii"
+
+  MINIMUM_ENCODING_CONFIDENCE: ::Float
+
+  def description: () -> untyped
+
+  def uploader_ids: () -> ::Array[untyped]
+
+  def ==: (untyped other) -> untyped
+
+  def to_serializable_hash: () -> untyped
+
+  # The front-end URLencodes a nil tracked_item_id as the string 'null'
+  def tracked_item_id=: (untyped num) -> untyped
+
+  private
+
+  def known_document_type?: () -> (untyped | nil)
+
+  def convert_to_unlocked_pdf: () -> (nil | untyped)
+
+  def unencrypted_pdf?: () -> untyped
+
+  def normalize_text: () -> untyped
+
+  def normalize_file_name: () -> (nil | untyped)
+end

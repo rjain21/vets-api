@@ -1,0 +1,5 @@
+module FacilitiesQuery
+  class IdsQuery < Base
+    def run: () -> untyped
+  end
+end

@@ -1,0 +1,3 @@
+# PowerOfAttorney model
+class PowerOfAttorney < Common::Base
+end

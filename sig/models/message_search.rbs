@@ -1,0 +1,3 @@
+# MessageSearch model
+class MessageSearch < Common::Base
+end

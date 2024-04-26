@@ -1,0 +1,4 @@
+module SignIn
+  class TermsCodeContainer < Common::RedisStore
+  end
+end

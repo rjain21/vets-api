@@ -1,0 +1,5 @@
+class PersistentAttachments::DependencyClaim < PersistentAttachment
+  private
+
+  def delete_file: () -> untyped
+end

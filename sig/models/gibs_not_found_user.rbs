@@ -1,0 +1,3 @@
+class GibsNotFoundUser < ApplicationRecord
+  def self.log: (untyped user) -> untyped
+end

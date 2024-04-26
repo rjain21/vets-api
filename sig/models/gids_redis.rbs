@@ -1,0 +1,28 @@
+# Facade for GIDS.
+class GIDSRedis < Common::RedisStore
+  @client: untyped
+
+  @search_client: untyped
+
+  include Common::CacheAside
+
+  # @return  [Symbol] the GI::Client method to call
+  attr_accessor rest_call: untyped
+
+  # @return [Hash] the params to be used with the rest_call
+  attr_accessor scrubbed_params: untyped
+
+  def method_missing: (untyped name, *untyped args) -> untyped
+
+  def respond_to_missing?: (untyped name, untyped _include_private) -> untyped
+
+  def search_respond_to?: (untyped name) -> untyped
+
+  private
+
+  def response_from_redis_or_service: (untyped service) -> untyped
+
+  def gi_service: () -> untyped
+
+  def gi_search_service: () -> untyped
+end

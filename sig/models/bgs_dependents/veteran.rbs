@@ -1,0 +1,20 @@
+module BGSDependents
+  class Veteran < Base
+    @proc_id: untyped
+
+    @user: untyped
+
+    def initialize: (untyped proc_id, untyped user) -> void
+
+    def formatted_params: (untyped payload) -> untyped
+
+    # rubocop:disable Metrics/MethodLength
+    def veteran_response: (untyped participant, untyped address, untyped claim_info) -> { vnp_participant_id: untyped, first_name: untyped, last_name: untyped, vnp_participant_address_id: untyped, file_number: untyped, address_line_one: untyped, address_line_two: untyped, address_line_three: untyped, address_country: untyped, address_state_code: untyped, address_city: untyped, address_zip_code: untyped, address_type: untyped, mlty_postal_type_cd: untyped, mlty_post_office_type_cd: untyped, foreign_mail_code: untyped, type: "veteran", benefit_claim_type_end_product: untyped, regional_office_number: untyped, location_id: untyped, net_worth_over_limit_ind: untyped }
+
+    private
+
+    def user_veteran_attributes: () -> { participant_id: untyped, ssn: untyped, first_name: untyped, middle_name: untyped, last_name: untyped }
+
+    def marital_status: (untyped dependents_application) -> (nil | untyped)
+  end
+end

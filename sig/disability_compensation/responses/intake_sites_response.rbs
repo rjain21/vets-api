@@ -1,0 +1,13 @@
+module DisabilityCompensation
+  module ApiProvider
+    class SeparationLocation
+      include ActiveModel::Serialization
+    end
+
+    class IntakeSitesResponse
+      include ActiveModel::Serialization
+
+      def cache?: () -> untyped
+    end
+  end
+end

@@ -1,0 +1,60 @@
+class ScrubbedString < Virtus::Attribute
+  def coerce: (untyped value) -> ("" | untyped)
+end
+
+module VA21686c
+  class FormAddress
+  end
+
+  class FormFullName
+  end
+
+  class FormLocation
+  end
+
+  class FormDependent
+  end
+
+  class FormMarriage
+  end
+
+  class FormCurrentMarriage
+  end
+
+  class FormContactInformation
+  end
+end
+
+class FormProfiles::VA21686c < FormProfile
+  @veteran_information: untyped
+
+  def metadata: () -> { version: 0, prefill: true, returnUrl: "/veteran-information" }
+
+  def prefill: () -> (::Hash[untyped, untyped] | untyped)
+
+  private
+
+  def initialize_veteran_information: () -> untyped
+
+  def prefill_marriages: (untyped spouse, untyped previous_marriages) -> untyped
+
+  def convert_ssn: (untyped ssn) -> (nil | untyped)
+
+  def convert_phone: (untyped phone) -> (nil | untyped)
+
+  def prefill_current_marriage: (untyped spouse) -> (nil | untyped)
+
+  def detect_file_number: (untyped file_number) -> (nil | untyped)
+
+  def prefill_marriage: (untyped marriage) -> (nil | untyped)
+
+  def prefill_location: (untyped country, untyped city, untyped state) -> untyped
+
+  def convert_date: (untyped date) -> (nil | untyped)
+
+  def prefill_dependents: (untyped children) -> (::Array[untyped] | untyped)
+
+  def prefill_name: (untyped person) -> untyped
+
+  def prefill_address: (untyped address) -> (nil | untyped)
+end

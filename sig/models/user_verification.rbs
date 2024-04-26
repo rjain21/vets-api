@@ -1,0 +1,25 @@
+class UserVerification < ApplicationRecord
+  def self.find_by_type!: (untyped type, untyped identifier) -> untyped
+
+  def lock!: () -> untyped
+
+  def unlock!: () -> untyped
+
+  def verified?: () -> untyped
+
+  def credential_type: () -> untyped
+
+  def credential_identifier: () -> untyped
+
+  def backing_credential_identifier: () -> untyped
+
+  private
+
+  # XOR operators between the four credential identifiers mean one, and only one, of these can be
+  # defined, If two or more are defined, or if none are defined, then a validation error is raised
+  def single_credential_identifier: () -> (untyped | nil)
+
+  # All credentials require either an idme_uuid or logingov_uuid, mhv/dslogon credential types
+  # store the backing idme_uuid as backing_idme_uuid
+  def backing_uuid_credentials: () -> (untyped | nil)
+end

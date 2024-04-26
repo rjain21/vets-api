@@ -1,0 +1,16 @@
+module BGSDependents
+  class ChildStudent < Base
+    @proc_id: untyped
+
+    @vnp_participant_id: untyped
+
+    def initialize: (untyped dependents_application, untyped proc_id, untyped vnp_participant_id) -> void
+
+    # rubocop:disable Metrics/MethodLength
+    def params_for_686c: () -> { vnp_proc_id: untyped, vnp_ptcpnt_id: untyped, saving_amt: untyped, real_estate_amt: untyped, other_asset_amt: untyped, rmks: untyped, marage_dt: untyped, agency_paying_tuitn_nm: untyped, stock_bond_amt: untyped, govt_paid_tuitn_ind: untyped, govt_paid_tuitn_start_dt: untyped, term_year_emplmt_income_amt: untyped, term_year_other_income_amt: untyped, term_year_ssa_income_amt: untyped, term_year_annty_income_amt: untyped, next_year_annty_income_amt: untyped, next_year_emplmt_income_amt: untyped, next_year_other_income_amt: untyped, next_year_ssa_income_amt: untyped }
+
+    private
+
+    def convert_boolean: (untyped bool) -> ("Y" | "N")
+  end
+end

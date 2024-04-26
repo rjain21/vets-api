@@ -1,0 +1,2 @@
+class MessageThreadDetails < Message
+end

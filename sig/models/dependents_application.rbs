@@ -1,0 +1,44 @@
+class DependentsApplication < Common::RedisStore
+  include RedisForm
+
+  FORM_ID: "21-686C"
+
+  SEPARATION_TYPES: ::Hash[::String, "DEATH" | "DIVORCED" | "OTHER"]
+
+  MILITARY_STATES: ::Array["AA" | "AE" | "AP"]
+
+  def self.filter_children: (untyped dependents, untyped evss_children) -> (::Array[untyped] | untyped)
+
+  def self.convert_evss_date: (untyped date) -> untyped
+
+  def self.convert_name: (untyped full_name) -> untyped
+
+  def self.convert_ssn: (untyped ssn) -> (::Hash[untyped, untyped] | ::Hash[::String, untyped | false | nil])
+
+  def self.get_address_locality: (untyped address) -> ("MILITARY" | "DOMESTIC" | "INTERNATIONAL")
+
+  def self.convert_address: (untyped address) -> untyped
+
+  def self.convert_country: (untyped location) -> (::Hash[untyped, untyped] | ::Hash[::String, untyped])
+
+  def self.convert_previous_marriages: (untyped previous_marriages) -> (::Array[untyped] | untyped)
+
+  def self.convert_marriage: (untyped current_marriage, untyped last_marriage, untyped spouse_marriages) -> untyped
+
+  def self.convert_no_ssn: (untyped no_ssn, untyped reason_type) -> ::Hash[::String, untyped]
+
+  # rubocop:disable Metrics/MethodLength
+  def self.set_child_attrs!: (untyped dependent, untyped home_address, ?::Hash[untyped, untyped] child) -> untyped
+
+  # rubocop:enable Metrics/MethodLength
+  # rubocop:disable Metrics/MethodLength
+  def self.transform_form: (untyped parsed_form, untyped evss_form) -> untyped
+
+  def self.separate_previous_marriages: (untyped marriages) -> untyped
+
+  private
+
+  def user_can_access_evss: () -> (untyped | nil)
+
+  def create_submission_job: () -> untyped
+end

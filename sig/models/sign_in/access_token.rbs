@@ -1,0 +1,80 @@
+module SignIn
+  class AccessToken
+    @uuid: untyped
+
+    @session_handle: untyped
+
+    @client_id: untyped
+
+    @user_uuid: untyped
+
+    @audience: untyped
+
+    @refresh_token_hash: untyped
+
+    @anti_csrf_token: untyped
+
+    @last_regeneration_time: untyped
+
+    @parent_refresh_token_hash: untyped
+
+    @version: untyped
+
+    @expiration_time: untyped
+
+    @created_time: untyped
+
+    @user_attributes: untyped
+
+    @client_config: untyped
+
+    include ActiveModel::Validations
+
+    attr_reader uuid: untyped
+
+    attr_reader session_handle: untyped
+
+    attr_reader client_id: untyped
+
+    attr_reader user_uuid: untyped
+
+    attr_reader audience: untyped
+
+    attr_reader refresh_token_hash: untyped
+
+    attr_reader anti_csrf_token: untyped
+
+    attr_reader last_regeneration_time: untyped
+
+    attr_reader parent_refresh_token_hash: untyped
+
+    attr_reader version: untyped
+
+    attr_reader expiration_time: untyped
+
+    attr_reader created_time: untyped
+
+    attr_reader user_attributes: untyped
+
+    # rubocop:disable Metrics/ParameterLists
+    def initialize: (session_handle: untyped, client_id: untyped, user_uuid: untyped, audience: untyped, refresh_token_hash: untyped, anti_csrf_token: untyped, last_regeneration_time: untyped, ?uuid: untyped?, ?parent_refresh_token_hash: untyped?, ?version: untyped?, ?expiration_time: untyped?, ?created_time: untyped?, ?user_attributes: untyped?) -> void
+
+    def persisted?: () -> false
+
+    def to_s: () -> { uuid: untyped, user_uuid: untyped, session_handle: untyped, client_id: untyped, audience: untyped, version: untyped, last_regeneration_time: untyped, created_time: untyped, expiration_time: untyped }
+
+    private
+
+    def create_uuid: () -> untyped
+
+    def set_expiration_time: () -> untyped
+
+    def set_created_time: () -> untyped
+
+    def validity_length: () -> untyped
+
+    def filter_user_attributes: (user_attributes: untyped) -> (nil | untyped)
+
+    def client_config: () -> untyped
+  end
+end

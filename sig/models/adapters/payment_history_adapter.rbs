@@ -1,0 +1,27 @@
+module Adapters
+  class PaymentHistoryAdapter
+    @input_payment: untyped
+
+    @payments: untyped
+
+    @return_payments: untyped
+
+    @input_payments: untyped
+
+    attr_accessor payments: untyped
+
+    attr_accessor return_payments: untyped
+
+    def initialize: (untyped input) -> void
+
+    private
+
+    def process_payments: (untyped payments) -> untyped
+
+    def process_return_payments: (untyped returned_payments) -> untyped
+
+    def get_payment_method: (untyped payment) -> ("Direct Deposit" | "Paper Check" | nil)
+
+    def mask_account_number: (untyped address_eft, ?::Integer all_but, ?::String char) -> (nil | untyped)
+  end
+end

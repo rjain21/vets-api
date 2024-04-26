@@ -1,0 +1,9 @@
+module BGSDependents
+  class ChildStoppedAttendingSchool < Base
+    @child_info: untyped
+
+    def initialize: (untyped child_info) -> void
+
+    def format_info: () -> untyped
+  end
+end

@@ -1,0 +1,13 @@
+class SavedClaim::EducationCareerCounselingClaim < CentralMailClaim
+  include SentryLogging
+
+  FORM: "28-8832"
+
+  def regional_office: () -> ::Array[untyped]
+
+  def send_to_benefits_intake!: () -> untyped
+
+  def process_attachments!: () -> untyped
+
+  def business_line: () -> "EDU"
+end

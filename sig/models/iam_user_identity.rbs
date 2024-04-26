@@ -1,0 +1,41 @@
+# Subclasses the `UserIdentity` model. Adds a unique redis namespace for IAM user identities.
+# Like the it's base model it acts as an adapter for the attributes from the IAMSSOeOAuth::Service's
+# introspect endpoint.Adds IAM sourced versions of ICN, EDIPI, and SEC ID to pass to the IAMUser model.
+#
+class IAMUserIdentity < ::UserIdentity
+  extend SentryLogging
+
+  extend Identity::Parsers::GCIdsHelper
+
+  PREMIUM_LOAS: ::Array[2 | 3]
+
+  UPGRADE_AUTH_TYPES: ::Array["DSL" | "MHV"]
+
+  MULTIFACTOR_AUTH_TYPES: ::Array["IDME" | "LOGINGOV"]
+
+  IAM_NAMESPACE: "eb7b724e-bd8c-4dc3-b5fa-30f335938b42"
+
+  # MPI::Service uses 'mhv_icn' to query by icn rather than less accurate user traits
+  alias mhv_icn icn
+
+  # Builds an identity instance from the profile returned in the IAM introspect response
+  #
+  # @param iam_profile [Hash] the profile of the user, as they are known to the IAM SSOe service.
+  # @return [IAMUserIdentity] an instance of this class
+  #
+  def self.build_from_iam_profile: (untyped iam_profile) -> untyped
+
+  def self.multifactor?: (untyped loa_level, untyped auth_type) -> untyped
+
+  def set_expire: () -> untyped
+
+  # Users from IAM don't have a UUID like ID.me, instead we create one from the sec_id and iam_icn.
+  # It's used for JSON API object serialization, caching (no longer than a session), and debugging.
+  # The hashed value is not reversible and does not reference any external system or database.
+  # @return [String] UUID that is unique to this user
+  #
+  def uuid: () -> untyped
+
+  # Return a single mhv id from a possible comma-separated list value attribute
+  def self.valid_mhv_id: (untyped id_from_profile) -> untyped
+end

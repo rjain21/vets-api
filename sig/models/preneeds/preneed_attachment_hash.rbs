@@ -1,0 +1,25 @@
+module Preneeds
+  # Models a {Preneeds::BurialForm} form attachment.
+  # This is the data about the actual attachment, {Preneeds::Attachment}.
+  #
+  # @!attribute confirmation_code
+  #   @return [String] guid of uploaded attachment
+  # @!attribute attachment_id
+  #   @return [String] attachment id
+  # @!attribute name
+  #   @return [String] attachment file name
+  #
+  class PreneedAttachmentHash < Preneeds::Base
+    # (see Preneeds::Applicant.permitted_params)
+    #
+    def self.permitted_params: () -> ::Array[:confirmation_code | :attachment_id | :name]
+
+    # @return [CarrierWave::Storage::AWSFile, CarrierWave::SanitizedFile] the previously uploaded file
+    #
+    def get_file: () -> untyped
+
+    # @return [Preneeds::Attachment] the {Preneeds::Attachment} documented by this objects attributes
+    #
+    def to_attachment: () -> untyped
+  end
+end

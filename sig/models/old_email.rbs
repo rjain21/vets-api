@@ -1,0 +1,2 @@
+class OldEmail < Common::RedisStore
+end

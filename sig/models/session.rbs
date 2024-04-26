@@ -1,0 +1,27 @@
+class Session < Common::RedisStore
+  @token: untyped
+
+  @created_at: untyped
+
+  include SentryLogging
+
+  DEFAULT_TOKEN_LENGTH: 40
+
+  MAX_SESSION_LIFETIME: untyped
+
+  def self.obscure_token: (untyped token) -> untyped
+
+  def expire: (untyped ttl) -> (false | untyped)
+
+  def ttl_in_time: () -> untyped
+
+  def authenticated_by_ssoe: () -> untyped
+
+  private
+
+  def secure_random_token: (?untyped length) -> untyped
+
+  def setup_defaults: () -> untyped
+
+  def within_maximum_ttl: () -> untyped
+end

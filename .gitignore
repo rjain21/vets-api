@@ -102,3 +102,13 @@ node_modules
 # Ignore public folder (used for local document uploads)
 public
 
+.gem_rbs_collection
+sig/*
+!sig/models/
+!sig/models/concerns/
+!sig/disability_compensation/
+!sig/disability_compensation/providers/
+!sig/disability_compensation/responses/
+!sig/models/concerns/**
+!sig/disability_compensation/providers/**
+!sig/disability_compensation/responses/**

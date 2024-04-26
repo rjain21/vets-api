@@ -1,0 +1,5 @@
+class FormSubmissionAttempt < ApplicationRecord
+  include AASM
+
+  def log_status_change: () -> untyped
+end

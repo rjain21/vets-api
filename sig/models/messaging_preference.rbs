@@ -1,0 +1,12 @@
+# Secure Messaging Notification Preference Model
+class MessagingPreference < Common::Base
+  include ActiveModel::Validations
+
+  FREQUENCY_UPDATE_MAP: ::Hash[::String, 0 | 1 | 2]
+
+  FREQUENCY_GET_MAP: ::Hash[::String, "none" | "each_message" | "daily"]
+
+  def mhv_params: () -> { email_address: untyped, notify_me: untyped }
+
+  def id: () -> untyped
+end

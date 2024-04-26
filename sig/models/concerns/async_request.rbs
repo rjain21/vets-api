@@ -1,0 +1,7 @@
+module AsyncRequest
+  extend ActiveSupport::Concern
+
+  include ActiveModel::Validations::Callbacks
+
+  def success?: () -> untyped
+end

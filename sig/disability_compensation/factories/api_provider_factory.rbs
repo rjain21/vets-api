@@ -1,0 +1,64 @@
+class ApiProviderFactory
+  @type: untyped
+
+  @api_provider: untyped
+
+  @options: untyped
+
+  # current user is necessary for the Flipper toggle to check against
+  @current_user: untyped
+
+  # for now, rated disabilities is the only special case that needs the feature toggle name sent in
+  @feature_toggle: untyped
+
+  extend Logging::ThirdPartyTransaction::MethodWrapper
+
+  class UndefinedFactoryTypeError < StandardError
+  end
+
+  API_PROVIDER: { evss: :evss, lighthouse: :lighthouse }
+
+  FACTORIES: { rated_disabilities: :rated_disabilities, intent_to_file: :intent_to_file, ppiu: :ppiu, claims: :claims, brd: :brd, generate_pdf: :generate_pdf }
+
+  # Splitting the rated disabilities functionality into two use cases:
+  # 1. foreground tasks (i.e. web requests)
+  # 2. the background jobs (i.e. submit526 job)
+  FEATURE_TOGGLE_RATED_DISABILITIES_FOREGROUND: "disability_compensation_lighthouse_rated_disabilities_provider_foreground"
+
+  FEATURE_TOGGLE_RATED_DISABILITIES_BACKGROUND: "disability_compensation_lighthouse_rated_disabilities_provider_background"
+
+  FEATURE_TOGGLE_INTENT_TO_FILE: "disability_compensation_lighthouse_intent_to_file_provider"
+
+  FEATURE_TOGGLE_CLAIMS_SERVICE: "disability_compensation_lighthouse_claims_service_provider"
+
+  # PPIU calls out to Direct Deposit APIs in Lighthouse
+  FEATURE_TOGGLE_PPIU_DIRECT_DEPOSIT: "disability_compensation_lighthouse_ppiu_direct_deposit_provider"
+
+  FEATURE_TOGGLE_BRD: "disability_compensation_lighthouse_brd"
+
+  FEATURE_TOGGLE_GENERATE_PDF: "disability_compensation_lighthouse_generate_pdf"
+
+  attr_reader type: untyped
+
+  def self.call: (**untyped `**`) -> untyped
+
+  def initialize: (type: untyped, current_user: untyped, feature_toggle: untyped, ?provider: untyped?, ?options: ::Hash[untyped, untyped]) -> void
+
+  def call: () -> untyped
+
+  private
+
+  def rated_disabilities_service_provider: () -> untyped
+
+  def intent_to_file_service_provider: () -> untyped
+
+  def ppiu_service_provider: () -> untyped
+
+  def claims_service_provider: () -> untyped
+
+  def brd_service_provider: () -> untyped
+
+  def generate_pdf_service_provider: () -> untyped
+
+  def api_provider: () -> untyped
+end

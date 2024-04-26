@@ -1,0 +1,4 @@
+module InheritedProofing
+  class AuditData < Common::RedisStore
+  end
+end
