@@ -117,7 +117,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["upload_submission_id"], name: "index_appeals_api_evidence_submissions_on_upload_submission_id", unique: true
   end
 
-  create_table "appeals_api_higher_level_reviews", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "appeals_api_higher_level_reviews", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "status", default: "pending", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -134,7 +134,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["veteran_icn"], name: "index_appeals_api_higher_level_reviews_on_veteran_icn"
   end
 
-  create_table "appeals_api_notice_of_disagreements", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "appeals_api_notice_of_disagreements", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "status", default: "pending", null: false
@@ -165,7 +165,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["statusable_type", "statusable_id"], name: "status_update_id_type_index"
   end
 
-  create_table "appeals_api_supplemental_claims", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "appeals_api_supplemental_claims", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "status", default: "pending"
     t.string "code"
     t.string "detail"
@@ -239,7 +239,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["state"], name: "index_central_mail_submissions_on_state"
   end
 
-  create_table "claims_api_auto_established_claims", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "claims_api_auto_established_claims", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "status"
     t.integer "evss_id"
     t.datetime "created_at", precision: nil, null: false
@@ -271,7 +271,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["claim_id"], name: "index_claims_api_claim_submissions_on_claim_id"
   end
 
-  create_table "claims_api_evidence_waiver_submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "claims_api_evidence_waiver_submissions", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.text "auth_headers_ciphertext"
     t.text "encrypted_kms_key"
     t.string "cid"
@@ -292,7 +292,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "claims_api_power_of_attorneys", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "claims_api_power_of_attorneys", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "status"
     t.string "current_poa"
     t.string "md5"
@@ -313,7 +313,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["header_md5"], name: "index_claims_api_power_of_attorneys_on_header_md5"
   end
 
-  create_table "claims_api_supporting_documents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "claims_api_supporting_documents", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.uuid "auto_established_claim_id"
@@ -556,7 +556,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["claim_guid"], name: "index_form1010cg_submissions_on_claim_guid", unique: true
   end
 
-  create_table "form1095_bs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "form1095_bs", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "veteran_icn", null: false
     t.integer "tax_year", null: false
     t.jsonb "form_data_ciphertext", null: false
@@ -601,7 +601,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["user_uuid"], name: "index_form526_submissions_on_user_uuid"
   end
 
-  create_table "form5655_submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "form5655_submissions", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "user_uuid", null: false
     t.text "form_json_ciphertext", null: false
     t.text "metadata_ciphertext"
@@ -1071,7 +1071,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_235242) do
     t.index ["user_account_id"], name: "index_user_acceptable_verified_credentials_on_user_account_id", unique: true
   end
 
-  create_table "user_accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "user_accounts", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "icn"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
