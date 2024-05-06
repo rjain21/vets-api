@@ -153,7 +153,7 @@ class FormProfile
   attribute :military_information, FormMilitaryInformation
 
   def self.prefill_enabled_forms
-    forms = %w[21-686C 40-10007 0873]
+    forms = %w[21-686C 40-10007 0873 21P-530V2]
     ALL_FORMS.each { |type, form_list| forms += form_list if Settings[type].prefill }
     forms
   end
