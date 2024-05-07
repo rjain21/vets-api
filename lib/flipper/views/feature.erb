@@ -18,7 +18,7 @@
         </svg>
         <span style="margin-left:0.5em">Log out</span>
       </button>
-    </form>  
+    </form>
   <% else %>
     <% actor_type = FLIPPER_FEATURE_CONFIG['features'].dig(feature_name, 'actor_type')%>
     <% actor_name = actor_type == FLIPPER_ACTOR_STRING ? 'FLIPPER_ID cookie' : 'Logged in Users'  %>
@@ -169,7 +169,7 @@
                           <%== csrf_input_tag %>
                           <input type="hidden" name="value" value="<%= item %>">
                           <button class="va-button-link vads-u-margin--0" type="submit" name="operation" value="disable" title="Disable <%= item %>">
-                            <span class="octicon octicon-x"></span>
+                            <i class="fas fa-times"></i>
                           </button>
                         </form>
                       </div>
@@ -208,7 +208,7 @@
                           <%== csrf_input_tag %>
                           <input type="hidden" name="value" value="<%= item %>">
                           <button class="va-button-link vads-u-margin--0" type="submit" name="operation" value="disable" title="Disable <%= item %>">
-                            <span class="octicon octicon-x"></span>
+                            <i class="fas fa-times"></i>
                           </button>
                         </form>
                       </div>
