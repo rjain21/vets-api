@@ -4,6 +4,10 @@ module DebtsApi
   module V0
     module FsrFormTransform
       class IncomeCalculator
+        BENEFICIARY_MAP = {
+          'veteran' => 'VETERAN',
+          'spouse' => 'SPOUSE'
+        }
         def initialize(form)
           @form = form
           # Filters for deductions
@@ -16,59 +20,62 @@ module DebtsApi
           ]
           @social_sec_filters = ['FICA (Social Security and Medicare)']
           @all_filters = @tax_filters + @retirement_filters + @social_sec_filters
-        end
 
-        # rubocop:disable Metrics/MethodLength
-        def get_monthly_income
-          sp_addl_income = @form.dig('additional_income', 'spouse', 'sp_addl_income') || []
-          addl_inc_records = @form.dig('additional_income', 'addl_inc_records') || []
-          vet_employment_records = @form.dig(
+          # additions
+          @sp_addl_income = @form.dig('additional_income', 'spouse', 'sp_addl_income') || []
+          @addl_inc_records = @form.dig('additional_income', 'addl_inc_records') || []
+          @vet_employment_records = @form.dig(
             'personal_data',
             'employment_history',
             'veteran',
             'employment_records'
           ) || []
-          sp_employment_records = @form.dig(
+          @sp_employment_records = @form.dig(
             'personal_data',
             'employment_history',
             'spouse',
             'sp_employment_records'
           ) || []
-          social_security = @form['social_security'] || {}
-          benefits = @form['benefits'] || {}
-          curr_employment = @form['curr_employment'] || []
-          sp_curr_employment = @form['sp_curr_employment'] || []
-          income = @form['income'] || []
-          enhanced_fsr_active = @form['view:enhanced_financial_status_report']
-          vet_income = calculate_income(
-            enhanced_fsr_active,
+          @social_security = @form['social_security'] || {}
+          @benefits = @form['benefits'] || {}
+          @curr_employment = @form['curr_employment'] || []
+          @sp_curr_employment = @form['sp_curr_employment'] || []
+          @income = @form['income'] || []
+          @enhanced_fsr_active = @form['view:enhanced_financial_status_report']
+        end
+
+        # rubocop:disable Metrics/MethodLength
+        def get_monthly_income
+          sp_sum = sp_income.empty? ? 0 : sp_income['totalMonthlyNetIncome']
+          total_monthly_net_income = vet_income['totalMonthlyNetIncome'] + sp_sum
+
+          [vet_income, sp_income]          
+        end
+
+        def vet_income
+          calculate_income(
+            @enhanced_fsr_active,
             'veteran',
-            vet_employment_records,
-            curr_employment,
-            addl_inc_records,
-            social_security,
-            income,
-            benefits
+            @vet_employment_records,
+            @curr_employment,
+            @addl_inc_records,
+            @social_security,
+            @income,
+            @benefits
           )
-          sp_income = calculate_income(
-            enhanced_fsr_active,
+        end
+
+        def sp_income 
+          calculate_income(
+            @enhanced_fsr_active,
             'spouse',
-            sp_employment_records,
-            sp_curr_employment,
-            sp_addl_income,
-            social_security,
-            income,
-            benefits
+            @sp_employment_records,
+            @sp_curr_employment,
+            @sp_addl_income,
+            @social_security,
+            @income,
+            @benefits
           )
-
-          sp_sum = sp_income.empty? ? 0 : sp_income[:totalMonthlyNetIncome]
-          total_monthly_net_income = vet_income[:totalMonthlyNetIncome] + sp_sum
-
-          {
-            vetIncome: vet_income,
-            spIncome: sp_income,
-            totalMonthlyNetIncome: total_monthly_net_income
-          }
         end
 
         private
@@ -178,23 +185,24 @@ module DebtsApi
           total_monthly_net_income = net_income + other_income
 
           {
-            grossSalary: gross_salary,
-            deductions: {
-              taxes: taxes_values,
-              retirement: retirement_values,
-              socialSecurity: social_sec,
-              otherDeductions: {
-                name: other_deductions_name(deductions, @all_filters),
-                amount: other
+            "veteranOrSpouse" => BENEFICIARY_MAP[beneficiary_type],
+            "monthlyGrossSalary" => gross_salary,
+            "deductions" => {
+              "taxes" => taxes_values,
+              "retirement" => retirement_values,
+              "socialSecurity" => social_sec,
+              "otherDeductions" => {
+                "name" => other_deductions_name(deductions, @all_filters),
+                "amount" => other
               }
             },
-            totalDeductions: tot_deductions,
-            netTakeHomePay: net_income,
-            otherIncome: {
-              name: name_str(soc_sec_amt, comp, edu, addl_inc_records),
-              amount: other_income.round(2)
+            "totalDeductions" => tot_deductions,
+            "netTakeHomePay" => net_income,
+            "otherIncome" => {
+              "name" => name_str(soc_sec_amt, comp, edu, addl_inc_records),
+              "amount" => other_income.round(2)
             },
-            totalMonthlyNetIncome: total_monthly_net_income.round(2)
+            "totalMonthlyNetIncome" => total_monthly_net_income.round(2)
           }
         end
       end

@@ -23,189 +23,242 @@ RSpec.describe DebtsApi::V0::FsrFormTransform::IncomeCalculator, type: :service 
     end
 
     it 'has vets income' do
-      vets_income = @monthly_income[:vetIncome]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
       expect(vets_income).not_to be_nil
     end
 
     it 'has spouse income' do
-      sp_income = @monthly_income[:spIncome]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
       expect(sp_income).not_to be_nil
     end
 
     it 'has vets other deductions' do
-      vet_income = @monthly_income[:vetIncome]
-      deductions = vet_income[:deductions]
-      other_deductions = deductions[:otherDeductions]
+      vet_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      deductions = vet_income['deductions']
+      other_deductions = deductions['otherDeductions']
       expect(other_deductions).not_to be_nil
     end
 
     it 'has vets total deductions' do
-      vets_income = @monthly_income[:vetIncome]
-      total_deductions = vets_income[:totalDeductions]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      total_deductions = vets_income['totalDeductions']
       expect(total_deductions).not_to be_nil
     end
 
     it 'has spouse deductions' do
-      sp_income = @monthly_income[:spIncome]
-      deductions = sp_income[:deductions]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      deductions = sp_income['deductions']
       expect(deductions).not_to be_nil
     end
 
     it 'has spouse total deductions' do
-      sp_income = @monthly_income[:spIncome]
-      total_deductions = sp_income[:totalDeductions]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      total_deductions = sp_income['totalDeductions']
       expect(total_deductions).not_to be_nil
     end
 
     it 'has vets net take home pay' do
-      vets_income = @monthly_income[:vetIncome]
-      net_take_home_pay = vets_income[:netTakeHomePay]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      net_take_home_pay = vets_income['netTakeHomePay']
       expect(net_take_home_pay).not_to be_nil
       expect(net_take_home_pay).to eq(5608.66)
     end
 
     it 'has vets other income' do
-      vets_income = @monthly_income[:vetIncome]
-      other_income = vets_income[:otherIncome]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      other_income = vets_income['otherIncome']
       expect(other_income).not_to be_nil
     end
 
     it 'has vets total monthly net income' do
-      vets_income = @monthly_income[:vetIncome]
-      total_monthly_net_income = vets_income[:totalMonthlyNetIncome]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      total_monthly_net_income = vets_income['totalMonthlyNetIncome']
       expect(total_monthly_net_income).not_to be_nil
     end
 
     it 'has spouse net take home pay' do
-      sp_income = @monthly_income[:spIncome]
-      net_take_home_pay = sp_income[:netTakeHomePay]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      net_take_home_pay = sp_income['netTakeHomePay']
       expect(net_take_home_pay).not_to be_nil
       expect(net_take_home_pay).to eq(4065.08)
     end
 
     it 'has spouse other income' do
-      sp_income = @monthly_income[:spIncome]
-      other_income = sp_income[:otherIncome]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      other_income = sp_income['otherIncome']
       expect(other_income).not_to be_nil
     end
 
     it 'has spouse total monthly net income' do
-      sp_income = @monthly_income[:spIncome]
-      total_monthly_net_income = sp_income[:totalMonthlyNetIncome]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      total_monthly_net_income = sp_income['totalMonthlyNetIncome']
       expect(total_monthly_net_income).not_to be_nil
     end
 
     it 'checks if vets gross salary is populated' do
-      vets_income = @monthly_income[:vetIncome]
-      gross_salary = vets_income[:grossSalary]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      gross_salary = vets_income['monthlyGrossSalary']
       expect(gross_salary).not_to be_nil
     end
 
     it 'checks if vets gross salary is calcualted correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      gross_salary = vets_income[:grossSalary]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      gross_salary = vets_income['monthlyGrossSalary']
       expect(gross_salary).to eq(7001.1)
     end
 
     it 'checks if spouse gross salary is populated' do
-      sp_income = @monthly_income[:spIncome]
-      gross_salary = sp_income[:grossSalary]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      gross_salary = sp_income['monthlyGrossSalary']
       expect(gross_salary).not_to be_nil
     end
 
     it 'checks if spouse gross salary is calcualted correctly' do
-      sp_income = @monthly_income[:spIncome]
-      gross_salary = sp_income[:grossSalary]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      gross_salary = sp_income['monthlyGrossSalary']
       expect(gross_salary).to eq(5000.54)
     end
 
     it 'has vets deductions' do
-      vets_income = @monthly_income[:vetIncome]
-      deductions = vets_income[:deductions]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      deductions = vets_income['deductions']
       expect(deductions).not_to be_nil
     end
 
     it 'checks if vets deduction taxes are calculated correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      deductions = vets_income[:deductions]
-      taxes = deductions[:taxes]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      deductions = vets_income['deductions']
+      taxes = deductions['taxes']
       expect(taxes).to eq(781.03)
     end
 
     it 'checks if spouse deduction taxes are calculated correctly' do
-      sp_income = @monthly_income[:spIncome]
-      sp_deductions = sp_income[:deductions]
-      taxes = sp_deductions[:taxes]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      sp_deductions = sp_income['deductions']
+      taxes = sp_deductions['taxes']
       expect(taxes).to eq(581.01)
     end
 
     it 'checks if vets deduction social security is calculated correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      deductions = vets_income[:deductions]
-      social_security = deductions[:socialSecurity]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      deductions = vets_income['deductions']
+      social_security = deductions['socialSecurity']
       expect(social_security).to eq(122.4)
     end
 
     it 'checks if spouse deduction social security is calculated correctly' do
-      sp_income = @monthly_income[:spIncome]
-      deductions = sp_income[:deductions]
-      social_security = deductions[:socialSecurity]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      deductions = sp_income['deductions']
+      social_security = deductions['socialSecurity']
       expect(social_security).to eq(0)
     end
 
     it 'checks if vets other deductions are calculated correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      deductions = vets_income[:deductions]
-      other_deductions = deductions[:otherDeductions]
-      expect(other_deductions[:amount]).to eq(389.01)
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      deductions = vets_income['deductions']
+      other_deductions = deductions['otherDeductions']
+      expect(other_deductions['amount']).to eq(389.01)
     end
 
     it 'checks if spouse other deductions are calculated correctly' do
-      sp_income = @monthly_income[:spIncome]
-      deductions = sp_income[:deductions]
-      other_deductions = deductions[:otherDeductions]
-      expect(other_deductions[:amount]).to eq(254.45)
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      deductions = sp_income['deductions']
+      other_deductions = deductions['otherDeductions']
+      expect(other_deductions['amount']).to eq(254.45)
     end
 
     it 'checks if vets total deductions is calculated correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      total_deductions = vets_income[:totalDeductions]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      total_deductions = vets_income['totalDeductions']
       expect(total_deductions).to eq(1392.44)
     end
 
     it 'checks if spouse total deductions is calculated correctly' do
-      sp_income = @monthly_income[:spIncome]
-      total_deductions = sp_income[:totalDeductions]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      total_deductions = sp_income['totalDeductions']
       expect(total_deductions).to eq(935.46)
     end
 
     it 'checks if vets other income is calculated correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      other_income = vets_income[:otherIncome]
-      expect(other_income[:amount]).to eq(7012.85)
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      other_income = vets_income['otherIncome']
+      expect(other_income['amount']).to eq(7012.85)
     end
 
     it 'checks if spouse other income is calculated correctly' do
-      sp_income = @monthly_income[:spIncome]
-      other_income = sp_income[:otherIncome]
-      expect(other_income[:amount]).to eq(4701.77)
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      other_income = sp_income['otherIncome']
+      expect(other_income['amount']).to eq(4701.77)
     end
 
     it 'checks if vets total monthly net income is calculated correctly' do
-      vets_income = @monthly_income[:vetIncome]
-      total_monthly_net_income = vets_income[:totalMonthlyNetIncome]
+      vets_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "VETERAN"
+      }.first
+      total_monthly_net_income = vets_income['totalMonthlyNetIncome']
       expect(total_monthly_net_income).to eq(12_621.51)
     end
 
     it 'checks if spouse total monthly net income is calculated correctly' do
-      sp_income = @monthly_income[:spIncome]
-      total_monthly_net_income = sp_income[:totalMonthlyNetIncome]
+      sp_income = @monthly_income.select{ |income| 
+        income['veteranOrSpouse'] == "SPOUSE"
+      }.first
+      total_monthly_net_income = sp_income['totalMonthlyNetIncome']
       expect(total_monthly_net_income).to eq(8766.85)
-    end
-
-    it 'checks if total (spounse + vet) monthly net income is calculated correctly' do
-      total_monthly_net_income = @monthly_income[:totalMonthlyNetIncome]
-      expect(total_monthly_net_income).to eq(21_388.36)
     end
   end
 end
