@@ -6,11 +6,20 @@ require 'form1010_ezr/service'
 RSpec.describe Form1010Ezr::Service do
   include SchemaMatchers
 
+  before do
+    Flipper.disable(:ezr_async)
+  end
+
   let(:form) { get_fixture('form1010_ezr/valid_form') }
   let(:current_user) { build(:evss_user, :loa3, icn: '1013032368V065534') }
+  let(:service) { described_class.new(current_user) }
 
   def allow_logger_to_receive_error
     allow(Rails.logger).to receive(:error)
+  end
+
+  def allow_logger_to_receive_info
+    allow(Rails.logger).to receive(:info)
   end
 
   def expect_logger_error(error_message)
@@ -21,10 +30,57 @@ RSpec.describe Form1010Ezr::Service do
     described_class.new(current_user).submit_form(form)
   end
 
+  describe '#add_financial_flag' do
+    context 'when the form has veteran gross income' do
+      let(:parsed_form) do
+        {
+          'veteranGrossIncome' => 100
+        }
+      end
+
+      it 'adds the financial_flag' do
+        expect(service.send(:add_financial_flag, parsed_form)).to eq(
+          parsed_form.merge('discloseFinancialInformation' => true)
+        )
+      end
+    end
+
+    context 'when the form doesnt have veteran gross income' do
+      it 'doesnt add the financial_flag' do
+        expect(service.send(:add_financial_flag, {})).to eq({})
+      end
+    end
+  end
+
   describe '#submit_form' do
+    context 'with ezr_async on' do
+      before do
+        Flipper.enable(:ezr_async)
+      end
+
+      it 'submits the ezr with a background job', run_at: 'Tue, 21 Nov 2023 20:42:44 GMT' do
+        VCR.use_cassette(
+          'form1010_ezr/authorized_submit',
+          match_requests_on: %i[method uri body],
+          erb: true,
+          allow_unused_http_interactions: false
+        ) do
+          expect { submit_form(form) }.to change {
+            HCA::EzrSubmissionJob.jobs.size
+          }.by(1)
+
+          HCA::EzrSubmissionJob.drain
+        end
+      end
+    end
+
     context 'when successful' do
+      before do
+        allow_logger_to_receive_info
+      end
+
       it "returns an object that includes 'success', 'formSubmissionId', and 'timestamp'",
-         run_at: 'Mon, 23 Oct 2023 23:09:43 GMT' do
+         run_at: 'Tue, 21 Nov 2023 20:42:44 GMT' do
         VCR.use_cassette(
           'form1010_ezr/authorized_submit',
           { match_requests_on: %i[method uri body], erb: true }
@@ -40,10 +96,21 @@ RSpec.describe Form1010Ezr::Service do
           expect(submission_response).to eq(
             {
               success: true,
-              formSubmissionId: 432_236_891,
-              timestamp: '2023-10-23T18:12:24.628-05:00'
+              formSubmissionId: 432_775_981,
+              timestamp: '2023-11-21T14:42:44.858-06:00'
             }
           )
+        end
+      end
+
+      it 'logs the submission id', run_at: 'Tue, 21 Nov 2023 20:42:44 GMT' do
+        VCR.use_cassette(
+          'form1010_ezr/authorized_submit',
+          { match_requests_on: %i[method uri body], erb: true }
+        ) do
+          submission_response = submit_form(form)
+
+          expect(Rails.logger).to have_received(:info).with("SubmissionID=#{submission_response[:formSubmissionId]}")
         end
       end
 
@@ -51,7 +118,7 @@ RSpec.describe Form1010Ezr::Service do
         let(:form) { get_fixture('form1010_ezr/valid_form_with_mexican_province') }
 
         it "overrides the original province 'state' with the correct province initial and renders a " \
-           'successful response', run_at: 'Mon, 23 Oct 2023 23:42:13 GMT' do
+           'successful response', run_at: 'Tue, 21 Nov 2023 22:29:52 GMT' do
           VCR.use_cassette(
             'form1010_ezr/authorized_submit_with_mexican_province',
             { match_requests_on: %i[method uri body], erb: true }
@@ -62,8 +129,46 @@ RSpec.describe Form1010Ezr::Service do
             expect(submit_form(form)).to eq(
               {
                 success: true,
-                formSubmissionId: 432_236_923,
-                timestamp: '2023-10-23T18:42:52.975-05:00'
+                formSubmissionId: 432_777_930,
+                timestamp: '2023-11-21T16:29:52.432-06:00'
+              }
+            )
+          end
+        end
+      end
+
+      context 'when the form includes next of kin and/or emergency contact info' do
+        let(:form) { get_fixture('form1010_ezr/valid_form_with_next_of_kin_and_emergency_contact') }
+
+        it 'returns a success object', run_at: 'Thu, 30 Nov 2023 15:52:36 GMT' do
+          VCR.use_cassette(
+            'form1010_ezr/authorized_submit_with_next_of_kin_and_emergency_contact',
+            { match_requests_on: %i[method uri body], erb: true }
+          ) do
+            expect(submit_form(form)).to eq(
+              {
+                success: true,
+                formSubmissionId: 432_861_975,
+                timestamp: '2023-11-30T09:52:37.290-06:00'
+              }
+            )
+          end
+        end
+      end
+
+      context 'when the form includes TERA info' do
+        let(:form) { get_fixture('form1010_ezr/valid_form_with_tera') }
+
+        it 'returns a success object', run_at: 'Wed, 13 Mar 2024 18:14:49 GMT' do
+          VCR.use_cassette(
+            'form1010_ezr/authorized_submit_with_tera',
+            { match_requests_on: %i[method uri body], erb: true }
+          ) do
+            expect(submit_form(form)).to eq(
+              {
+                success: true,
+                formSubmissionId: 433_956_488,
+                timestamp: '2024-03-13T13:14:50.252-05:00'
               }
             )
           end
@@ -95,6 +200,36 @@ RSpec.describe Form1010Ezr::Service do
             expect(e.errors[0].status).to eq('422')
           end
           expect_logger_error('10-10EZR form validation failed. Form does not match schema.')
+        end
+
+        it 'increments statsd' do
+          allow(StatsD).to receive(:increment)
+
+          expect(StatsD).to receive(:increment).with('api.1010ezr.submit_sync.fail',
+                                                     tags: ['error:VCRErrorsUnhandledHTTPRequestError'])
+          expect(StatsD).to receive(:increment).with('api.1010ezr.submit_sync.total')
+
+          expect do
+            submit_form(form)
+          end.to raise_error(StandardError)
+        end
+
+        # REMOVE THIS TEST ONCE THE DOB ISSUE HAS BEEN DIAGNOSED - 3/27/24
+        context "when the error pertains to the Veteran's DOB" do
+          before do
+            allow(JSON::Validator).to receive(:fully_validate).and_return(['veteranDateOfBirth error'])
+          end
+
+          it 'adds to the PersonalInformationLog and saves the unprocessed DOB' do
+            expect { submit_form(form) }.to raise_error do |e|
+              personal_information_log =
+                PersonalInformationLog.find_by(error_class: "Form1010Ezr 'veteranDateOfBirth' schema failure")
+
+              expect(personal_information_log.present?).to eq(true)
+              expect(personal_information_log.data).to eq(form['veteranDateOfBirth'])
+              expect(e).to be_a(Common::Exceptions::SchemaValidationErrors)
+            end
+          end
         end
       end
 

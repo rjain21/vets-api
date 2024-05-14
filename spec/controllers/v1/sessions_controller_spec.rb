@@ -502,13 +502,16 @@ RSpec.describe V1::SessionsController, type: :controller do
 
       context 'when user has not accepted the current terms of use' do
         let(:user) { build(:user, loa, uuid:, idme_uuid: uuid) }
+        let(:application) { 'some-applicaton' }
 
         before do
           SAMLRequestTracker.create(uuid: login_uuid, payload: { type: 'idme', application: })
         end
 
-        context 'and authentication occurred with a application in TERMS_OF_USE_ENABLED_CLIENTS' do
-          let(:application) { SAML::URLService::TERMS_OF_USE_ENABLED_CLIENTS.first }
+        context 'and authentication occurred with a application in Settings.terms_of_use.enabled_clients' do
+          before do
+            allow(Settings.terms_of_use).to receive(:enabled_clients).and_return(application)
+          end
 
           it 'redirects to terms of use page' do
             expect(call_endpoint).to redirect_to(
@@ -517,8 +520,10 @@ RSpec.describe V1::SessionsController, type: :controller do
           end
         end
 
-        context 'and authentication occurred with an application not in TERMS_OF_USE_ENABLED_CLIENTS' do
-          let(:application) { 'foobar' }
+        context 'and authentication occurred with an application not in Settings.terms_of_use.enabled_clients' do
+          before do
+            allow(Settings.terms_of_use).to receive(:enabled_clients).and_return('')
+          end
 
           it 'redirects to expected auth page' do
             expect(call_endpoint).to redirect_to(expected_redirect_url)
@@ -540,13 +545,16 @@ RSpec.describe V1::SessionsController, type: :controller do
 
       context 'when user has not accepted the current terms of use' do
         let(:user) { build(:user, loa, uuid:, idme_uuid: uuid) }
+        let(:application) { 'some-applicaton' }
 
         before do
           SAMLRequestTracker.create(uuid: login_uuid, payload: { type: 'idme', application: })
         end
 
-        context 'and authentication occurred with a application in TERMS_OF_USE_ENABLED_CLIENTS' do
-          let(:application) { SAML::URLService::TERMS_OF_USE_ENABLED_CLIENTS.first }
+        context 'and authentication occurred with a application in Settings.terms_of_use.enabled_clients' do
+          before do
+            allow(Settings.terms_of_use).to receive(:enabled_clients).and_return(application)
+          end
 
           it 'redirects to terms of use page' do
             expect(call_endpoint).to redirect_to(
@@ -555,8 +563,10 @@ RSpec.describe V1::SessionsController, type: :controller do
           end
         end
 
-        context 'and authentication occurred with an application not in TERMS_OF_USE_ENABLED_CLIENTS' do
-          let(:application) { 'foobar' }
+        context 'and authentication occurred with an application not in Settings.terms_of_use.enabled_clients' do
+          before do
+            allow(Settings.terms_of_use).to receive(:enabled_clients).and_return('')
+          end
 
           it 'redirects to expected auth page' do
             expect(call_endpoint).to redirect_to(expected_redirect_url)
@@ -682,7 +692,7 @@ RSpec.describe V1::SessionsController, type: :controller do
           expect(existing_user.multifactor).to be_falsey
           expect(existing_user.loa).to eq(highest: IAL::ONE, current: IAL::ONE)
           expect(existing_user.ssn).to eq('796111863')
-          expect(Raven).to receive(:tags_context).once
+          expect(Sentry).to receive(:set_tags).once
 
           callback_tags = ['status:success', "context:#{IAL::LOGIN_GOV_IAL1}", 'version:v1']
 
@@ -805,13 +815,13 @@ RSpec.describe V1::SessionsController, type: :controller do
 
           it 'logs a message to Sentry' do
             allow(saml_user).to receive(:changing_multifactor?).and_return(true)
-            expect(Raven).to receive(:extra_context).with(current_user_uuid: uuid, current_user_icn: '11111111111')
-            expect(Raven).to receive(:extra_context).with({ saml_uuid: 'invalid', saml_icn: '11111111111' })
-            expect(Raven).to receive(:capture_message).with(
+            expect(Sentry).to receive(:set_extras).with(current_user_uuid: uuid, current_user_icn: '11111111111')
+            expect(Sentry).to receive(:set_extras).with({ saml_uuid: 'invalid', saml_icn: '11111111111' })
+            expect(Sentry).to receive(:capture_message).with(
               "Couldn't locate exiting user after MFA establishment",
               level: 'warning'
             )
-            expect(Raven).to receive(:extra_context).at_least(:once) # From PostURLService#initialize
+            expect(Sentry).to receive(:set_extras).at_least(:once) # From PostURLService#initialize
             with_settings(Settings.sentry, dsn: 'T') { call_endpoint }
           end
         end
@@ -837,7 +847,7 @@ RSpec.describe V1::SessionsController, type: :controller do
         before { allow(SAML::Responses::Login).to receive(:new).and_return(saml_response_click_deny) }
 
         it 'redirects to an auth failure page' do
-          expect(Raven).to receive(:tags_context).once
+          expect(Sentry).to receive(:set_tags).once
           expect(Rails.logger)
             .to receive(:warn).with(/#{SAML::Responses::Login::ERRORS[:clicked_deny][:short_message]}/)
           expect(call_endpoint).to redirect_to(expected_redirect)

@@ -58,12 +58,12 @@ module TravelClaim
     #
     # @see TravelClaim::Client#submit_claim
     #
-    # @return [Response] claimNumber
+    # @return [Hash] response hash
     def submit_claim
       resp = if token.present?
                client.submit_claim(token:, patient_icn:, appointment_date:)
              else
-               Faraday::Response.new(body: { message: 'Unauthorized' }, status: 401)
+               Faraday::Response.new(response_body: { message: 'Unauthorized' }, status: 401)
              end
       response.build(response: resp).handle
     end

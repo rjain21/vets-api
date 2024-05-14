@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'support/sm_client_helpers'
 
 RSpec.describe 'Fetching user data' do
   include SchemaMatchers
+  include SM::ClientHelpers
 
   context 'GET /v0/user - when an LOA 3 user is logged in' do
     let(:mhv_user) { build(:user, :mhv) }
@@ -11,6 +13,7 @@ RSpec.describe 'Fetching user data' do
     let(:edipi) { '1005127153' }
 
     before do
+      allow(SM::Client).to receive(:new).and_return(authenticated_client)
       allow_any_instance_of(MHVAccountTypeService).to receive(:mhv_account_type).and_return('Premium')
       create(:account, idme_uuid: mhv_user.uuid)
       sign_in_as(mhv_user)
@@ -47,6 +50,7 @@ RSpec.describe 'Fetching user data' do
           BackendServices::USER_PROFILE,
           BackendServices::RX,
           BackendServices::MESSAGING,
+          BackendServices::MEDICAL_RECORDS,
           BackendServices::HEALTH_RECORDS,
           BackendServices::ID_CARD,
           # BackendServices::MHV_AC, this will be false if mhv account is premium
@@ -176,7 +180,7 @@ RSpec.describe 'Fetching user data' do
       it 'returns meta.errors information', :aggregate_failures do
         error = body.dig('meta', 'errors').first
 
-        expect(error['external_service']).to eq 'Vet360'
+        expect(error['external_service']).to eq 'VAProfile'
         expect(error['description']).to be_present
         expect(error['status']).to eq 502
       end

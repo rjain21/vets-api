@@ -3,6 +3,9 @@
 module Mobile
   module V0
     class AppointmentsController < ApplicationController
+      UPCOMING_DAYS_LIMIT = 7
+
+      before_action { authorize }
       after_action :clear_appointments_cache, only: %i[cancel create]
 
       def index
@@ -12,7 +15,10 @@ module Mobile
         status = get_response_status(failures)
         page_appointments, page_meta_data = paginate(appointments)
         page_meta_data[:meta].merge!(partial_errors) unless partial_errors.nil?
-        page_meta_data[:meta].merge!(upcoming_appointments_count: upcoming_appointments_count(appointments))
+        page_meta_data[:meta].merge!(
+          upcoming_appointments_count: upcoming_appointments_count(appointments),
+          upcoming_days_limit: UPCOMING_DAYS_LIMIT
+        )
 
         render json: Mobile::V0::AppointmentSerializer.new(page_appointments, page_meta_data), status:
       end
@@ -81,7 +87,7 @@ module Mobile
       # The mobile app does not distinguish between VA and CC errors so we are only indicating that there are errors
       # If we ever want to distinguish be VA and CC errors, it will require coordination with the front-end team
       def partial_errors(failures)
-        if failures.present?
+        if appointment_errors?(failures)
           {
             errors: [{ source: 'VA Service' }]
           }
@@ -89,12 +95,11 @@ module Mobile
       end
 
       def get_response_status(failures)
-        case failures&.size
-        when 0, nil
-          :ok
-        else
-          :multi_status
-        end
+        appointment_errors?(failures) ? :multi_status : :ok
+      end
+
+      def appointment_errors?(failures)
+        Array.wrap(failures).any? { |failure| failure[:appointment_errors].present? }
       end
 
       def filter_by_date_range(appointments)
@@ -116,7 +121,7 @@ module Mobile
       def upcoming_appointments_count(appointments)
         appointments.count do |appt|
           appt.is_pending == false && appt.status == 'BOOKED' && appt.start_date_utc > Time.now.utc &&
-            appt.start_date_utc <= 2.weeks.from_now.end_of_day.utc
+            appt.start_date_utc <= UPCOMING_DAYS_LIMIT.days.from_now.end_of_day.utc
         end
       end
 
@@ -126,6 +131,19 @@ module Mobile
 
       def appointments_cache_interface
         @appointments_cache_interface ||= Mobile::AppointmentsCacheInterface.new
+      end
+
+      def authorize
+        raise_access_denied unless current_user.authorize(:vaos, :access?)
+        raise_access_denied_no_icn if current_user.icn.blank?
+      end
+
+      def raise_access_denied
+        raise Common::Exceptions::Forbidden, detail: 'You do not have access to online scheduling'
+      end
+
+      def raise_access_denied_no_icn
+        raise Common::Exceptions::Forbidden, detail: 'No patient ICN found'
       end
     end
   end

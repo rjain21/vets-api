@@ -28,6 +28,7 @@ module ClaimsApi
         skip_before_action :validate_json_format, only: %i[upload_supporting_documents]
         before_action :verify_power_of_attorney!, if: :header_request?
         skip_before_action :validate_veteran_identifiers, only: %i[submit_form_526 validate_form_526]
+        before_action :edipi_check, only: %i[submit_form_526 upload_form_526 validate_form_526]
 
         # POST to submit disability claim.
         #
@@ -115,13 +116,12 @@ module ClaimsApi
           validate_documents_content_type
           validate_documents_page_size
 
+          claims_v1_logging('526_attachments',
+                            message: "/attachments called with
+                            #{documents.length} #{'attachment'.pluralize(documents.length)}")
+
           claim = ClaimsApi::AutoEstablishedClaim.get_by_id_or_evss_id(params[:id])
-          unless claim
-            claims_v1_logging('526_attachments',
-                              message: "/attachments called with
-                              #{documents.length} #{'attachment'.pluralize(documents.length)}")
-            raise ::Common::Exceptions::ResourceNotFound.new(detail: 'Resource not found')
-          end
+          raise ::Common::Exceptions::ResourceNotFound.new(detail: 'Resource not found') unless claim
 
           documents.each do |document|
             claim_document = claim.supporting_documents.build
@@ -178,17 +178,15 @@ module ClaimsApi
           track_526_validation_errors(error_details)
           raise ::Common::Exceptions::UnprocessableEntity.new(errors: format_526_errors(error_details))
         rescue ::Common::Exceptions::BackendServiceException => e
-          error_details = e&.original_body&.[](:messages)
-          raise ::Common::Exceptions::UnprocessableEntity.new(errors: format_526_errors(error_details))
+          raise ::Common::Exceptions::UnprocessableEntity.new(errors: format_526_errors(e.original_body))
         rescue ::Common::Exceptions::GatewayTimeout,
                ::Timeout::Error,
                ::Faraday::TimeoutError,
-               Faraday::Error::ParsingError,
+               Faraday::ParsingError,
                Breakers::OutageException => e
-          req = { auth: auth_headers, form: form_attributes, source: source_name, auto_claim: auto_claim.as_json }
-          PersonalInformationLog.create(
-            error_class: "validate_form_526 #{e.class.name}", data: { request: req, error: e.try(:as_json) || e }
-          )
+          claims_v1_logging('validate_form_526',
+                            message: "rescuing in validate_form_526, claim_id: #{auto_claim.id}" \
+                                     "#{e.class.name}, error: #{e.try(:as_json) || e}")
           raise e
         end
         # rubocop:enable Metrics/MethodLength
@@ -218,7 +216,7 @@ module ClaimsApi
           primary_special_issues = disability['specialIssues'] || []
           secondary_special_issues = []
           (disability['secondaryDisabilities'] || []).each do |secondary_disability|
-            secondary_special_issues += (secondary_disability['specialIssues'] || [])
+            secondary_special_issues += secondary_disability['specialIssues'] || []
           end
           special_issues = primary_special_issues + secondary_special_issues
 
@@ -254,7 +252,9 @@ module ClaimsApi
 
         def format_526_errors(errors)
           errors.map do |error|
-            { status: 422, detail: "#{error['key']} #{error['detail']}", source: error['key'] }
+            e = error.deep_symbolize_keys
+            details = e[:text].presence || e[:detail]
+            { status: 422, detail: "#{e[:key]}, #{details}", source: e[:key] }
           end
         end
 

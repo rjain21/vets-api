@@ -95,7 +95,7 @@ module Mobile
             facility_id:,
             sta6aid: facility_id,
             healthcare_provider: appointment[:healthcare_provider],
-            healthcare_service:,
+            healthcare_service: nil, # set to nil until we decide what the purpose of this field was meant to be
             location:,
             physical_location: appointment[:physical_location],
             minutes_duration: minutes_duration(appointment[:minutes_duration]),
@@ -122,6 +122,7 @@ module Mobile
 
           Mobile::V0::Appointment.new(adapted_appointment)
         end
+
         # rubocop:enable Metrics/MethodLength
 
         private
@@ -186,9 +187,13 @@ module Mobile
         end
 
         def cancel_id
-          return nil unless appointment[:cancellable]
+          return nil unless cancellable?
 
           appointment[:id]
+        end
+
+        def cancellable?
+          appointment[:cancellable] && appointment[:kind] != 'telehealth'
         end
 
         def type_of_care(service_type)
@@ -199,15 +204,9 @@ module Mobile
 
         def cancellation_reason(cancellation_reason)
           if cancellation_reason.nil?
-            if status == STATUSES[:cancelled]
-              Rails.logger.info('cancelled appt missing cancellation reason with debug info',
-                                type: appointment_type,
-                                kind: appointment[:kind],
-                                vista_status: appointment.dig(:extension, :vista_status),
-                                facility_id:,
-                                clinic: appointment[:clinic])
-            end
-            return CANCELLATION_REASON[:prov]
+            return CANCELLATION_REASON[:prov] if status == STATUSES[:cancelled]
+
+            return nil
           end
 
           cancel_code = cancellation_reason.dig(:coding, 0, :code)
@@ -259,7 +258,9 @@ module Mobile
           @start_date_utc ||= begin
             start = appointment[:start]
             if start.nil?
-              sorted_dates = requested_periods.map { |period| time_to_datetime(period[:start]) }.sort
+              sorted_dates = requested_periods.map do |period|
+                time_to_datetime(period[:start])
+              end.sort
               future_dates = sorted_dates.select { |period| period > DateTime.now }
               future_dates.any? ? future_dates.first : sorted_dates.first
             else
@@ -389,6 +390,7 @@ module Mobile
             location
           end
         end
+
         # rubocop:enable Metrics/MethodLength
 
         def parse_phone(phone)
@@ -475,10 +477,16 @@ module Mobile
         end
 
         def embedded_data_match(key)
-          match = appointment.dig(:reason_code, :text)&.match(/(^|\|)#{key}:?(.*?)(\||$)/)
+          camelized_key = key.gsub(' ', '_').camelize(:lower)
+          match = reason_code_match(key) || reason_code_match(camelized_key)
+
           return nil unless match
 
           match[2].strip.presence
+        end
+
+        def reason_code_match(key)
+          appointment.dig(:reason_code, :text)&.match(/(^|\|)#{key}:?(.*?)(\||$)/)
         end
 
         def time_to_datetime(time)

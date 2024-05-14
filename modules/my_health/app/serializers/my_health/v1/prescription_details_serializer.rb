@@ -29,6 +29,21 @@ module MyHealth
       attribute :rx_rf_records
       attribute :tracking
       attribute :orderable_item
+      attribute :sorted_dispensed_date
+      attribute :shape
+      attribute :color
+      attribute :back_imprint
+      attribute :front_imprint
+
+      def rx_rf_records
+        records = object&.rx_rf_records
+        records&.dig(0, 1) || []
+      end
+
+      def tracking_list
+        tracking_list = object&.tracking_list
+        tracking_list&.dig(0, 1) || []
+      end
     end
   end
 end

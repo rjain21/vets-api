@@ -12,6 +12,8 @@ require 'decision_review_v1/utilities/form_4142_processor'
 require 'central_mail/datestamp_pdf'
 require 'pdf_fill/filler'
 require 'logging/third_party_transaction'
+require 'simple_forms_api_submission/metadata_validator'
+require 'disability_compensation/factories/api_provider_factory'
 
 module Sidekiq
   module Form526BackupSubmissionProcess
@@ -188,18 +190,18 @@ module Sidekiq
       # Generate metadata for metadata.json file for the lighthouse benefits intake API to send along to Central Mail
       def get_meta_data(doc_type)
         auth_info = submission.auth_headers
-        md = {
-          veteranFirstName: auth_info['va_eauth_firstName'],
-          veteranLastName: auth_info['va_eauth_lastName'],
-          fileNumber: auth_info['va_eauth_pnid'],
-          zipCode: zip,
-          source: 'va.gov backup submission',
-          docType: doc_type,
-          businessLine: 'CMP',
-          claimDate: submission.created_at.iso8601
+        metadata = {
+          'veteranFirstName' => auth_info['va_eauth_firstName'],
+          'veteranLastName' => auth_info['va_eauth_lastName'],
+          'fileNumber' => auth_info['va_eauth_pnid'],
+          'zipCode' => zip,
+          'source' => 'va.gov backup submission',
+          'docType' => doc_type,
+          'businessLine' => 'CMP',
+          'claimDate' => submission.created_at.iso8601,
+          'forceOfframp' => 'true'
         }
-        md[:forceOfframp] = 'true' if Flipper.enabled?(:form526_backup_submission_force_offramp)
-        md
+        SimpleFormsApiSubmission::MetadataValidator.validate(metadata)
       end
 
       def send_to_central_mail_through_lighthouse_claims_intake_api!
@@ -304,7 +306,7 @@ module Sidekiq
         # TODO: Figure out if I need to use currentMailingAddress or changeOfAddress zip?
         # TODO: I dont think it matters too much though
         z = submission.form.dig('form526', 'form526', 'veteran', 'currentMailingAddress')
-        if z.nil?
+        if z.nil? || z['country']&.downcase != 'usa'
           @zip = '00000'
         else
           z_final = z['zipFirstFive']
@@ -340,7 +342,10 @@ module Sidekiq
       end
 
       def get_form_from_external_api(headers, form_json)
-        EVSS::DisabilityCompensationForm::Service.new(headers).get_form526(form_json)
+        # get the "breakered" version
+        service = choose_provider(headers, breakered: true)
+
+        service.generate_526_pdf(form_json)
       end
 
       def get_uploads
@@ -360,7 +365,8 @@ module Sidekiq
       end
 
       def get_form4142_pdf
-        processor4142 = DecisionReviewV1::Processor::Form4142Processor.new(form_data: submission.form[FORM_4142])
+        processor4142 = DecisionReviewV1::Processor::Form4142Processor.new(form_data: submission.form[FORM_4142],
+                                                                           submission_id:)
         docs << {
           type: FORM_4142_DOC_TYPE,
           file: processor4142.pdf_path
@@ -421,6 +427,18 @@ module Sidekiq
           Common::FileHelpers.delete_file_if_exists(actual_path_to_file) if ::Rails.env.production?
         end
       end
+
+      def choose_provider(headers, breakered: true)
+        ApiProviderFactory.call(
+          type: ApiProviderFactory::FACTORIES[:generate_pdf],
+          # let Flipper - the feature toggle - choose which provider
+          provider: nil,
+          # this sends the auth headers and if we want the "breakered" or "non-breakered" version
+          options: { auth_headers: headers, breakered: },
+          current_user: OpenStruct.new({ flipper_id: submission.user_uuid }),
+          feature_toggle: ApiProviderFactory::FEATURE_TOGGLE_GENERATE_PDF
+        )
+      end
     end
 
     class NonBreakeredProcessor < Processor
@@ -442,7 +460,10 @@ module Sidekiq
     end
 
     def get_from_non_breakered_service(headers, form_json)
-      EVSS::DisabilityCompensationForm::NonBreakeredService.new(headers).get_form526(form_json)
+      # get the "non-breakered" version
+      service = choose_provider(headers, breakered: false)
+
+      service.get_form526(form_json)
     end
 
     class NonBreakeredForm526BackgroundLoader

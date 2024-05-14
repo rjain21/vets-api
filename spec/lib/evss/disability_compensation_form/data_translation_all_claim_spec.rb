@@ -16,6 +16,7 @@ describe EVSS::DisabilityCompensationForm::DataTranslationAllClaim do
     frozen_time = Time.zone.parse '2020-11-05 13:19:50 -0500'
     Timecop.freeze(frozen_time)
     Flipper.disable(ApiProviderFactory::FEATURE_TOGGLE_PPIU_DIRECT_DEPOSIT)
+    Flipper.disable('disability_526_toxic_exposure')
   end
 
   after { Timecop.return }
@@ -40,50 +41,6 @@ describe EVSS::DisabilityCompensationForm::DataTranslationAllClaim do
     context 'when the banking numbers are nil' do
       it 'returns falsey' do
         expect(subject.send('redacted', nil, nil)).to be_falsey
-      end
-    end
-  end
-
-  describe '#translate' do
-    context 'all claims' do
-      before do
-        create(:in_progress_form, form_id: FormProfiles::VA526ez::FORM_ID, user_uuid: user.uuid)
-      end
-
-      let(:form_content) do
-        JSON.parse(File.read('spec/support/disability_compensation_form/all_claims_fe_submission.json'))
-      end
-      let(:evss_json) { File.read 'spec/support/disability_compensation_form/all_claims_evss_submission.json' }
-
-      it 'returns correctly formatted json to send to EVSS' do
-        VCR.use_cassette('evss/ppiu/payment_information') do
-          VCR.use_cassette('emis/get_military_service_episodes/valid', allow_playback_repeats: true) do
-            expect(subject.translate).to eq JSON.parse(evss_json)
-          end
-        end
-      end
-    end
-
-    context 'kitchen sink BDD' do
-      before do
-        create(:in_progress_form, form_id: FormProfiles::VA526ez::FORM_ID, user_uuid: user.uuid)
-        Timecop.freeze(Date.new(2020, 8, 1))
-      end
-
-      after { Timecop.return }
-
-      let(:form_content) do
-        JSON.parse(File.read('spec/support/disability_compensation_form/bdd_large_fe_submission.json'))
-      end
-
-      let(:evss_json) { File.read 'spec/support/disability_compensation_form/bdd_evss_submission.json' }
-
-      it 'returns correctly formatted json to send to EVSS' do
-        VCR.use_cassette('evss/ppiu/payment_information') do
-          VCR.use_cassette('emis/get_military_service_episodes/valid', allow_playback_repeats: true) do
-            expect(subject.translate).to eq JSON.parse(evss_json)
-          end
-        end
       end
     end
   end
@@ -1247,6 +1204,21 @@ describe EVSS::DisabilityCompensationForm::DataTranslationAllClaim do
           }
         ]
       end
+
+      it 'adds the cause field if the TE flag is ON' do
+        Flipper.enable('disability_526_toxic_exposure')
+        expect(subject.send(:translate_new_primary_disabilities, [])).to eq [
+          {
+            'disabilityActionType' => 'NEW',
+            'name' => 'new condition',
+            'classificationCode' => 'Test Code',
+            'specialIssues' => ['POW'],
+            'serviceRelevance' => "Caused by an in-service event, injury, or exposure\nnew condition description",
+            'cause' => 'NEW'
+          }
+        ]
+        Flipper.disable('disability_526_toxic_exposure')
+      end
     end
 
     context 'when there is a WORSENED disability' do
@@ -1278,6 +1250,22 @@ describe EVSS::DisabilityCompensationForm::DataTranslationAllClaim do
               "Worsened because of military service\nworsened condition description: worsened effects"
           }
         ]
+      end
+
+      it 'adds the cause field if the TE flag is ON' do
+        Flipper.enable('disability_526_toxic_exposure')
+        expect(subject.send(:translate_new_primary_disabilities, [])).to eq [
+          {
+            'disabilityActionType' => 'NEW',
+            'name' => 'worsened condition',
+            'classificationCode' => 'Test Code',
+            'specialIssues' => ['POW'],
+            'serviceRelevance' =>
+              "Worsened because of military service\nworsened condition description: worsened effects",
+            'cause' => 'WORSENED'
+          }
+        ]
+        Flipper.disable('disability_526_toxic_exposure')
       end
     end
 
@@ -1312,6 +1300,23 @@ describe EVSS::DisabilityCompensationForm::DataTranslationAllClaim do
               "Location: va location\nTimeFrame: the third of october"
           }
         ]
+      end
+
+      it 'adds the cause field if the TE flag is ON' do
+        Flipper.enable('disability_526_toxic_exposure')
+        expect(subject.send(:translate_new_primary_disabilities, [])).to eq [
+          {
+            'disabilityActionType' => 'NEW',
+            'name' => 'va condition',
+            'classificationCode' => 'Test Code',
+            'specialIssues' => ['POW'],
+            'serviceRelevance' =>
+              "Caused by VA care\nEvent: va condition description\n"\
+              "Location: va location\nTimeFrame: the third of october",
+            'cause' => 'VA'
+          }
+        ]
+        Flipper.disable('disability_526_toxic_exposure')
       end
     end
 
@@ -1492,6 +1497,36 @@ describe EVSS::DisabilityCompensationForm::DataTranslationAllClaim do
           expect(subject.send(:approximate_date, date)).to eq nil
         end
       end
+    end
+  end
+
+  describe '#add_toxic_exposure' do
+    let(:form_content) do
+      {
+        'form526' => {
+          'toxicExposure' => {
+            'gulfWar1990' => {
+              'iraq' => true,
+              'kuwait' => true,
+              'qatar' => true
+            }
+          }
+        }
+      }
+    end
+
+    it 'returns toxic exposure' do
+      expect(subject.send(:add_toxic_exposure)).to eq(
+        {
+          'toxicExposure' => {
+            'gulfWar1990' => {
+              'iraq' => true,
+              'kuwait' => true,
+              'qatar' => true
+            }
+          }
+        }
+      )
     end
   end
 

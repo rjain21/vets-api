@@ -90,7 +90,7 @@ RSpec.describe ClaimsApi::V2::DisabilityCompensationDockerContainerUpload, type:
         end
       end
 
-      it 'does retry when form526.submit.establshClaim.serviceError gets retruned' do
+      it 'does retry when form526.submit.establshClaim.serviceError gets returned' do
         body = {
           messages: [
             { key: 'form526.submit.establshClaim.serviceError',
@@ -108,6 +108,86 @@ RSpec.describe ClaimsApi::V2::DisabilityCompensationDockerContainerUpload, type:
         expect do
           service.perform(claim.id)
         end.to raise_error(Common::Exceptions::BackendServiceException)
+      end
+
+      it "does not retry when the message key is 'in progress' and are in an array" do
+        body = {
+          messages: [{ key: 'form526.InProcess', severity: 'FATAL', text: 'Form 526 is already in-process' }]
+        }
+
+        allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
+          receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
+                                       'form526.submit.establshClaim.serviceError', {}, nil, body
+                                     ))
+        )
+        expect do
+          service.perform(claim_with_evss_response.id)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+        claim_with_evss_response.reload
+
+        expect(claim_with_evss_response.status).to eq('errored')
+        expect(claim_with_evss_response.evss_response).to eq({ 'messages' =>
+        [{ 'key' => 'form526.InProcess', 'severity' => 'FATAL', 'text' => 'Form 526 is already in-process' }] })
+      end
+
+      it 'does retry when the message indicates a birls error and is in an array' do
+        body = {
+          messages: [
+            {
+              'key' => 'header.va_eauth_birlsfilenumber.Invalid',
+              'severity' => 'ERROR',
+              'text' => 'Size must be between 8 and 9'
+            }
+          ]
+        }
+
+        allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
+          receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
+                                       'form526.submit.establshClaim.serviceError', {}, nil, body
+                                     ))
+        )
+        claim_with_evss_response.reload
+        expect do
+          service.perform(claim.id)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+        expect(claim_with_evss_response.status).to eq('errored')
+      end
+
+      it 'does retry when the message indicates a birls error and is NOT in an array' do
+        body = { key: 'header.va_eauth_birlsfilenumber', severity: 'ERROR',
+                 text: 'Size must be between 8 and 9' }
+
+        allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
+          receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
+                                       'form526.submit.establshClaim.serviceError', {}, nil, body
+                                     ))
+        )
+        claim_with_evss_response.reload
+        expect do
+          service.perform(claim.id)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+        expect(claim_with_evss_response.status).to eq('errored')
+      end
+
+      it 'does not retry when the message indicates a birls error and is an array of many messages' do
+        body = {
+          messages: [
+            { key: 'header.va_eauth_birlsfilenumber', severity: 'ERROR',
+              text: 'Size must be between 8 and 9' },
+            { key: 'form526.InProcess', severity: 'FATAL', text: 'Form 526 is already in-process' }
+          ]
+        }
+
+        allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
+          receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
+                                       'form526.submit.establshClaim.serviceError', {}, nil, body
+                                     ))
+        )
+        claim_with_evss_response.reload
+        expect do
+          service.perform(claim.id)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+        expect(claim_with_evss_response.status).to eq('errored')
       end
     end
 
@@ -137,17 +217,16 @@ RSpec.describe ClaimsApi::V2::DisabilityCompensationDockerContainerUpload, type:
                                        'form526.submit.noRetryError', {}, nil, body
                                      ))
         )
-
-        service.perform(errored_claim.id)
-
+        expect do
+          service.perform(errored_claim.id)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
         errored_claim.reload
-        expect(errored_claim.evss_response).to eq(
+        expect(errored_claim.evss_response).to eq({ 'messages' =>
           [{ 'key' => 'form526.submit.noRetryError', 'severity' => 'FATAL',
-             'text' => 'Claim could not be established. Retries will fail.' }]
-        )
+             'text' => 'Claim could not be established. Retries will fail.' }] })
       end
 
-      it 'does not retry when form526.submit.noRetryError error gets retruned' do
+      it 'does not retry when form526.submit.noRetryError error gets returned' do
         body = {
           messages: [
             { key: 'form526.submit.noRetryError',
@@ -156,18 +235,19 @@ RSpec.describe ClaimsApi::V2::DisabilityCompensationDockerContainerUpload, type:
           ]
         }
         # Rubocop formatting
+        jobs = subject.jobs.size
         allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
           receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
                                        'form526.submit.noRetryError', {}, nil, body
                                      ))
         )
-
         expect do
           service.perform(claim.id)
-        end.not_to change(subject.jobs, :size)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+        expect(jobs).to eq(subject.jobs.size)
       end
 
-      it 'does not retry when form526.InProcess error gets retruned' do
+      it 'does not retry when form526.InProcess error gets returned' do
         body = {
           messages: [
             { key: 'form526.InProcess',
@@ -176,15 +256,54 @@ RSpec.describe ClaimsApi::V2::DisabilityCompensationDockerContainerUpload, type:
           ]
         }
         # Rubocop formatting
+        jobs = subject.jobs.size
         allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
           receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
                                        'form526.InProcess', {}, nil, body
                                      ))
         )
+        expect do
+          service.perform(claim.id)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+        expect(jobs).to eq(subject.jobs.size)
+      end
+
+      it 'does retry when 5xx error gets returned' do
+        body = {
+          messages: [
+            { key: '',
+              severity: 'FATAL',
+              text: 'Error calling external service to establish the claim during submit.' }
+          ]
+        }
+        # Rubocop formatting
+        allow_any_instance_of(ClaimsApi::EVSSService::Base).to(
+          receive(:submit).and_raise(Common::Exceptions::BackendServiceException.new(
+                                       '', {}, nil, body
+                                     ))
+        )
 
         expect do
           service.perform(claim.id)
-        end.not_to change(subject.jobs, :size)
+        end.to raise_error(Common::Exceptions::BackendServiceException)
+      end
+    end
+  end
+
+  describe 'when an errored job has exhausted its retries' do
+    it 'logs to the ClaimsApi Logger' do
+      error_msg = 'An error occurred from the Docker Container Upload Job'
+      msg = { 'args' => [claim.id],
+              'class' => subject,
+              'error_message' => error_msg }
+
+      described_class.within_sidekiq_retries_exhausted_block(msg) do
+        expect(ClaimsApi::Logger).to receive(:log).with(
+          'claims_api_retries_exhausted',
+          record_id: claim.id,
+          detail: "Job retries exhausted for #{subject}",
+          error: error_msg
+        )
       end
     end
   end

@@ -25,7 +25,7 @@ module BenefitsClaims
       claims
     rescue Faraday::TimeoutError
       raise BenefitsClaims::ServiceException.new({ status: 504 }), 'Lighthouse Error'
-    rescue Faraday::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
       raise BenefitsClaims::ServiceException.new(e.response), 'Lighthouse Error'
     end
 
@@ -33,15 +33,23 @@ module BenefitsClaims
       config.get("#{@icn}/claims/#{id}", lighthouse_client_id, lighthouse_rsa_key_path, options).body
     rescue Faraday::TimeoutError
       raise BenefitsClaims::ServiceException.new({ status: 504 }), 'Lighthouse Error'
-    rescue Faraday::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
       raise BenefitsClaims::ServiceException.new(e.response), 'Lighthouse Error'
     end
 
-    def submit5103(id, lighthouse_client_id = nil, lighthouse_rsa_key_path = nil, options = {})
-      config.post("#{@icn}/claims/#{id}/5103", {}, lighthouse_client_id, lighthouse_rsa_key_path, options).body
+    def get_power_of_attorney(lighthouse_client_id = nil, lighthouse_rsa_key_path = nil, options = {})
+      config.get("#{@icn}/power-of-attorney", lighthouse_client_id, lighthouse_rsa_key_path, options).body
     rescue Faraday::TimeoutError
       raise BenefitsClaims::ServiceException.new({ status: 504 }), 'Lighthouse Error'
-    rescue Faraday::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
+      raise BenefitsClaims::ServiceException.new(e.response), 'Lighthouse Error'
+    end
+
+    def submit5103(id, options = {})
+      config.post("#{@icn}/claims/#{id}/5103", {}, nil, nil, options).body
+    rescue Faraday::TimeoutError
+      raise BenefitsClaims::ServiceException.new({ status: 504 }), 'Lighthouse Error'
+    rescue Faraday::ClientError, Faraday::ServerError => e
       raise BenefitsClaims::ServiceException.new(e.response), 'Lighthouse Error'
     end
 
@@ -49,7 +57,7 @@ module BenefitsClaims
       endpoint = 'benefits_claims/intent_to_file'
       path = "#{@icn}/intent-to-file/#{type}"
       config.get(path, lighthouse_client_id, lighthouse_rsa_key_path, options).body
-    rescue Faraday::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
       handle_error(e, lighthouse_client_id, endpoint)
     end
 
@@ -77,11 +85,12 @@ module BenefitsClaims
         },
         lighthouse_client_id, lighthouse_rsa_key_path, options
       ).body
-    rescue Faraday::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
       handle_error(e, lighthouse_client_id, endpoint)
     end
 
-    # submit form526 to Lighthouse API endpoint: /services/claims/v2/veterans/{veteranId}/526
+    # submit form526 to Lighthouse API endpoint: /services/claims/v2/veterans/{veteranId}/526 or
+    # /services/claims/v2/veterans/{veteranId}/526/generatePdf
     # @param [hash || Requests::Form526] body: a hash representing the form526
     # attributes in the Lighthouse request schema
     # @param [string] lighthouse_client_id: the lighthouse_client_id requested from Lighthouse
@@ -90,21 +99,29 @@ module BenefitsClaims
     # @option options [hash] :body_only only return the body from the request
     # @option options [string] :aud_claim_url option to override the aud_claim_url for LH Veteran Verification APIs
     # @option options [hash] :auth_params a hash to send in auth params to create the access token
+    # @option options [hash] :generate_pdf call the generatePdf endpoint to receive the 526 pdf
     def submit526(body, lighthouse_client_id = nil, lighthouse_rsa_key_path = nil, options = {})
-      endpoint = 'benefits_claims/form/526'
+      endpoint = '{icn}/526'
       path = "#{@icn}/526"
+
+      if options[:generate_pdf].present?
+        path += '/generatePDF/minimum-validations'
+        endpoint += '/generatePDF/minimum-validations'
+      end
 
       # if we're coming straight from the transformation service without
       # making this a jsonapi request body first ({data: {type:, attributes}}),
       # this will put it in the correct format for transmission
-      if body['attributes'].blank?
-        body = {
-          data: {
-            type: 'form/526',
-            attributes: body
-          }
-        }.as_json.deep_transform_keys { |k| k.camelize(:lower) }
-      end
+
+      body = build_request_body(body)
+
+      # Inflection settings force 'current_va_employee' to render as 'currentVAEmployee' in the above camelize() call
+      # Since Lighthouse needs 'currentVaEmployee', the following workaround renames it.
+      fix_current_va_employee(body)
+
+      # LH PDF generator service crashes with having an empty array for confinements
+      # removes confinements from the request body if confinements  attribute empty or nil
+      remove_empty_confinements(body)
 
       response = config.post(
         path,
@@ -113,11 +130,38 @@ module BenefitsClaims
       )
 
       submit_response(response, options[:body_only])
-    rescue Faraday::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
       handle_error(e, lighthouse_client_id, endpoint)
     end
 
     private
+
+    def build_request_body(body)
+      {
+        data: {
+          type: 'form/526',
+          attributes: body
+        }
+      }.as_json.deep_transform_keys { |k| k.camelize(:lower) }
+    end
+
+    def fix_current_va_employee(body)
+      if body.dig('data', 'attributes', 'veteranIdentification')&.select do |field|
+           field['currentVAEmployee']
+         end&.key?('currentVAEmployee')
+        body['data']['attributes']['veteranIdentification']['currentVaEmployee'] =
+          body['data']['attributes']['veteranIdentification']['currentVAEmployee']
+        body['data']['attributes']['veteranIdentification'].delete('currentVAEmployee')
+      end
+    end
+
+    def remove_empty_confinements(body)
+      if body.dig('data', 'attributes', 'serviceInformation')&.select do |field|
+        field['confinements']
+      end&.key?('confinements') && body['data']['attributes']['serviceInformation']['confinements'].blank?
+        body['data']['attributes']['serviceInformation'].delete('confinements')
+      end
+    end
 
     def submit_response(response, body_only)
       if body_only

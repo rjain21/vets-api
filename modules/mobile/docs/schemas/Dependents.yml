@@ -1,0 +1,67 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: array
+    items:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          example: dependent
+        id:
+          type: string
+          example: "23fe358d-6e82-4541-804c-ce7562ba28f4"
+        attributes:
+          type: object
+          required:
+            - awardIndicator
+            - dateOfBirth
+            - emailAddress
+            - firstName
+            - lastName
+            - middleName
+            - proofOfDependency
+            - ptcpntId
+            - relatedToVet
+            - relationship
+            - veteranIndicator
+          properties:
+            awardIndicator:
+              type: [string, null]
+              example: 'N'
+            dateOfBirth:
+              type: [string, null]
+              example: '01/02/1960'
+            emailAddress:
+              type: [string, null]
+              example: 'emailAddress'
+            firstName:
+              type: [string, null]
+              example: 'JANE'
+            lastName:
+              type: [string, null]
+              example: 'WEBB'
+            middleName:
+              type: [string, null]
+              example: 'M'
+            proofOfDependency:
+              type: [string, null]
+              example: 'N'
+            ptcpntId:
+              type: [string, null]
+              example: '600280661'
+            relatedToVet:
+              type: [string, null]
+              example: 'Y'
+            relationship:
+              type: [string, null]
+              example: 'Spouse'
+            veteranIndicator:
+              type: [string, null]
+              example: 'N'

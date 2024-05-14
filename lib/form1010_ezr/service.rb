@@ -26,70 +26,42 @@ module Form1010Ezr
       @user = user
     end
 
+    def submit_async(parsed_form)
+      HCA::EzrSubmissionJob.perform_async(
+        HealthCareApplication::LOCKBOX.encrypt(parsed_form.to_json),
+        HealthCareApplication.get_user_identifier(@user)
+      )
+
+      { success: true, formSubmissionId: nil, timestamp: nil }
+    end
+
+    def submit_sync(parsed_form)
+      res = with_monitoring do
+        es_submit(parsed_form, FORM_ID)
+      end
+
+      # Log the 'formSubmissionId' for successful submissions
+      Rails.logger.info("SubmissionID=#{res[:formSubmissionId]}")
+
+      res
+    end
+
     # @param [HashWithIndifferentAccess] parsed_form JSON form data
     def submit_form(parsed_form)
-      begin
-        configure_and_validate_form(parsed_form)
+      # Log the 'veteranDateOfBirth' to ensure the frontend validation is working as intended
+      # REMOVE THE FOLLOWING TWO LINES OF CODE ONCE THE DOB ISSUE HAS BEEN DIAGNOSED - 3/27/24
+      @unprocessed_user_dob = parsed_form['veteranDateOfBirth'].clone
+      parsed_form = configure_and_validate_form(parsed_form)
 
-        formatted = HCA::EnrollmentSystem.veteran_to_save_submit_form(parsed_form, @user)
-        content = Gyoku.xml(formatted)
-        submission = soap.build_request(:save_submit_form, message: content)
-        response = with_monitoring do
-          perform(:post, '', submission.body)
-        end
-      rescue => e
-        log_submission_failure(parsed_form)
-        Rails.logger.error "10-10EZR form submission failed: #{e.message}"
-        raise e
+      if Flipper.enabled?(:ezr_async, @user)
+        submit_async(parsed_form)
+      else
+        submit_sync(parsed_form)
       end
-
-      root = response.body.locate('S:Envelope/S:Body/submitFormResponse').first
-
-      {
-        success: true,
-        formSubmissionId: root.locate('formSubmissionId').first.text.to_i,
-        timestamp: root.locate('timeStamp').first&.text || Time.now.getlocal.to_s
-      }
-    end
-
-    private
-
-    # Compare the 'parsed_form' to the JSON form schema in vets-json-schema
-    def validate_form(parsed_form)
-      schema = VetsJsonSchema::SCHEMAS[FORM_ID]
-      # @return [Array<String>] array of strings detailing schema validation failures
-      validation_errors = JSON::Validator.fully_validate(schema, parsed_form)
-
-      if validation_errors.present?
-        log_validation_errors(parsed_form)
-
-        Rails.logger.error('10-10EZR form validation failed. Form does not match schema.')
-        raise Common::Exceptions::SchemaValidationErrors, validation_errors
-      end
-    end
-
-    # Add required fields not included in the JSON schema, but are
-    # required in the Enrollment System API
-    def post_fill_required_fields(parsed_form)
-      required_fields = HCA::EzrPostfill.post_fill_hash(@user)
-
-      parsed_form.merge!(required_fields)
-    end
-
-    def configure_and_validate_form(parsed_form)
-      post_fill_required_fields(parsed_form)
-      validate_form(parsed_form)
-      # Due to overriding the JSON form schema, we need to do so after the form has been validated
-      override_parsed_form(parsed_form)
-    end
-
-    def log_validation_errors(parsed_form)
-      StatsD.increment("#{Form1010Ezr::Service::STATSD_KEY_PREFIX}.validation_error")
-
-      PersonalInformationLog.create(
-        data: parsed_form,
-        error_class: 'Form1010Ezr ValidationError'
-      )
+    rescue => e
+      log_submission_failure(parsed_form)
+      Rails.logger.error "10-10EZR form submission failed: #{e.message}"
+      raise e
     end
 
     def log_submission_failure(parsed_form)
@@ -112,6 +84,63 @@ module Form1010Ezr
           ezr: :total_failure
         )
       end
+    end
+
+    private
+
+    # Compare the 'parsed_form' to the JSON form schema in vets-json-schema
+    def validate_form(parsed_form)
+      schema = VetsJsonSchema::SCHEMAS[FORM_ID]
+      # @return [Array<String>] array of strings detailing schema validation failures
+      validation_errors = JSON::Validator.fully_validate(schema, parsed_form)
+
+      if validation_errors.present?
+        # REMOVE THE FOLLOWING SIX LINES OF CODE ONCE THE DOB ISSUE HAS BEEN DIAGNOSED - 3/27/24
+        if validation_errors.find { |error| error.include?('veteranDateOfBirth') }.present?
+          PersonalInformationLog.create!(
+            data: @unprocessed_user_dob,
+            error_class: "Form1010Ezr 'veteranDateOfBirth' schema failure"
+          )
+        end
+
+        log_validation_errors(parsed_form)
+
+        Rails.logger.error('10-10EZR form validation failed. Form does not match schema.')
+        raise Common::Exceptions::SchemaValidationErrors, validation_errors
+      end
+    end
+
+    # Add required fields not included in the JSON schema, but are
+    # required in the Enrollment System API
+    def post_fill_required_fields(parsed_form)
+      required_fields = HCA::EzrPostfill.post_fill_hash(@user)
+
+      parsed_form.merge!(required_fields)
+    end
+
+    def configure_and_validate_form(parsed_form)
+      post_fill_required_fields(parsed_form)
+      validate_form(parsed_form)
+      # Due to overriding the JSON form schema, we need to do so after the form has been validated
+      override_parsed_form(parsed_form)
+      add_financial_flag(parsed_form)
+    end
+
+    def add_financial_flag(parsed_form)
+      if parsed_form['veteranGrossIncome'].present?
+        parsed_form.merge('discloseFinancialInformation' => true)
+      else
+        parsed_form
+      end
+    end
+
+    def log_validation_errors(parsed_form)
+      StatsD.increment("#{Form1010Ezr::Service::STATSD_KEY_PREFIX}.validation_error")
+
+      PersonalInformationLog.create(
+        data: parsed_form,
+        error_class: 'Form1010Ezr ValidationError'
+      )
     end
   end
 end

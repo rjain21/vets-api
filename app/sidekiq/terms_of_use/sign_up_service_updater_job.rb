@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require 'map/sign_up/service'
+require 'sidekiq/attr_package'
 
 module TermsOfUse
   class SignUpServiceUpdaterJob
     include Sidekiq::Job
 
-    sidekiq_options unique_for: 2.days
-    sidekiq_options retry: 15 # 2.1 days using exponential backoff
+    sidekiq_options retry: 5 # ~17 mins
 
     sidekiq_retries_exhausted do |job, exception|
       Rails.logger.warn(
@@ -18,12 +18,16 @@ module TermsOfUse
 
     attr_reader :icn, :signature_name, :version
 
-    def perform(icn, signature_name, version)
-      @icn = icn
-      @signature_name = signature_name
-      @version = version
+    def perform(attr_package_key)
+      attrs = Sidekiq::AttrPackage.find(attr_package_key)
+
+      @icn = attrs[:icn]
+      @signature_name = attrs[:signature_name]
+      @version = attrs[:version]
 
       terms_of_use_agreement.accepted? ? accept : decline
+
+      Sidekiq::AttrPackage.delete(attr_package_key)
     end
 
     private

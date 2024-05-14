@@ -44,7 +44,7 @@ describe MedicalRecords::Client do
         client.get_patient_by_identifier(client.fhir_client, patient_id)
         expect(
           a_request(:any, //).with(headers: { 'Cache-Control' => 'no-cache' })
-        ).to have_been_made.once
+        ).to have_been_made.at_least_once
       end
     end
 
@@ -81,6 +81,9 @@ describe MedicalRecords::Client do
   it 'gets a list of allergies', :vcr do
     VCR.use_cassette 'mr_client/get_a_list_of_allergies' do
       allergy_list = client.list_allergies
+      expect(
+        a_request(:any, //).with(headers: { 'Cache-Control' => 'no-cache' })
+      ).to have_been_made.at_least_once
       expect(allergy_list).to be_a(FHIR::Bundle)
       expect(info_log_buffer.string).not_to include('2952')
       # Verify that the list is sorted reverse chronologically (with nil values to the end).
@@ -106,6 +109,9 @@ describe MedicalRecords::Client do
     VCR.use_cassette 'mr_client/get_a_list_of_vaccines' do
       vaccine_list = client.list_vaccines
       expect(vaccine_list).to be_a(FHIR::Bundle)
+      expect(
+        a_request(:any, //).with(headers: { 'Cache-Control' => 'no-cache' })
+      ).to have_been_made.at_least_once
       # Verify that the list is sorted reverse chronologically (with nil values to the end).
       vaccine_list.entry.each_cons(2) do |prev, curr|
         prev_date = prev.resource.occurrenceDateTime
@@ -126,6 +132,9 @@ describe MedicalRecords::Client do
     VCR.use_cassette 'mr_client/get_a_list_of_vitals' do
       vitals_list = client.list_vitals
       expect(vitals_list).to be_a(FHIR::Bundle)
+      expect(
+        a_request(:any, //).with(headers: { 'Cache-Control' => 'no-cache' })
+      ).to have_been_made.at_least_once
       # Verify that the list is sorted reverse chronologically (with nil values to the end).
       vitals_list.entry.each_cons(2) do |prev, curr|
         prev_date = prev.resource.effectiveDateTime
@@ -138,6 +147,9 @@ describe MedicalRecords::Client do
   it 'gets a list of health conditions', :vcr do
     VCR.use_cassette 'mr_client/get_a_list_of_health_conditions' do
       condition_list = client.list_conditions
+      expect(
+        a_request(:any, //).with(headers: { 'Cache-Control' => 'no-cache' })
+      ).to have_been_made.at_least_once
       expect(condition_list).to be_a(FHIR::Bundle)
       # Verify that the list is sorted reverse chronologically (with nil values to the end).
       condition_list.entry.each_cons(2) do |prev, curr|
@@ -148,9 +160,19 @@ describe MedicalRecords::Client do
     end
   end
 
+  it 'gets a single health condition', :vcr do
+    VCR.use_cassette 'mr_client/get_a_health_condition' do
+      condition = client.get_condition(4169)
+      expect(condition).to be_a(FHIR::Condition)
+    end
+  end
+
   it 'gets a list of care summaries & notes', :vcr do
     VCR.use_cassette 'mr_client/get_a_list_of_clinical_notes' do
       note_list = client.list_clinical_notes
+      expect(
+        a_request(:any, //).with(headers: { 'Cache-Control' => 'no-cache' })
+      ).to have_been_made.at_least_once
       expect(note_list).to be_a(FHIR::Bundle)
       # Verify that the list is sorted reverse chronologically (with nil values to the end).
       note_list.entry.each_cons(2) do |prev, curr|
@@ -406,12 +428,46 @@ describe MedicalRecords::Client do
     end
   end
 
+  describe '#handle_api_errors' do
+    context 'when response is successful' do
+      let(:result) { OpenStruct.new(code: 200) }
+
+      it 'does not raise an exception' do
+        expect { client.handle_api_errors(result) }.not_to raise_error
+      end
+    end
+
+    context 'when response is an error' do
+      let(:result) { OpenStruct.new(code: 400, body: { issue: [{ diagnostics: 'Error Message' }] }.to_json) }
+
+      it 'raises a BackendServiceException' do
+        expect { client.handle_api_errors(result) }.to raise_error(Common::Exceptions::BackendServiceException)
+      end
+    end
+
+    context 'when response is a HAPI-1363 error' do
+      let(:result) { OpenStruct.new(code: 500, body: { issue: [{ diagnostics: 'HAPI-1363' }] }.to_json) }
+
+      it 'raises a PatientNotFound exception' do
+        expect { client.handle_api_errors(result) }.to raise_error(MedicalRecords::PatientNotFound)
+      end
+    end
+
+    context 'when diagnostics are missing in the response' do
+      let(:result) { OpenStruct.new(code: 400, body: {}.to_json) }
+
+      it 'handles missing diagnostics gracefully' do
+        expect { client.handle_api_errors(result) }.to raise_error(Common::Exceptions::BackendServiceException)
+      end
+    end
+  end
+
   def extract_date(resource)
     case resource
     when FHIR::DiagnosticReport
-      resource.effectiveDateTime&.to_i || 0
+      resource.effectiveDateTime.to_i
     when FHIR::DocumentReference
-      resource.date&.to_i || 0
+      resource.date.to_i
     else
       0
     end

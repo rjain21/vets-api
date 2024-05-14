@@ -95,6 +95,29 @@ RSpec.describe 'prescriptions', type: :request do
         expect(JSON.parse(response.body)['meta']['sort']).to eq('prescriptionName' => 'ASC')
       end
 
+      it 'responds to GET #index with images' do
+        VCR.use_cassette('rx_client/prescriptions/gets_a_list_of_all_prescriptions_with_images_v1') do
+          get '/my_health/v1/prescriptions?&sort[]=prescription_name&sort[]=dispensed_date&include_image=true'
+        end
+
+        expect(response).to be_successful
+        expect(response.body).to be_a(String)
+        expect(response).to match_response_schema('my_health/prescriptions/v1/prescriptions_list')
+        item_index = JSON.parse(response.body)['data'].find_index { |item| item['attributes']['prescription_image'] }
+        expect(item_index).not_to be_nil
+      end
+
+      it 'responds to GET #get_prescription_image with image' do
+        VCR.use_cassette('rx_client/prescriptions/gets_a_prescription_image_v1') do
+          get '/my_health/v1/prescriptions?/prescriptions/get_prescription_image/00013264681'
+        end
+
+        expect(response).to be_successful
+        expect(response.body).to be_a(String)
+        expect(response).to match_response_schema('my_health/prescriptions/v1/prescriptions_list')
+        expect(JSON.parse(response.body)['data']).to be_truthy
+      end
+
       it 'responds to GET #index with pagination parameters' do
         VCR.use_cassette('rx_client/prescriptions/gets_a_paginated_list_of_prescriptions') do
           get '/my_health/v1/prescriptions?page=1&per_page=10'
@@ -107,6 +130,32 @@ RSpec.describe 'prescriptions', type: :request do
         expect(JSON.parse(response.body)['meta']['pagination']['per_page']).to eq(10)
       end
 
+      it 'responds to GET #list_refillable_prescriptions with list of refillable prescriptions' do
+        VCR.use_cassette('rx_client/prescriptions/gets_a_list_of_refillable_prescriptions') do
+          get '/my_health/v1/prescriptions/list_refillable_prescriptions'
+        end
+        response_data = JSON.parse(response.body)['data']
+
+        response_data.each do |p|
+          prescription = p['attributes']
+          disp_status = prescription['disp_status']
+          refill_history_item = prescription['rx_rf_records']&.first
+          expired_date = if refill_history_item && refill_history_item['expiration_date']
+                           refill_history_item['expiration_date']
+                         else
+                           prescription['expiration_date']
+                         end
+          cut_off_date = Time.zone.today - 120.days
+          zero_date = Date.new(0, 1, 1)
+          meets_criteria = ['Active', 'Active: Parked'].include?(disp_status) ||
+                           (disp_status == 'Expired' &&
+                           expired_date.present? &&
+                           DateTime.parse(expired_date) != zero_date &&
+                           DateTime.parse(expired_date) >= cut_off_date)
+          expect(meets_criteria).to eq(true)
+        end
+      end
+
       it 'responds to GET #index with pagination parameters when camel-inflected' do
         VCR.use_cassette('rx_client/prescriptions/gets_a_paginated_list_of_prescriptions') do
           get '/my_health/v1/prescriptions?page=2&per_page=20', headers: inflection_header
@@ -117,6 +166,60 @@ RSpec.describe 'prescriptions', type: :request do
         expect(response).to match_camelized_response_schema('my_health/prescriptions/v1/prescriptions_list_paginated')
         expect(JSON.parse(response.body)['meta']['pagination']['currentPage']).to eq(2)
         expect(JSON.parse(response.body)['meta']['pagination']['perPage']).to eq(20)
+      end
+
+      it 'responds to GET #index with prescription name as primary sort parameter' do
+        VCR.use_cassette('rx_client/prescriptions/gets_sorted_list_by_prescription_name') do
+          get '/my_health/v1/prescriptions?page=1&per_page=20&sort[]=prescription_name&sort[]=dispensed_date'
+        end
+
+        expect(response).to be_successful
+        expect(response.body).to be_a(String)
+        expect(response).to match_response_schema('my_health/prescriptions/v1/prescriptions_list_paginated')
+        response_data = JSON.parse(response.body)['data']
+        objects = response_data.map do |item|
+          {
+            'prescription_name' => item.dig('attributes', 'prescription_name'),
+            'sorted_dispensed_date' => item.dig('attributes', 'sorted_dispensed_date') || Date.new(0).to_s
+          }
+        end
+        expect(objects).to eq(objects.sort_by { |object| [object['prescription_name'], object['sorted_dispensed_date']] })
+      end
+
+      it 'responds to GET #index with dispensed_date as primary sort parameter' do
+        VCR.use_cassette('rx_client/prescriptions/gets_sorted_list_by_prescription_name') do
+          get '/my_health/v1/prescriptions?page=1&per_page=20&sort[]=dispensed_date&sort[]=prescription_name'
+        end
+
+        expect(response).to be_successful
+        expect(response.body).to be_a(String)
+        expect(response).to match_response_schema('my_health/prescriptions/v1/prescriptions_list_paginated')
+        response_data = JSON.parse(response.body)['data']
+        objects = response_data.map do |item|
+          {
+            'prescription_name' => item.dig('attributes', 'prescription_name'),
+            'sorted_dispensed_date' => item.dig('attributes', 'sorted_dispensed_date') || Date.new(0).to_s
+          }
+        end
+        expect(objects).to eq(objects.sort_by { |object| [object['sorted_dispensed_date'], object['prescription_name']] })
+      end
+
+      it 'responds to GET #index with disp_status as primary sort parameter' do
+        VCR.use_cassette('rx_client/prescriptions/gets_sorted_list_by_prescription_name') do
+          get '/my_health/v1/prescriptions?page=1&per_page=20&sort[]=disp_status&sort[]=prescription_name'
+        end
+
+        expect(response).to be_successful
+        expect(response.body).to be_a(String)
+        expect(response).to match_response_schema('my_health/prescriptions/v1/prescriptions_list_paginated')
+        response_data = JSON.parse(response.body)['data']
+        objects = response_data.map do |item|
+          {
+            'prescription_name' => item.dig('attributes', 'prescription_name') || item.dig('attributes', 'orderable_item'),
+            'disp_status' => item.dig('attributes', 'disp_status')
+          }
+        end
+        expect(objects).to eq(objects.sort_by { |object| [object['disp_status'], object['prescription_name']] })
       end
 
       it 'responds to GET #index with refill_status=active' do
@@ -180,6 +283,26 @@ RSpec.describe 'prescriptions', type: :request do
           expect(response.body).to be_a(String)
           expect(response).to match_response_schema('trackings')
           expect(JSON.parse(response.body)['meta']['sort']).to eq('shipped_date' => 'DESC')
+        end
+
+        it 'responds to GET #index with sorted_dispensed_date' do
+          VCR.use_cassette('rx_client/prescriptions/gets_a_sorted_by_custom_field_list_of_all_prescriptions_v1') do
+            get '/my_health/v1/prescriptions?sort[]=-dispensed_date&sort[]=prescription_name', headers: inflection_header
+          end
+
+          res = JSON.parse(response.body)
+          dates = res['data'].map do |d|
+            sorted_date_str = d.dig('attributes', 'sortedDispensedDate')
+            Time.zone.parse(sorted_date_str) unless sorted_date_str.nil?
+          end
+          is_sorted = dates.select(&:present?).each_cons(2).all? { |item1, item2| item1 >= item2 }
+          expect(response).to be_successful
+          expect(response.body).to be_a(String)
+          expect(is_sorted).to be_truthy
+          expect(response).to match_camelized_response_schema('my_health/prescriptions/v1/prescriptions_list')
+
+          metadata = { 'prescriptionName' => 'ASC', 'dispensedDate' => 'DESC' }
+          expect(JSON.parse(response.body)['meta']['sort']).to eq(metadata)
         end
 
         it 'responds to GET #show of nested tracking resource when camel-inflected' do
@@ -261,6 +384,24 @@ RSpec.describe 'prescriptions', type: :request do
 
           expect(response).to have_http_status(:unprocessable_entity)
           expect(JSON.parse(response.body)['errors'].first['code']).to eq('RX157')
+        end
+
+        it 'includes prescription description fields' do
+          VCR.use_cassette('rx_client/prescriptions/gets_a_single_prescription_v1') do
+            get '/my_health/v1/prescriptions/12284508'
+          end
+
+          expect(response).to be_successful
+          expect(response.body).to be_a(String)
+          expect(response).to match_response_schema('my_health/prescriptions/v1/prescription_single')
+
+          response_data = JSON.parse(response.body)['data']
+          prescription_attributes = response_data['attributes']
+
+          expect(prescription_attributes).to include('shape')
+          expect(prescription_attributes).to include('color')
+          expect(prescription_attributes).to include('back_imprint')
+          expect(prescription_attributes).to include('front_imprint')
         end
       end
     end

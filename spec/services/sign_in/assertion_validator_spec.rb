@@ -7,7 +7,7 @@ RSpec.describe SignIn::AssertionValidator do
     subject { SignIn::AssertionValidator.new(assertion:).perform }
 
     let(:private_key) { OpenSSL::PKey::RSA.new(File.read(private_key_path)) }
-    let(:private_key_path) { 'spec/fixtures/sign_in/sample_service_account.pem' }
+    let(:private_key_path) { 'spec/fixtures/sign_in/sts_client.pem' }
     let(:assertion_payload) do
       {
         iss:,
@@ -30,7 +30,7 @@ RSpec.describe SignIn::AssertionValidator do
     let(:service_account_audience) { service_account_config.access_token_audience }
     let(:assertion_encode_algorithm) { SignIn::Constants::Auth::ASSERTION_ENCODE_ALGORITHM }
     let(:assertion) { JWT.encode(assertion_payload, private_key, assertion_encode_algorithm) }
-    let(:certificate_path) { 'spec/fixtures/sign_in/sample_service_account.crt' }
+    let(:certificate_path) { 'spec/fixtures/sign_in/sts_client.crt' }
     let(:assertion_certificate) { File.read(certificate_path) }
     let(:token_route) { "https://#{Settings.hostname}#{SignIn::Constants::Auth::TOKEN_ROUTE_PATH}" }
 
@@ -135,6 +135,42 @@ RSpec.describe SignIn::AssertionValidator do
                 expect(subject.user_identifier).to eq(sub)
               end
             end
+          end
+        end
+      end
+
+      context 'and user_attributes claim is provided' do
+        let(:service_account_config) do
+          create(:service_account_config, certificates: [assertion_certificate], access_token_user_attributes: ['icn'])
+        end
+        let(:assertion_payload) do
+          {
+            iss: service_account_audience,
+            aud: token_route,
+            sub:,
+            jti:,
+            exp: 1.month.from_now.to_i,
+            service_account_id: service_account_config.service_account_id,
+            scopes: [service_account_config.scopes.first],
+            user_attributes:
+          }
+        end
+
+        context 'and contains attributes that are not allowed for the service account' do
+          let(:user_attributes) { { 'some-attribute' => 'some-value' } }
+          let(:expected_error) { SignIn::Errors::ServiceAccountAssertionAttributesError }
+          let(:expected_error_message) { 'Assertion user attributes are not valid' }
+
+          it 'raises service account assertion attributes error' do
+            expect { subject }.to raise_error(expected_error, expected_error_message)
+          end
+        end
+
+        context 'and does not contain attributes that are not allowed for the service account' do
+          let(:user_attributes) { { 'icn' => 'some-value' } }
+
+          it 'returns the service account access token with the user attributes' do
+            expect(subject.user_attributes).to eq(user_attributes)
           end
         end
       end

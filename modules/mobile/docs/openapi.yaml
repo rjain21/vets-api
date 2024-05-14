@@ -289,11 +289,8 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: ./schemas/AppointmentCheckin400Insurance.yml
-                  - $ref: ./schemas/AppointmentCheckin400Demographics.yml
-                  - $ref: ./schemas/AppointmentCheckin400Appointment.yml
-
+                $ref: ./schemas/AppointmentCheckinErrors400.yml
+          description: Bad request.
         '401':
           $ref: '#/components/responses/401'
         '403':
@@ -305,7 +302,11 @@ paths:
         '422':
           $ref: '#/components/responses/422'
         '500':
-          $ref: '#/components/responses/500'
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/AppointmentCheckinErrors500.yml
+          description: An internal API error occurred.
         '502':
           $ref: '#/components/responses/502'
         '503':
@@ -622,6 +623,73 @@ paths:
       security:
         - Bearer: []
       summary: /v0/appointments/facilities/{facility_id}/clinics/{clinic_id}/slots
+  /v0/appointments/facilities/{facility_id}/slots:
+    get:
+      description: Accepts date range for a va facility and returns available slots for a a direct schedule appointment.
+      parameters:
+        - description: The start date for the range of appointments slots in ISO 8601 UTC
+            format. If not provided the start date will be considered now.
+          example: 2020-10-29T07:00:00Z
+          in: query
+          name: startDate
+          schema:
+            format: date-time
+            type: string
+        - description: The end date for the range of appointments slots in ISO 8601 UTC format.
+            If not provided the end date will be 2 months from today's date
+          example: 2021-11-29T08:00:00Z
+          in: query
+          name: endDate
+          schema:
+            format: date-time
+            type: string
+        - description: The facility division ID
+          in: path
+          required: true
+          name: location_id
+          schema:
+            type: string
+        - description: The clinic IEN. Required if clinical_service not provided.
+          in: query
+          required: false
+          name: clinic_id
+          schema:
+            type: string
+        - description: The clinical service (type of care) to find appointment slots for. Required if clinic_id not provided.
+          in: query
+          required: false
+          name: clinical_service
+          schema:
+            type: string
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/ClinicSlots.yml
+          description: OK
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: [ ]
+      summary: /v0/appointments/facilities/{facility_id}/clinics/{clinic_id}/slots
   /v0/appointments/preferences:
     get:
       description: Returns VAOS appointment contact preferences
@@ -789,6 +857,37 @@ paths:
       security:
         - Bearer: [ ]
       summary: /v0/appointment
+  /v0/awards:
+    get:
+      description: Get current awards overview
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/Awards.yml
+          description: OK
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: []
+      summary: /v0/awards
   /v0/claim/{id}:
     get:
       description: Returns info on all user's claims and appeals for mobile overview
@@ -1276,6 +1375,183 @@ paths:
       security:
         - Bearer: []
       summary: /v0/community-care-providers
+  /v0/debts:
+    get:
+      description: Returns a list of user's debts.
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/Debts.yml
+          description: OK
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: []
+      summary: /v0/debts
+  /v0/debts/{id}:
+    get:
+      description: Returns a users debt by id.
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/Debt.yml
+          description: OK
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: [ ]
+      summary: /v0/debts/{id}
+  /v0/dependents:
+    get:
+      description: Returns a list of user's dependents. Dependent SSN is also available but is removed to limit PII exposure.
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/Dependents.yml
+          description: OK
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: []
+      summary: /v0/dependents
+    post:
+      description: Submit a supplemental claim for compensation (21-686C & 21-674).
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./schemas/CreateDependents.yml
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/CreateDependentsResponse.yml
+          description: OK
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: [ ]
+      summary: /v0/dependents
+  /v0/dependents/request-decisions:
+    get:
+      description: Returns the list of dependents verifications and diaries
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/DependentsRequestDecisions.yml
+          description: OK
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: [ ]
+      summary: /v0/dependents/request-decisions
   /v0/disability-rating:
     get:
       description: Returns the list of disability ratings for given user
@@ -1514,6 +1790,50 @@ paths:
       security:
         - Bearer: [ ]
       summary: /v0/facilities-info/{sort_method}
+  /v0/financial-status-reports/download:
+    post:
+      description: Returns financial status report PDF
+      parameters:
+        - $ref: '#/components/parameters/InflectionHeader'
+      responses:
+        '200':
+          content:
+            application/pdf:
+              schema:
+                format: binary
+                type: string
+          description: OK
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/Errors.yml
+          description: Payload too large.
+        '422':
+          $ref: '#/components/responses/422'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: []
+      summary: /v0/financial-status-reports/download
   /v0/health/immunizations:
     get:
       description: Returns the list of immunization records for given user
@@ -2516,7 +2836,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./schemas/SecureMessageDetail.yml
+                $ref: ./schemas/PostSecureMessageDetail.yml
           description: OK
         '401':
           $ref: '#/components/responses/401'
@@ -2662,7 +2982,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./schemas/SecureMessageDetail.yml
+                $ref: ./schemas/GetSecureMessageDetail.yml
           description: OK
         '401':
           $ref: '#/components/responses/401'
@@ -2823,7 +3143,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./schemas/SecureMessageDetail.yml
+                $ref: ./schemas/PostSecureMessageDetail.yml
           description: OK
         '401':
           $ref: '#/components/responses/401'
@@ -3082,6 +3402,37 @@ paths:
       security:
         - Bearer: []
       summary: /v0/payment-information/benefits
+  /v0/pensions:
+    get:
+      description: Get current pensions overview
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/Pensions.yml
+          description: OK
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '408':
+          $ref: '#/components/responses/408'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
+      security:
+        - Bearer: []
+      summary: /v0/pensions
   /v0/push/prefs/{endpointSid}:
     get:
       description: Get the user's push notification preferences
@@ -3671,10 +4022,10 @@ paths:
               examples:
                 Multiple matches:
                   value:
-                    $ref: ./examples/appointments/va_appointment.yml
+                    $ref: ./examples/addresses/validation_multiple_matches.yml
                 Single match:
                   value:
-                    $ref: ./examples/appointments/va_appointment.yml
+                    $ref: ./examples/addresses/validation_single_matches.yml
               schema:
                 $ref: ./schemas/AddressResponse.yml
           description: OK

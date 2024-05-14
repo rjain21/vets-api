@@ -91,6 +91,18 @@ test_users.csv
 # Ignore .DS_STORE files created by Mac OS
 **/.DS_STORE
 
-# Ignore VIM artifact files
+# Ignore VIM/vscode artifact files
 .ignore 
 *.swp
+.vscode
+
+# Ignore node_modules for development tools
+node_modules
+
+# Ignore public folder (used for local document uploads)
+public
+
+# Ignore any files within clamav_tmp
+
+clamav_tmp/*
+!/clamav_tmp/.keep

@@ -70,8 +70,12 @@ RSpec.describe TermsOfUse::Decliner, type: :service do
     end
 
     describe '#perform!' do
+      let(:expected_attr_key) { SecureRandom.hex(32) }
+
       before do
         allow(TermsOfUse::SignUpServiceUpdaterJob).to receive(:perform_async)
+        allow(SecureRandom).to receive(:hex).and_return(expected_attr_key)
+        allow(Rails.logger).to receive(:info)
       end
 
       it 'creates a new terms of use agreement with the given version' do
@@ -85,7 +89,13 @@ RSpec.describe TermsOfUse::Decliner, type: :service do
 
       it 'enqueues the SignUpServiceUpdaterJob with expected parameters' do
         decliner.perform!
-        expect(TermsOfUse::SignUpServiceUpdaterJob).to have_received(:perform_async).with(icn, common_name, version)
+        expect(TermsOfUse::SignUpServiceUpdaterJob).to have_received(:perform_async).with(expected_attr_key)
+      end
+
+      it 'logs the attr_package key' do
+        decliner.perform!
+        expect(Rails.logger).to have_received(:info).with('[TermsOfUse] [Decliner] attr_package key',
+                                                          { icn:, attr_package_key: expected_attr_key })
       end
     end
   end

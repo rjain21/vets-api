@@ -31,16 +31,21 @@ class InProgressForm < ApplicationRecord
   scope :for_form, ->(form_id) { where(form_id:) }
   scope :not_submitted, -> { where.not("metadata -> 'submission' ->> 'status' = ?", 'applicationSubmitted') }
   scope :unsubmitted_fsr, -> { for_form('5655').not_submitted }
+  enum :status, %w[pending processing], prefix: :submission, default: :pending
+  scope :submission_pending, -> { where(status: [nil, 'pending']) } # override to include nil
   attribute :user_uuid, CleanUUID.new
-  serialize :form_data, JsonMarshal::Marshaller
+  serialize :form_data, coder: JsonMarshal::Marshaller
   has_kms_key
   has_encrypted :form_data, key: :kms_key, **lockbox_options
   validates(:form_data, presence: true)
   validates(:user_uuid, presence: true)
   validate(:id_me_user_uuid)
   before_save :serialize_form_data
+  before_save :skip_exipry_update_check, if: proc { |form| %w[21P-527EZ 5655].include?(form.form_id) }
   before_save :set_expires_at, unless: :skip_exipry_update
   after_save :log_hca_email_diff
+
+  has_many :form_submissions, dependent: :nullify
 
   def self.form_for_user(form_id, user)
     user_uuid_form = InProgressForm.find_by(form_id:, user_uuid: user.uuid)
@@ -116,13 +121,17 @@ class InProgressForm < ApplicationRecord
     self.expires_at = Time.current + expires_after
   end
 
+  def skip_exipry_update_check
+    self.skip_exipry_update = expires_at.present?
+  end
+
   def days_till_expires
     @days_till_expires ||= JSON.parse(form_data)['days_till_expires']
   end
 
   def default_expires_after
     case form_id
-    when '21-526EZ'
+    when '21-526EZ', '21P-527EZ', '21P-530V2'
       1.year
     else
       60.days

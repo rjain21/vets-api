@@ -40,7 +40,6 @@ module CentralMail
       log_message_to_sentry('Attempting CentralMail::SubmitSavedClaimJob', :info, generate_sentry_details)
 
       response = send_claim_to_central_mail(saved_claim_id)
-      log_cmp_response(response) if @claim.is_a?(SavedClaim::VeteranReadinessEmploymentClaim)
 
       if response.success?
         update_submission('success')
@@ -48,7 +47,7 @@ module CentralMail
 
         @claim.send_confirmation_email if @claim.respond_to?(:send_confirmation_email)
       else
-        raise CentralMailResponseError, response.to_s
+        raise CentralMailResponseError, response.body
       end
     rescue => e
       update_submission('failed')
@@ -60,12 +59,15 @@ module CentralMail
 
     def send_claim_to_central_mail(saved_claim_id)
       @claim = SavedClaim.find(saved_claim_id)
-      @pdf_path = process_record(@claim)
+      @pdf_path = if @claim.form_id == '21P-530V2'
+                    process_record(@claim, @claim.created_at, @claim.form_id)
+                  else
+                    process_record(@claim)
+                  end
 
       @attachment_paths = @claim.persistent_attachments.map do |record|
         process_record(record)
       end
-
       response = CentralMail::Service.new.upload(create_request_body)
 
       File.delete(@pdf_path)
@@ -99,16 +101,33 @@ module CentralMail
       )
     end
 
-    def process_record(record)
+    # rubocop:disable Metrics/MethodLength
+    def process_record(record, timestamp = nil, form_id = nil)
       pdf_path = record.to_pdf
       stamped_path1 = CentralMail::DatestampPdf.new(pdf_path).run(text: 'VA.GOV', x: 5, y: 5)
-      CentralMail::DatestampPdf.new(stamped_path1).run(
+      stamped_path2 = CentralMail::DatestampPdf.new(stamped_path1).run(
         text: 'FDC Reviewed - va.gov Submission',
-        x: 429,
+        x: 400,
         y: 770,
         text_only: true
       )
+      if form_id.present? && ['21P-530V2'].include?(form_id)
+        CentralMail::DatestampPdf.new(stamped_path2).run(
+          text: 'Application Submitted on va.gov',
+          x: 425,
+          y: 675,
+          text_only: true, # passing as text only because we override how the date is stamped in this instance
+          timestamp:,
+          page_number: 5,
+          size: 9,
+          template: "lib/pdf_fill/forms/pdfs/#{form_id}.pdf",
+          multistamp: true
+        )
+      else
+        stamped_path2
+      end
     end
+    # rubocop:enable Metrics/MethodLength
 
     def get_hash_and_pages(file_path)
       {
@@ -127,8 +146,8 @@ module CentralMail
       receive_date = @claim.created_at.in_time_zone('Central Time (US & Canada)')
 
       metadata = {
-        'veteranFirstName' => veteran_full_name['first'],
-        'veteranLastName' => veteran_full_name['last'],
+        'veteranFirstName' => remove_invalid_characters(veteran_full_name['first']),
+        'veteranLastName' => remove_invalid_characters(veteran_full_name['last']),
         'fileNumber' => form['vaFileNumber'] || form['veteranSocialSecurityNumber'],
         'receiveDt' => receive_date.strftime('%Y-%m-%d %H:%M:%S'),
         'uuid' => @claim.guid,
@@ -153,19 +172,20 @@ module CentralMail
 
     private
 
-    def log_cmp_response(response)
-      log_message_to_sentry("vre-central-mail-response: #{response}", :info, {}, { team: 'vfs-ebenefits' })
-    end
-
     def generate_sentry_details(e = nil)
       details = {
         'guid' => @claim&.guid,
         'docType' => @claim&.form_id,
         'savedClaimId' => @saved_claim_id
       }
-      details['error'] = e if e
-
+      details['error'] = e.message if e
       details
+    end
+
+    def remove_invalid_characters(str)
+      # Replace characters that do not match the pattern with an empty string
+      str = I18n.transliterate(str)
+      @claim.respond_to?(:central_mail_submission) ? str.gsub(%r{[^A-Za-z'/ -]}, '') : str
     end
   end
 end
