@@ -88,62 +88,67 @@ class FormProfile
   MAPPINGS = Dir[Rails.root.join('config', 'form_profile_mappings', '*.yml')].map { |f| File.basename(f, '.*') }
 
   ALL_FORMS = {
-    edu: %w[22-1990 22-1990N 22-1990E 22-1990EMEB 22-1995 22-5490 22-5490E
-            22-5495 22-0993 22-0994 FEEDBACK-TOOL 22-10203 22-1990S 22-1990EZ],
-    evss: ['21-526EZ'],
-    hca: %w[1010ez 10-10EZR],
-    pension_burial: %w[21P-530 21P-527EZ 21P-530V2],
-    dependents: ['686C-674'],
-    decision_review: %w[20-0995 20-0996 10182],
-    mdot: ['MDOT'],
-    fsr: ['5655'],
-    vre_counseling: ['28-8832'],
-    vre_readiness: ['28-1900'],
-    coe: ['26-1880'],
     adapted_housing: ['26-4555'],
+    coe: ['26-1880'],
+    decision_review: %w[20-0995 20-0996 10182],
+    dependents: ['686C-674'],
+    edu: %w[
+      22-0993 22-0994 22-10203 22-1990 22-1990E 22-1990EMEB 22-1990EZ
+      22-1990N 22-1990S 22-1995 22-5490 22-5490E 22-5495 FEEDBACK-TOOL
+    ],
+    evss: ['21-526EZ'],
+    form_upload_flow: ['FORM-UPLOAD-FLOW'],
+    fsr: ['5655'],
+    hca: %w[1010ez 10-10EZR],
     intent_to_file: ['21-0966'],
     ivc_champva: %w[10-7959F-1 10-7959C],
-    form_upload_flow: ['FORM-UPLOAD-FLOW']
+    mdot: ['MDOT'],
+    pension_burial: %w[21P-530 21P-527EZ 21P-530V2],
+    priority_processing: ['20-10207'],
+    support_statement: ['21-4138'],
+    vre_counseling: ['28-8832'],
+    vre_readiness: ['28-1900']
   }.freeze
 
   FORM_ID_TO_CLASS = {
     '0873' => ::FormProfiles::VA0873,
-    '1010EZ' => ::FormProfiles::VA1010ez,
     '10-10EZR' => ::FormProfiles::VA1010ezr,
     '10-7959C' => ::FormProfiles::VHA107959c,
+    '10-7959F-1' => ::FormProfiles::VA107959f1,
+    '1010EZ' => ::FormProfiles::VA1010ez,
     '10182' => ::FormProfiles::VA10182,
     '20-0995' => ::FormProfiles::VA0995,
     '20-0996' => ::FormProfiles::VA0996,
+    '21-0966' => ::FormProfiles::VA210966,
+    '21-4138' => ::FormProfiles::VA214138,
     '21-526EZ' => ::FormProfiles::VA526ez,
+    '21-686C' => ::FormProfiles::VA21686c,
+    '21P-527EZ' => ::FormProfiles::VA21p527ez,
+    '21P-530' => ::FormProfiles::VA21p530,
+    '21P-530V2' => ::FormProfiles::VA21p530v2,
+    '22-0993' => ::FormProfiles::VA0993,
+    '22-0994' => ::FormProfiles::VA0994,
+    '22-10203' => ::FormProfiles::VA10203,
     '22-1990' => ::FormProfiles::VA1990,
-    '22-1990N' => ::FormProfiles::VA1990n,
     '22-1990E' => ::FormProfiles::VA1990e,
     '22-1990EMEB' => ::FormProfiles::VA1990emeb,
+    '22-1990EZ' => ::FormProfiles::VA1990ez,
+    '22-1990N' => ::FormProfiles::VA1990n,
+    '22-1990S' => ::FormProfiles::VA1990s,
     '22-1995' => ::FormProfiles::VA1995,
     '22-5490' => ::FormProfiles::VA5490,
     '22-5490E' => ::FormProfiles::VA5490e,
     '22-5495' => ::FormProfiles::VA5495,
-    '21P-530' => ::FormProfiles::VA21p530,
-    '21P-530V2' => ::FormProfiles::VA21p530v2,
-    '21-686C' => ::FormProfiles::VA21686c,
-    '686C-674' => ::FormProfiles::VA686c674,
-    '40-10007' => ::FormProfiles::VA4010007,
-    '21P-527EZ' => ::FormProfiles::VA21p527ez,
-    '22-0993' => ::FormProfiles::VA0993,
-    '22-0994' => ::FormProfiles::VA0994,
-    'FEEDBACK-TOOL' => ::FormProfiles::FeedbackTool,
-    'MDOT' => ::FormProfiles::MDOT,
-    '22-10203' => ::FormProfiles::VA10203,
-    '22-1990S' => ::FormProfiles::VA1990s,
-    '5655' => ::FormProfiles::VA5655,
-    '28-8832' => ::FormProfiles::VA288832,
-    '28-1900' => ::FormProfiles::VA281900,
-    '22-1990EZ' => ::FormProfiles::VA1990ez,
     '26-1880' => ::FormProfiles::VA261880,
     '26-4555' => ::FormProfiles::VA264555,
-    '21-0966' => ::FormProfiles::VA210966,
-    '10-7959F-1' => ::FormProfiles::VA107959f1,
-    'FORM-UPLOAD-FLOW' => ::FormProfiles::FormUploadFlow
+    '28-1900' => ::FormProfiles::VA281900,
+    '28-8832' => ::FormProfiles::VA288832,
+    '40-10007' => ::FormProfiles::VA4010007,
+    '5655' => ::FormProfiles::VA5655,
+    '686C-674' => ::FormProfiles::VA686c674,
+    'FEEDBACK-TOOL' => ::FormProfiles::FeedbackTool,
+    'FORM-UPLOAD-FLOW' => ::FormProfiles::FormUploadFlow,
+    'MDOT' => ::FormProfiles::MDOT
   }.freeze
 
   APT_REGEX = /\S\s+((apt|apartment|unit|ste|suite).+)/i
@@ -158,6 +163,10 @@ class FormProfile
     forms = %w[21-686C 40-10007 0873]
     ALL_FORMS.each { |type, form_list| forms += form_list if Settings[type].prefill }
     forms
+  end
+
+  def self.carryover_enabled_forms
+    ALL_FORMS.flat_map { |type, list| list if Settings[type].carryover }.compact
   end
 
   # lookup FormProfile subclass by form_id and initialize (or use FormProfile if lookup fails)

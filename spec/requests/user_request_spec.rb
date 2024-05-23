@@ -33,6 +33,12 @@ RSpec.describe 'Fetching user data' do
       end
     end
 
+    it 'gives me the list of available carryover forms' do
+      num_enabled = 1
+      FormProfile::ALL_FORMS.each { |type, form_list| num_enabled += form_list.length if Settings[type].carryover }
+      expect(JSON.parse(response.body)['data']['attributes']['carryovers_available'].length).to be(num_enabled)
+    end
+
     it 'gives me the list of available prefill forms' do
       num_enabled = 3
       FormProfile::ALL_FORMS.each { |type, form_list| num_enabled += form_list.length if Settings[type].prefill }

@@ -89,6 +89,12 @@ module Swagger
                                        'current'"
               end
             end
+            property :carryovers_available do
+              key :type, :array
+              items do
+                key :type, :string
+              end
+            end
             property :prefills_available do
               key :type, :array
               items do

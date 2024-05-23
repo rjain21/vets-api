@@ -1,5 +1,5 @@
 {
-  "$schema" : "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "required": ["data", "meta"],
   "properties": {
@@ -8,13 +8,13 @@
       "required": ["id", "type", "attributes"],
       "properties": {
         "id": { "type": "string" },
-        "type": { "type": "string"},
+        "type": { "type": "string" },
         "attributes": {
           "type": "object",
           "required": ["services", "profile", "in_progress_forms"],
           "properties": {
             "in_progress_forms": {
-              "type": [ "array", null ],
+              "type": ["array", null],
               "items": {
                 "type": "object",
                 "properties": {
@@ -24,22 +24,23 @@
                 "required": []
               }
             },
-            "prefills_available": { "type": [ "array", null ] },
+            "carryovers_available": { "type": ["array", null] },
+            "prefills_available": { "type": ["array", null] },
             "session": {
               "type": "object",
               "required": ["auth_broker", "ssoe", "transactionid"],
               "properties": {
                 "auth_broker": { "type": "string" },
                 "ssoe": { "type": "boolean" },
-                "transactionid": { "type": [ "string", null ] }
+                "transactionid": { "type": ["string", null] }
               }
             },
-            "services": { "type": [ "array", null ] },
+            "services": { "type": ["array", null] },
             "account": {
               "type": "object",
               "required": ["account_uuid"],
               "properties": {
-                "account_uuid": { "type": [ "string", null ] }
+                "account_uuid": { "type": ["string", null] }
               }
             },
             "profile": {
@@ -50,7 +51,8 @@
                 "middle_name",
                 "last_name",
                 "birth_date",
-                "gender", "zip",
+                "gender",
+                "zip",
                 "last_signed_in",
                 "loa",
                 "multifactor",
@@ -67,14 +69,14 @@
                 "id_theft_flag"
               ],
               "properties": {
-                "email": { "type": "string"},
+                "email": { "type": "string" },
                 "first_name": { "type": "string" },
-                "middle_name": { "type": [ "string", null ] },
+                "middle_name": { "type": ["string", null] },
                 "last_name": { "type": "string" },
                 "birth_date": { "type": "string" },
-                "gender": { "type": [ "string", null ] },
-                "zip": { "type": [ "string", null ] },
-                "last_signed_in": { "type": [ "string", null ] },
+                "gender": { "type": ["string", null] },
+                "zip": { "type": ["string", null] },
+                "last_signed_in": { "type": ["string", null] },
                 "loa": {
                   "type": "object",
                   "required": ["current", "highest"],
@@ -87,7 +89,7 @@
                 "verified": { "type": "boolean" },
                 "sign_in": {
                   "type": "object",
-                  "properties":  {
+                  "properties": {
                     "service_name": { "type": "string" },
                     "auth_broker": { "type": "string" },
                     "client_id": { "type": "string" }
@@ -96,19 +98,19 @@
                 "authn_context": { "type": "string" },
                 "inherited_proof_verified": { "type": "boolean" },
                 "icn": { "type": "string" },
-                "birls_id": { "type": [ "string", null ] },
-                "edipi": { "type": [ "string", null ] },
-                "sec_id": { "type": [ "string", null ] },
-                "logingov_uuid": { "type": [ "string", null ] },
-                "idme_uuid": { "type": [ "string", null ] },
-                "id_theft_flag": { "type": [ "boolean", null ] },
+                "birls_id": { "type": ["string", null] },
+                "edipi": { "type": ["string", null] },
+                "sec_id": { "type": ["string", null] },
+                "logingov_uuid": { "type": ["string", null] },
+                "idme_uuid": { "type": ["string", null] },
+                "id_theft_flag": { "type": ["boolean", null] },
                 "claims": {
                   "type": "object",
-                  "properties":  {
+                  "properties": {
                     "ch33_bank_accounts": { "type": "boolean" },
                     "coe": { "type": "boolean" },
                     "communication_preferences": { "type": "boolean" },
-                    "connected_apps": { "type": "boolean" },                    
+                    "connected_apps": { "type": "boolean" },
                     "military_history": { "type": "boolean" },
                     "payment_history": { "type": "boolean" },
                     "personal_information": { "type": "boolean" },
@@ -124,7 +126,13 @@
                         "birth_date": { "type": "boolean" },
                         "edipi": { "type": "boolean" }
                       },
-                      "required": ["participant_id", "birls_id", "ssn", "birth_date", "edipi"]
+                      "required": [
+                        "participant_id",
+                        "birls_id",
+                        "ssn",
+                        "birth_date",
+                        "edipi"
+                      ]
                     }
                   }
                 }
@@ -132,18 +140,16 @@
             },
             "va_profile": {
               "type": ["object", "null"],
-              "required": [
-                "status"
-              ],
+              "required": ["status"],
               "oneOf": [
                 {
                   "properties": {
-                    "status": { "type": [ "string" ]  }
+                    "status": { "type": ["string"] }
                   }
                 },
                 {
                   "properties": {
-                    "status": { "type": "string"  },
+                    "status": { "type": "string" },
                     "birth_date": { "type": "string" },
                     "family_name": { "type": "string" },
                     "gender": { "type": "string" },
@@ -161,27 +167,25 @@
             },
             "veteran_status": {
               "type": ["object", "null"],
-              "required": [
-                "status"
-              ],
+              "required": ["status"],
               "oneOf": [
                 {
                   "properties": {
-                    "status": { "type": [ "string" ]  }
+                    "status": { "type": ["string"] }
                   }
                 },
                 {
                   "properties": {
                     "is_veteran": { "type": "boolean" },
                     "served_in_military": { "type": "boolean" },
-                    "status": { "type": "string"  }
+                    "status": { "type": "string" }
                   }
                 }
               ]
             },
             "vet360_contact_information": {
               "type": ["object", "null"]
-            }, 
+            },
             "onboarding": {
               "show": {
                 "type": ["boolean", "null"]

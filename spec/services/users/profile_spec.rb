@@ -486,6 +486,22 @@ RSpec.describe Users::Profile do
       end
     end
 
+    describe '#carryovers_available' do
+      it 'populates with an array of available carryovers' do
+        expect(subject.carryovers_available).to be_present
+      end
+
+      context 'when user cannot access carryover data' do
+        before do
+          allow_any_instance_of(UserIdentity).to receive(:blank?).and_return(true)
+        end
+
+        it 'returns an empty array' do
+          expect(subject.carryovers_available).to eq []
+        end
+      end
+    end
+
     describe '#prefills_available' do
       it 'populates with an array of available prefills' do
         expect(subject.prefills_available).to be_present

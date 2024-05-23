@@ -48,6 +48,10 @@ RSpec.describe UserSerializer do
     expect(attributes['in_progress_forms']).to be_present
   end
 
+  it 'returns serialized #carryovers_available data' do
+    expect(attributes['carryovers_available']).to be_present
+  end
+
   it 'returns serialized #prefills_available data' do
     expect(attributes['prefills_available']).to be_present
   end

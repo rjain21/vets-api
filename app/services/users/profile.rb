@@ -46,15 +46,16 @@ module Users
 
     def fetch_and_serialize_profile
       scaffold.account = account
-      scaffold.profile = profile
-      scaffold.vet360_contact_information = vet360_contact_information
-      scaffold.va_profile = mpi_profile
-      scaffold.veteran_status = veteran_status
+      scaffold.carryovers_available = carryovers_available
       scaffold.in_progress_forms = in_progress_forms
+      scaffold.onboarding = onboarding
       scaffold.prefills_available = prefills_available
+      scaffold.profile = profile
       scaffold.services = services
       scaffold.session = session_data
-      scaffold.onboarding = onboarding
+      scaffold.va_profile = mpi_profile
+      scaffold.vet360_contact_information = vet360_contact_information
+      scaffold.veteran_status = veteran_status
     end
 
     def account
@@ -181,6 +182,12 @@ module Users
           lastUpdated: form.updated_at.to_i
         }
       end
+    end
+
+    def carryovers_available
+      return [] if user.identity.blank?
+
+      FormProfile.carryover_enabled_forms
     end
 
     def prefills_available

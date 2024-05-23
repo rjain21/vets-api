@@ -15,6 +15,10 @@ module V0
       render json: form_for_user&.data_and_metadata || camelized_prefill_for_user
     end
 
+    def carryover
+      render json: form_for_user&.data_and_metadata || camelized_prefill_for_user
+    end
+
     def update
       form = InProgressForm.form_for_user(form_id, @current_user) ||
              InProgressForm.new(form_id:, user_uuid: @current_user.uuid)
@@ -44,10 +48,14 @@ module V0
       params[:id]
     end
 
+    def prefill
+      @prefill ||= FormProfile.for(form_id: params[:id], user: @current_user).prefill
+    end
+
     # the front end is always expecting camelCase
     # --this ensures that, even if the OliveBranch inflection header isn't used, camelCase keys are sent
     def camelized_prefill_for_user
-      camelize_with_olivebranch(FormProfile.for(form_id: params[:id], user: @current_user).prefill.as_json)
+      camelize_with_olivebranch(prefill.as_json)
     end
 
     def camelize_with_olivebranch(form_json)
