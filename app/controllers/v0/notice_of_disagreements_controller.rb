@@ -37,7 +37,7 @@ module V0
     end
 
     def appeal_submission
-      @appeal_submission ||= AppealSubmission.create(appeal_submission_params)
+      @appeal_submission ||= AppealSubmission.create!(appeal_submission_params)
     end
 
     def appeal_submission_params
