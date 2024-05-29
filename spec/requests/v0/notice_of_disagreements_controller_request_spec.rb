@@ -43,7 +43,6 @@ RSpec.describe V0::NoticeOfDisagreementsController do
         expect(StatsD).to receive(:increment).with('nod_evidence_upload.v1.queued')
         previous_appeal_submission_ids = AppealSubmission.all.pluck :submitted_appeal_uuid
         subject
-        # binding.pry
         expect(response).to be_successful
         parsed_response = JSON.parse(response.body)
         id = parsed_response['data']['id']
