@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 module V1
   class NoticeOfDisagreementsController < AppealsBaseControllerV1
     service_tag 'board-appeal'
