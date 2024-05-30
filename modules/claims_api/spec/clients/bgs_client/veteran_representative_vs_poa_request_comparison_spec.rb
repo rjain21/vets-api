@@ -10,102 +10,73 @@ RSpec.describe 'VeteranRepresentative versus POARequest comparison', :bgs do # r
   # Can remove this if we produce more focused tests that compare the state of
   # the data in various scenarios.
   it 'concerns the same underlying data' do # rubocop:disable RSpec/NoExpectationExample
-    results_file_path =
-      ClaimsApi::Engine.root.join(
-        'spec/fixtures/veteran_representative_vs_poa_request_comparison.json'
-      )
+    use_soap_cassette('results', use_spec_name_prefix: true) do
+      comparisons = Hash.new { |h, k| h[k] = Hash.new { |h, k| h[k] = {} } }
 
-    unless File.exist?(results_file_path)
-      use_soap_cassette('results', use_spec_name_prefix: true) do
-        participant_ids = Set[]
-        comparisons = Hash.new do |h, k|
-          h[k] = {
-            poa_request: nil,
-            veteran_representative: nil
-          }
+      page_number = 1
+      page_size = 100
+
+      exceptional_participant_ids = Set[
+        '13397031',
+        '111'
+      ]
+
+      search_action =
+        ClaimsApi::BGSClient::Definitions::
+          ManageRepresentativeService::
+          ReadPoaRequest::DEFINITION.name
+
+      loop do
+        poa_requests = search_poa_requests(page_number, page_size)
+        poa_requests.each do |poa_request|
+          participant_id = poa_request['vetPtcpntID']
+          next if participant_id.in?(exceptional_participant_ids)
+          next if participant_id.blank?
+
+          proc_id = poa_request['procID']
+          comparisons[participant_id][proc_id][search_action] = poa_request
         end
 
-        page_number = 1
-        page_size = 100
+        break if poa_requests.size < page_size
 
-        exceptional_participant_ids = Set[
-          '13397031'
-        ]
-
-        loop do
-          poa_requests = search_poa_requests(page_number, page_size)
-          poa_requests.each do |poa_request|
-            participant_id = poa_request['vetPtcpntID']
-            next if participant_id.in?(exceptional_participant_ids)
-            next if participant_id.blank?
-
-            participant_ids << participant_id
-
-            proc_id = poa_request['procID']
-            comparisons[proc_id].merge!(
-              poa_request:
-            )
-          end
-
-          break if poa_requests.size < page_size
-
-          page_number += 1
-        end
-
-        participant_ids.each do |participant_id|
-          veteran_representatives = get_veteran_representatives(participant_id)
-          veteran_representatives.each do |veteran_representative|
-            proc_id = veteran_representative['procId']
-            next unless proc_id.in?(comparisons)
-
-            comparisons[proc_id].merge!(
-              veteran_representative:
-            )
-          end
-        end
-
-        results = JSON.pretty_generate(comparisons.values)
-        File.write(results_file_path, results)
+        page_number += 1
       end
-    end
-  end
 
-  it 'has distinct requested vs deciding representative', run_at: '2024-05-25T18:45:00Z' do # rubocop:disable RSpec/NoExpectationExample
-    results_file_path =
-      ClaimsApi::Engine.root.join(
-        'spec/fixtures/veteran_representative_vs_poa_request_accepted_comparison.json'
-      )
+      veteran_representative_action =
+        ClaimsApi::BGSClient::Definitions::
+          VeteranRepresentativeService::
+          ReadAllVeteranRepresentatives::DEFINITION.name
 
-    unless File.exist?(results_file_path)
-      use_soap_cassette('accepted_results', use_spec_name_prefix: true) do
-        participant_id = '600043284'
-        proc_id = '3855198'
+      poa_request_action =
+        ClaimsApi::BGSClient::Definitions::
+          ManageRepresentativeService::
+          ReadPoaRequestByParticipantId::DEFINITION.name
 
-        accept_poa_request(proc_id)
+      comparisons.each_key do |participant_id|
+        veteran_representatives = get_veteran_representatives(participant_id)
+        veteran_representatives.each do |veteran_representative|
+          next if veteran_representative['secondaryStatus'].to_s.strip.downcase == 'obsolete'
+          next unless veteran_representative['vdcStatus'].to_s.strip.downcase == 'submitted'
 
-        veteran_representative =
-          get_veteran_representatives(participant_id).find do |element|
-            element['procId'] == proc_id
-          end
+          proc_id = veteran_representative['procId']
+          comparisons[participant_id][proc_id][veteran_representative_action] = veteran_representative
+        end
 
-        poa_request =
-          begin
-            get_poa_requests(participant_id).find do |element|
-              element['procID'] == proc_id
-            end
-          rescue ClaimsApi::BGSClient::Error::BGSFault
-            # This record isn't visible from this operation, yet it is from the
-            # update?!
-          end
-
-        results =
-          JSON.pretty_generate(
-            poa_request:,
-            veteran_representative:
-          )
-
-        File.write(results_file_path, results)
+        poa_requests = get_poa_requests(participant_id)
+        poa_requests.each do |poa_request|
+          proc_id = poa_request['procID']
+          comparisons[participant_id][proc_id][poa_request_action] = poa_request
+        end
       end
+
+      records = comparisons.values.flat_map(&:values)
+      categories = records.group_by(&:keys)
+      tally = categories.transform_values(&:size)
+      expect(tally).to eq(
+        ['readPOARequest', 'readAllVeteranRepresentatives'] => 29,
+        ['readPOARequest', 'readAllVeteranRepresentatives', 'readPOARequestByPtcpntId'] => 51,
+        ['readPOARequest', 'readPOARequestByPtcpntId'] => 5
+      )
     end
   end
 
@@ -160,26 +131,6 @@ RSpec.describe 'VeteranRepresentative versus POARequest comparison', :bgs do # r
       end
 
     Array.wrap(result['poaRequestRespondReturnVOList'])
-  end
-
-  def accept_poa_request(proc_id)
-    action =
-      ClaimsApi::BGSClient::Definitions::
-        ManageRepresentativeService::
-        UpdatePoaRequest::
-        DEFINITION
-
-    ClaimsApi::BGSClient.perform_request(action) do |xml, data_aliaz|
-      xml[data_aliaz].POARequestUpdate do
-        xml.procId(proc_id)
-
-        xml.secondaryStatus('Accepted')
-        xml.dateRequestActioned(Time.current.iso8601)
-
-        xml.VSOUserFirstName('Joe')
-        xml.VSOUserLastName('BestRep')
-      end
-    end
   end
 
   def get_veteran_representatives(participant_id)
