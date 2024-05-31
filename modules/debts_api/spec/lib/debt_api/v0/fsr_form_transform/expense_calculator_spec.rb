@@ -3,7 +3,7 @@
 require 'rails_helper'
 require 'debts_api/v0/fsr_form_transform/expense_calculator'
 
-RSpec.describe DebtsApi::V0::FsrFormTransform::ExpenceCalculator, type: :service do
+RSpec.describe DebtsApi::V0::FsrFormTransform::ExpenseCalculator, type: :service do
   describe '#get_monthly_expenses' do
     let(:enhanced_expenses) do
       get_fixture_absolute('modules/debts_api/spec/fixtures/pre_submission_fsr/enhanced_fsr_expenses')
@@ -99,6 +99,22 @@ RSpec.describe DebtsApi::V0::FsrFormTransform::ExpenceCalculator, type: :service
         calculated_expenses = calculator.get_all_expenses
         expect(calculated_expenses[:expensesInstallmentContractsAndOtherDebts]).to eq(12_000.64)
       end
+    end
+  end
+
+  describe '#transform_expenses' do
+    let(:pre_transform_fsr_form_data) do
+      get_fixture_absolute('modules/debts_api/spec/fixtures/pre_submission_fsr/pre_transform')
+    end
+    let(:post_transform_fsr_form_data) do
+      get_fixture_absolute('modules/debts_api/spec/fixtures/pre_submission_fsr/post_transform')
+    end
+
+    it 'transforms expenses' do
+      expected_expenses = post_transform_fsr_form_data['expenses']
+      transformer = described_class.build(pre_transform_fsr_form_data)
+      actual_expenses = transformer.transform_expenses
+      expect(actual_expenses).to eq(expected_expenses)
     end
   end
 end

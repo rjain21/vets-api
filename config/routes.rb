@@ -100,6 +100,7 @@ Rails.application.routes.draw do
     resource :user, only: [:show] do
       get 'icn', to: 'users#icn'
     end
+    resource :veteran_onboarding, only: %i[show update]
     resource :post911_gi_bill_status, only: [:show]
 
     resource :education_benefits_claims, only: %i[create show] do
@@ -115,7 +116,6 @@ Rails.application.routes.draw do
         get(:enrollment_status)
         get(:rating_info)
         get(:facilities)
-        post(:download_pdf)
       end
     end
 
@@ -148,6 +148,8 @@ Rails.application.routes.draw do
 
     get 'claim_letters', to: 'claim_letters#index'
     get 'claim_letters/:document_id', to: 'claim_letters#show'
+
+    get 'average_days_for_claim_completion', to: 'average_days_for_claim_completion#index'
 
     get 'virtual_agent_claim_letters', to: 'virtual_agent_claim_letters#index'
     get 'virtual_agent_claim_letters/:document_id', to: 'virtual_agent_claim_letters#show'
@@ -369,6 +371,7 @@ Rails.application.routes.draw do
 
     get 'terms_of_use_agreements/:version/latest', to: 'terms_of_use_agreements#latest'
     post 'terms_of_use_agreements/:version/accept', to: 'terms_of_use_agreements#accept'
+    post 'terms_of_use_agreements/:version/accept_and_provision', to: 'terms_of_use_agreements#accept_and_provision'
     post 'terms_of_use_agreements/:version/decline', to: 'terms_of_use_agreements#decline'
     put 'terms_of_use_agreements/update_provisioning', to: 'terms_of_use_agreements#update_provisioning'
 

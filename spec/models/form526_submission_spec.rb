@@ -9,7 +9,8 @@ RSpec.describe Form526Submission do
       user_uuid: user.uuid,
       saved_claim_id: saved_claim.id,
       auth_headers_json: auth_headers.to_json,
-      form_json:
+      form_json:,
+      submit_endpoint:
     )
   end
 
@@ -21,6 +22,81 @@ RSpec.describe Form526Submission do
   let(:saved_claim) { FactoryBot.create(:va526ez) }
   let(:form_json) do
     File.read('spec/support/disability_compensation_form/submissions/only_526.json')
+  end
+  let(:submit_endpoint) { nil }
+
+  describe 'submit_endpoint enum' do
+    context 'when submit_endpoint is evss' do
+      let(:submit_endpoint) { 'evss' }
+
+      it 'is valid' do
+        expect(subject).to be_valid
+      end
+    end
+
+    context 'when submit_endpoint is claims_api' do
+      let(:submit_endpoint) { 'claims_api' }
+
+      it 'is valid' do
+        expect(subject).to be_valid
+      end
+    end
+
+    context 'when submit_endpoint is benefits_intake_api' do
+      let(:submit_endpoint) { 'benefits_intake_api' }
+
+      it 'is valid' do
+        expect(subject).to be_valid
+      end
+    end
+
+    context 'when submit_endpoint is not evss, claims_api or benefits_intake_api' do
+      it 'is invalid' do
+        expect do
+          subject.submit_endpoint = 'other_value'
+        end.to raise_error(ArgumentError, "'other_value' is not a valid submit_endpoint")
+      end
+    end
+  end
+
+  describe 'scopes' do
+    describe 'pending_backup_submissions' do
+      let!(:new_submission) { create(:form526_submission, aasm_state: 'unprocessed') }
+      let!(:failed_primary_submission) do
+        create(:form526_submission, aasm_state: 'failed_primary_delivery')
+      end
+      let!(:rejected_primary_submission) do
+        create(:form526_submission, aasm_state: 'rejected_by_primary')
+      end
+      let!(:complete_primary_submission) do
+        create(:form526_submission, aasm_state: 'delivered_to_primary')
+      end
+      let!(:failed_backup_submission) do
+        create(:form526_submission, aasm_state: 'failed_backup_delivery')
+      end
+      let!(:rejected_backup_submission) do
+        create(:form526_submission, aasm_state: 'rejected_by_backup')
+      end
+      let!(:in_remediation_submission) do
+        create(:form526_submission, :backup_path, aasm_state: 'in_remediation')
+      end
+      let!(:complete_submission) do
+        create(:form526_submission, :backup_path, aasm_state: 'finalized_as_successful')
+      end
+      let!(:delivered_backup_submission_a) do
+        create(:form526_submission, :backup_path, aasm_state: 'delivered_to_backup')
+      end
+      let!(:delivered_backup_submission_b) do
+        create(:form526_submission, :backup_path, aasm_state: 'delivered_to_backup')
+      end
+
+      it 'returns records submitted to the backup path but lacking a decisive state' do
+        expect(Form526Submission.pending_backup_submissions).to contain_exactly(
+          delivered_backup_submission_a,
+          delivered_backup_submission_b
+        )
+      end
+    end
   end
 
   shared_examples '#start_evss_submission' do
@@ -48,7 +124,7 @@ RSpec.describe Form526Submission do
       expect(submission).to transition_from(:failed_primary_delivery)
         .to(:failed_backup_delivery).on_event(:fail_backup_delivery)
       expect(submission).to transition_from(:rejected_by_primary)
-        .to(:failed_backup_delivery).on_event(:reject_from_backup)
+        .to(:rejected_by_backup).on_event(:reject_from_backup)
       expect(submission).to transition_from(:unprocessed)
         .to(:rejected_by_primary).on_event(:reject_from_primary)
       expect(submission).to transition_from(:unprocessed)
@@ -56,13 +132,17 @@ RSpec.describe Form526Submission do
       expect(submission).to transition_from(:unprocessed)
         .to(:failed_backup_delivery).on_event(:fail_backup_delivery)
       expect(submission).to transition_from(:unprocessed)
-        .to(:failed_backup_delivery).on_event(:reject_from_backup)
+        .to(:rejected_by_backup).on_event(:reject_from_backup)
       expect(submission).to transition_from(:unprocessed)
         .to(:finalized_as_successful).on_event(:finalize_success)
       expect(submission).to transition_from(:unprocessed)
         .to(:unprocessable).on_event(:mark_as_unprocessable)
       expect(submission).to transition_from(:unprocessed)
         .to(:in_remediation).on_event(:begin_remediation)
+      expect(submission).to transition_from(:unprocessed)
+        .to(:processed_in_batch_remediation).on_event(:process_in_batch_remediation)
+      expect(submission).to transition_from(:unprocessed)
+        .to(:ignorable_duplicate).on_event(:ignore_as_duplicate)
     end
   end
 
@@ -98,7 +178,8 @@ RSpec.describe Form526Submission do
       def expect_max_cfi_logged(max_cfi_enabled, disability_claimed, diagnostic_code, total_increase_conditions)
         expect(Rails.logger).to have_received(:info).with(
           'Max CFI form526 submission',
-          { id: subject.id, max_cfi_enabled:, disability_claimed:, diagnostic_code:, total_increase_conditions: }
+          { id: subject.id, max_cfi_enabled:, disability_claimed:, diagnostic_code:, total_increase_conditions:,
+            cfi_checkbox_was_selected: false }
         )
       end
 
@@ -1121,6 +1202,39 @@ RSpec.describe Form526Submission do
         it 'returns false' do
           expect(subject).to be_falsey
         end
+      end
+    end
+  end
+
+  describe '#cfi_checkbox_was_selected?' do
+    subject { form_526_submission.cfi_checkbox_was_selected? }
+
+    let!(:in_progress_form) { create(:in_progress_526_form, user_uuid: user.uuid) }
+    let(:form_526_submission) do
+      Form526Submission.create(
+        user_uuid: user.uuid,
+        user_account: user.user_account,
+        saved_claim_id: saved_claim.id,
+        auth_headers_json: auth_headers.to_json,
+        form_json: File.read('spec/support/disability_compensation_form/submissions/only_526_tinnitus.json')
+      )
+    end
+
+    context 'when associated with a default InProgressForm' do
+      it 'returns false' do
+        expect(subject).to be_falsey
+      end
+    end
+
+    context 'when associated with a InProgressForm that went through CFI being selected' do
+      let(:params) do
+        { form_data: { 'view:claim_type' => { 'view:claiming_increase' => true } } }
+      end
+
+      it 'returns true' do
+        ClaimFastTracking::MaxCfiMetrics.log_form_update(in_progress_form, params)
+        in_progress_form.update!(params)
+        expect(subject).to be_truthy
       end
     end
   end

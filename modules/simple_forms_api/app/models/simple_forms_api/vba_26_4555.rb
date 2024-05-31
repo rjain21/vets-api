@@ -45,8 +45,20 @@ module SimpleFormsApi
       @data.dig('veteran', 'address', 'country') == 'USA'
     end
 
-    def submission_date_config
-      { should_stamp_date?: false }
+    def desired_stamps
+      return [] unless data
+
+      [].tap do |stamps|
+        stamps << { coords: [73, 390], text: 'X' } unless data.dig('previous_sah_application',
+                                                                   'has_previous_sah_application')
+        stamps << { coords: [73, 355], text: 'X' } unless data.dig('previous_hi_application',
+                                                                   'has_previous_hi_application')
+        stamps << { coords: [73, 320], text: 'X' } unless data.dig('living_situation', 'is_in_care_facility')
+      end.compact
+    end
+
+    def submission_date_stamps
+      []
     end
 
     def track_user_identity(confirmation_number); end
@@ -75,7 +87,8 @@ module SimpleFormsApi
           previousHiApplicationAddress: {
             city: data.dig('previous_hi_application', 'previous_hi_application_address', 'city')
           },
-          hasPreviousHiApplication: data.dig('previous_hi_application', 'has_previous_hi_application')
+          hasPreviousHiApplication: data.dig('previous_hi_application', 'has_previous_hi_application'),
+          previousHiApplicationLocation: data.dig('previous_hi_application', 'previous_hi_application_address', 'city')
         }
       else
         {}
@@ -89,7 +102,9 @@ module SimpleFormsApi
           previousSahApplicationAddress: {
             city: data.dig('previous_sah_application', 'previous_sah_application_address', 'city')
           },
-          hasPreviousSahApplication: data.dig('previous_sah_application', 'has_previous_sah_application')
+          hasPreviousSahApplication: data.dig('previous_sah_application', 'has_previous_sah_application'),
+          previousApplicationLocation: data.dig('previous_sah_application', 'previous_sah_application_address',
+                                                'city')
         }
       else
         {}
@@ -107,6 +122,9 @@ module SimpleFormsApi
           last: full_name['last']&.[](0..29),
           suffix: full_name['suffix']
         },
+        homePhone: data.dig('veteran', 'home_phone'),
+        mobilePhone: data.dig('veteran', 'mobile_phone'),
+        email: data.dig('veteran', 'email'),
         dateOfBirth: data.dig('veteran', 'date_of_birth')
       }
     end
