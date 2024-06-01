@@ -64,6 +64,10 @@ module EVSS
           bgjob_errors: bgjob_errors.merge(new_error)
         )
 
+        if Flipper.enabled?(:form526_send_0781_failure_notification)
+          EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEmail.perform_async(form526_submission_id)
+        end
+
         StatsD.increment("#{STATSD_KEY_PREFIX}.exhausted")
 
         ::Rails.logger.warn(

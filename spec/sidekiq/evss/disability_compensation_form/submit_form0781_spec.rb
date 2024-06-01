@@ -94,6 +94,38 @@ RSpec.describe EVSS::DisabilityCompensationForm::SubmitForm0781, type: :job do
         form526_job_status.reload
         expect(form526_job_status.status).to eq(Form526JobStatus::STATUS[:exhausted])
       end
+
+      context 'when the form526_send_0781_failure_notification Flipper is enabled' do
+        before do
+          Flipper.enable(:form526_send_0781_failure_notification)
+        end
+
+        it 'enqueues a failure notification mailer to send to the veteran' do
+          subject.within_sidekiq_retries_exhausted_block(
+            {
+              'jid' => form526_job_status.job_id,
+              'args' => [submission.id]
+            }
+          ) do
+            expect(EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEmail)
+              .to receive(:perform_async).with(submission.id)
+          end
+        end
+      end
+
+      context 'when the form526_send_0781_failure_notification Flipper is disabled' do
+        it 'does not enqueue a failure notification mailer to send to the veteran' do
+          subject.within_sidekiq_retries_exhausted_block(
+            {
+              'jid' => form526_job_status.job_id,
+              'args' => [submission.id]
+            }
+          ) do
+            expect(EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEmail)
+              .not_to receive(:perform_async)
+          end
+        end
+      end
     end
   end
 end
