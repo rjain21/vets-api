@@ -17,9 +17,7 @@ class FormProfiles::VA21p530v2 < FormProfile
     if @contact_information&.address&.country.present?
       @contact_information.address.country = convert_to_iso2(@contact_information.address.country)
     end
-    binding.pry
     @military_information = initialize_military_information
-    binding.pry
     mappings = self.class.mappings_for_form(form_id)
 
     form_data = generate_prefill(mappings) if FormProfile.prefill_enabled_forms.include?(form_id)
