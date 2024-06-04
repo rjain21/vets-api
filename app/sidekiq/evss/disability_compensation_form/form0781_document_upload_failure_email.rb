@@ -5,7 +5,7 @@ require 'va_notify/service'
 module EVSS
   module DisabilityCompensationForm
     class Form0781DocumentUploadFailureEmail < Job
-      STATSD_METRIC_PREFIX = 'api.form_526.veteran_notifications.form0781_document_upload_failure_email'
+      STATSD_METRIC_PREFIX = 'api.form_526.veteran_notifications.form0781_upload_failure_email'
 
       # retry for one day
       sidekiq_options retry: 14
@@ -24,7 +24,7 @@ module EVSS
           "#{timestamp.to_i}": {
             caller_method: __method__.to_s,
             timestamp:,
-            form526_submission_id:,
+            form526_submission_id:
           }
         }
         form_job_status.update(
@@ -79,7 +79,7 @@ module EVSS
 
       def mailer_template_id
         Settings.vanotify.services
-                .benefits_disability.template_id.form0781_failure_notification_template_id
+                .benefits_disability.template_id.form0781_upload_failure_notification_template_id
       end
     end
   end

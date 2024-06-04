@@ -14,13 +14,18 @@ RSpec.describe EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEm
   end
 
   describe '#perform' do
+    let(:formatted_submit_date) do
+      # We display dates in mailers in the format "May 1, 2024 3:01 p.m. EDT"
+      form526_submission.created_at.strftime('%B %-d, %Y %-l:%M %P %Z').sub(/([ap])m/, '\1.m.')
+    end
+
     it 'dispatches a failure notification' do
       expect(notification_client).to receive(:send_email).with(
         # Email address and first_name are from our User fixtures
-        # form0781_document_upload_failure_notification_template_id is a placeholder in settings.yml
+        # form0781_upload_failure_notification_template_id is a placeholder in settings.yml
         {
           email_address: 'test@email.com',
-          template_id: 'form0781_document_upload_failure_notification_template_id',
+          template_id: 'form0781_upload_failure_notification_template_id',
           personalisation: {
             first_name: 'BEYONCE',
             date_submitted: formatted_submit_date
@@ -38,10 +43,10 @@ RSpec.describe EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEm
       allow(notification_client).to receive(:send_email)
 
       expect do
-        subject.perform_async(form526_submission.id, form_attachment.guid)
+        subject.perform_async(form526_submission.id)
         subject.drain
       end.to trigger_statsd_increment(
-        'api.form_526.veteran_notifications.form0781_document_upload_failure_email.success'
+        'api.form_526.veteran_notifications.form0781_upload_failure_email.success'
       )
     end
 
@@ -49,7 +54,7 @@ RSpec.describe EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEm
       allow(notification_client).to receive(:send_email)
 
       expect do
-        subject.perform_async(form526_submission.id, form_attachment.guid)
+        subject.perform_async(form526_submission.id)
         subject.drain
       end.to change(Form526JobStatus, :count).by(1)
     end
@@ -80,7 +85,7 @@ RSpec.describe EVSS::DisabilityCompensationForm::Form0781DocumentUploadFailureEm
               job_id: 123,
               error_class: 'JennyNotFound',
               timestamp: exhaustion_time,
-              form526_submission_id: form526_submission.id,
+              form526_submission_id: form526_submission.id
             }
           ).and_call_original
           expect(StatsD).to receive(:increment).with(
