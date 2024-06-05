@@ -18,6 +18,14 @@ module ClaimsApi
                    key: 'return')
     end
 
+    # atchms_id: VNP Atchms ID
+    def vnp_atchms_find_by_primary_key(atchms_id)
+      body = Nokogiri::XML::DocumentFragment.parse "<vnpAtchmsId>#{atchms_id}</vnpAtchmsId>"
+      make_request(endpoint: 'VnpAtchmsWebServiceBeanV2/VnpAtchmsServiceV2', action: 'vnpAtchmsFindByPrimaryKey', body:,
+                   env: 'http://www.w3.org/2003/05/soap-envelope',
+                   content_type: 'application/soap+xml', key: 'return')
+    end
+
     private
 
     def convert_file!(opts)

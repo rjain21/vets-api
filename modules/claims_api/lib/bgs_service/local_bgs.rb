@@ -237,7 +237,7 @@ module ClaimsApi
       header.to_s
     end
 
-    def full_body(action:, body:, namespace:, namespaces:)
+    def full_body(action:, body:, namespace:, namespaces:, env:)
       namespaces =
         namespaces.map do |aliaz, path|
           uri = URI(namespace)
@@ -251,7 +251,7 @@ module ClaimsApi
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:tns="#{namespace}"
-            xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:env="#{env}"
             #{namespaces.join("\n")}
           >
           #{header}
@@ -277,7 +277,10 @@ module ClaimsApi
       end
     end
 
-    def make_request(endpoint:, action:, body:, key: nil, namespaces: {}, transform_response: true) # rubocop:disable Metrics/MethodLength, Metrics/ParameterLists
+    def make_request(endpoint:, action:, body:, # rubocop:disable Metrics/MethodLength,Metrics/ParameterLists
+                     key: nil, namespaces: {}, transform_response: true,
+                     env: 'http://schemas.xmlsoap.org/soap/envelope/',
+                     content_type: 'text/xml;charset=UTF-8')
       connection = log_duration event: 'establish_ssl_connection' do
         Faraday::Connection.new(ssl: { verify_mode: @ssl_verify_mode }) do |f|
           f.use :breakers
@@ -293,9 +296,9 @@ module ClaimsApi
 
         url = "#{Settings.bgs.url}/#{endpoint}"
         namespace = Hash.from_xml(wsdl.body).dig('definitions', 'targetNamespace').to_s
-        body = full_body(action:, body:, namespace:, namespaces:)
+        body = full_body(action:, body:, namespace:, namespaces:, env:)
         headers = {
-          'Content-Type' => 'text/xml;charset=UTF-8',
+          'Content-Type' => content_type,
           'Host' => "#{@env}.vba.va.gov",
           'Soapaction' => %("#{action}")
         }
