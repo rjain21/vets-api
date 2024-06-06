@@ -21,6 +21,11 @@ module ClaimsApi
       @fault_message = fault&.dig('detail', 'MessageException') || fault&.dig('detail', 'MessageFaultException')
       return {} if @fault_string.include?('IntentToFileWebService') && @fault_string.include?('not found')
 
+      if @fault_string.start_with? 'Cannot find dispatch method for {'
+        Logger.log('BGS', detail: "Invalid namespace: #{@fault_string}")
+        raise 'Retry cache'
+      end
+
       get_exception
     end
 

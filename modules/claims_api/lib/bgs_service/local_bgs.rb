@@ -278,22 +278,10 @@ module ClaimsApi
     end
 
     def make_request(endpoint:, action:, body:, key: nil, namespaces: {}, transform_response: true) # rubocop:disable Metrics/MethodLength, Metrics/ParameterLists
-      connection = log_duration event: 'establish_ssl_connection' do
-        Faraday::Connection.new(ssl: { verify_mode: @ssl_verify_mode }) do |f|
-          f.use :breakers
-          f.adapter Faraday.default_adapter
-        end
-      end
-      connection.options.timeout = @timeout
-
+      try = 0
       begin
-        wsdl = log_duration(event: 'connection_wsdl_get', endpoint:) do
-          connection.get("#{Settings.bgs.url}/#{endpoint}?WSDL")
-        end
-
         url = "#{Settings.bgs.url}/#{endpoint}"
-        namespace = Hash.from_xml(wsdl.body).dig('definitions', 'targetNamespace').to_s
-        body = full_body(action:, body:, namespace:, namespaces:)
+        body = full_body(action:, body:, namespace: wsdl(endpoint), namespaces:)
         headers = {
           'Content-Type' => 'text/xml;charset=UTF-8',
           'Host' => "#{@env}.vba.va.gov",
@@ -303,13 +291,19 @@ module ClaimsApi
         response = log_duration(event: 'connection_post', endpoint:, action:) do
           connection.post(url, body, headers)
         end
+        soap_error_handler.handle_errors(response) if response
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
         ClaimsApi::Logger.log('local_bgs',
                               retry: true,
                               detail: "local BGS Faraday Timeout: #{e.message}")
         raise ::Common::Exceptions::BadGateway
+      rescue RuntimeError => e
+        raise e unless e.message == 'Retry cache'
+
+        try += 1
+        $redis.del("claims_api-#{endpoint.gsub('/', '-')}_wsdl")
+        retry if try < 4
       end
-      soap_error_handler.handle_errors(response) if response
 
       log_duration(event: 'parsed_response', key:) do
         parsed_response(response, action:, key:, transform: transform_response)
@@ -390,6 +384,51 @@ module ClaimsApi
         jrn_user_id: Settings.bgs.client_username,
         jrn_obj_id: Settings.bgs.application
       }
+    end
+
+    private
+
+    def connection
+      con = log_duration event: 'establish_ssl_connection' do
+        Faraday::Connection.new(ssl: { verify_mode: @ssl_verify_mode }) do |f|
+          f.use :breakers
+          f.adapter Faraday.default_adapter
+        end
+      end
+      con.options.timeout = @timeout
+      con
+    end
+
+    def wsdl(endpoint)
+      Rails.cache.fetch("claims_api-#{endpoint.gsub('/', '-')}_wsdl", expires_in: 1.hour) do
+        res = log_duration(event: 'connection_wsdl_get', endpoint:) do
+          connection.get("#{Settings.bgs.url}/#{endpoint}?WSDL").body
+        end
+        Hash.from_xml(res).dig('definitions', 'targetNamespace').to_s
+      end
+    end
+
+    def wsdl_b(endpoint)
+      unless Flipper.enabled? :cache_wsdl
+        res = log_duration(event: 'connection_wsdl_get', endpoint:) do
+          connection.get("#{Settings.bgs.url}/#{endpoint}?WSDL").body
+        end
+        return Hash.from_xml(res).dig('definitions', 'targetNamespace').to_s
+      end
+
+      key = "claims_api-#{endpoint.gsub('/', '-')}_wsdl"
+      cache = $redis.get(key)
+      if cache.nil?
+        res = log_duration(event: 'connection_wsdl_get', endpoint:) do
+          connection.get("#{Settings.bgs.url}/#{endpoint}?WSDL").body
+        end
+        cache = Hash.from_xml(res).dig('definitions', 'targetNamespace').to_s
+        $redis.multi do
+          $redis.set(key, cache)
+          $redis.expire(key, 24.hours.to_i)
+        end
+      end
+      cache
     end
   end
 end
