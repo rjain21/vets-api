@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'aws-sdk-iam'
+require 'active_support'
+require 'active_support/core_ext'
+require 'byebug'
+require 'pathname'
+require 'thor'
+
+module Vye
+  module AwsDev
+    REGION = 'us-gov-west-1'
+    DURATION_SECONDS = 36.hours.to_i
+    WRITE_LOCATION = Pathname(__dir__) / '../config/settings/local/aws-credentials.yml'
+
+    private_constant :REGION, :DURATION_SECONDS, :WRITE_LOCATION
+
+    Config = Struct.new(:token_code) do
+      extend ActiveSupport::Concern
+
+      private
+
+      def region = REGION
+
+      def duration_seconds = DURATION_SECONDS
+
+      def iam_client
+        Aws::IAM::Client.new(region:)
+      end
+
+      def sts_client
+        Aws::STS::Client.new(region:)
+      end
+
+      def mfa_device
+        iam_client.list_mfa_devices.mfa_devices.first
+      end
+
+      delegate :serial_number, to: :mfa_device
+
+      public
+
+      def credentials
+        sts_client
+          .get_session_token(
+            duration_seconds:,
+            serial_number:,
+            token_code:
+          )
+          .credentials
+      end
+    end
+
+    class CLI < Thor
+      class_option :help, type: :boolean, desc: 'Show help'
+
+      default_task :write
+
+      def self.exit_on_failure? = true
+
+      private_class_method :exit_on_failure?
+
+      private
+
+      def write_location = WRITE_LOCATION
+
+      def credentials(token_code:)
+        Config
+          .new(token_code:)
+          .credentials
+          .to_h
+          .slice(:access_key_id, :secret_access_key, :session_token)
+          .then { |credentials| {'vye' => {'s3' => credentials.transform_keys(&:to_s)}} }
+          .to_yaml
+      end
+
+      public
+
+      desc 'display', 'Displays AWS credentials with the provided MFA code'
+      option :token_code, required: true
+      def display
+        options => { token_code: }
+        puts credentials(token_code:)
+      end
+
+      desc 'write', 'Writes AWS credentials with the provided MFA code'
+      option :token_code, required: true
+      def write
+        options => { token_code: }
+        write_location.write(credentials(token_code:))
+      end
+    end
+  end
+end
+
+Vye::AwsDev::CLI.start(ARGV) if $PROGRAM_NAME == __FILE__
