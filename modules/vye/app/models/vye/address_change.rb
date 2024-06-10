@@ -52,7 +52,7 @@ module Vye
       end
     end
 
-    def self.todays_report
+    def self.todays_report(io)
       template = YAML.load(<<-END_OF_TEMPLATE).gsub(/\n/, '')
       |-
         %3<rpo>s,
@@ -70,10 +70,8 @@ module Vye
       END_OF_TEMPLATE
 
       report = todays_records.each_with_object([]) do |record, result|
-        result << format(template, record)
+        io.puts(format(template, record))
       end
-
-      report.join("\n")
     end
   end
 end

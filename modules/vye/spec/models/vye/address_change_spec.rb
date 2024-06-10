@@ -34,23 +34,30 @@ RSpec.describe Vye::AddressChange, type: :model do
     end
   end
 
-  describe '.todays_report' do
-    it 'returns a formatted report' do
-      address_change = build(:vye_address_change)
-      user_info = address_change.user_info
-      allow(Vye::AddressChange).to receive(:created_today).and_return([address_change])
-      allow(user_info).to receive(:ssn).and_return('123456789')
-      report = Vye::AddressChange.todays_report
+  describe 'creates a report' do
+    let!(:address_changes) { FactoryBot.create(:vye_address_change, user_info:) }
 
-      expect(report).to include("#{user_info.rpo_code},")
-      expect(report).to include("#{user_info.indicator},")
-      expect(report).to include("#{user_info.ssn},")
-      expect(report).to include("#{user_info.file_number},")
-      expect(report).to include("#{address_change.veteran_name},")
-      expect(report).to include("#{address_change.address1},")
-      expect(report).to include("#{address_change.city},")
-      expect(report).to include("#{address_change.state},")
-      expect(report).to include(address_change.zip_code)
+    before do
+      ssn = '123456789'
+      profile = double(ssn:)
+      find_profile_by_identifier = double(profile:)
+      service = double(find_profile_by_identifier:)
+      allow(MPI::Service).to receive(:new).and_return(service)
+    end
+
+    it 'shows todays verifications' do
+      expect(described_class.todays_records.length).to eq(1)
+    end
+
+    it 'shows todays verification report' do
+      io = StringIO.new
+
+      expect do
+        described_class.todays_report(io)
+      end.not_to raise_error
+
+      io.rewind
+      expect(io.read).to include('123456789')
     end
   end
 end
