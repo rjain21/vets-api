@@ -19,7 +19,7 @@ spec:
           image: "public.ecr.aws/docker/library/postgres:16.3-alpine3.20"
           command: [ "/bin/sh", "-c" ]
           args:
-            - PGPASSWORD={{ .Values.dbPassword }} psql -h {{ .Values.dbHost }} -U {{ .Values.dbUser }} -d vets-api -c "CREATE DATABASE vets-api-{{ .Values.namespace }};"
+            - PGPASSWORD={{ .Values.dbPassword }} psql -h {{ .Values.dbHost }} -U {{ .Values.dbUser }} -d vets_api -c "CREATE DATABASE vets_api_{{ .Values.namespace }};"
         - name: vets-api-db-init
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           command: [ "bash" ]
