@@ -3,6 +3,9 @@ name: Deploy Delay Notifications
 on:
   schedule:
     - cron: "*/10 * * * *" # Runs every 10 minutes
+  push:
+    branches:
+      - eb-deploy-delay-notification-test
 
 jobs:
   check-deployment:
@@ -60,6 +63,7 @@ jobs:
           fi
 
       - name: Check deployment status for staging
+        if: always()
         id: check-staging-status
         run: |
           latest_sha=${{ env.latest_sha }}
