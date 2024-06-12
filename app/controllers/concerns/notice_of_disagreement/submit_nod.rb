@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NoticeOfDisagreement
   module SubmitNod
     extend ActiveSupport::Concern
@@ -11,9 +13,19 @@ module NoticeOfDisagreement
 
     private
 
+    def nod_uploads
+      request_body_hash.delete('nodUploads') || []
+    end
+
     def enqueue_uploads
-      uploads_arr = request_body_hash.delete('nodUploads') || []
-      appeal_submission.enqueue_uploads(uploads_arr, @current_user, version_number)
+      nod_uploads.each do |upload_attrs|
+        asu = AppealSubmissionUpload.create!(
+          decision_review_evidence_attachment_guid: upload_attrs['confirmationCode'],
+          appeal_submission_id: appeal_submission.id # Primary key of AppealSubmission record.
+        )
+        StatsD.increment("nod_evidence_upload.#{version_number}.queued")
+        DecisionReview::SubmitUpload.perform_async(asu.id)
+      end
     end
 
     def appeal_submission
@@ -37,6 +49,5 @@ module NoticeOfDisagreement
         user: @current_user
       ).body
     end
-
   end
 end

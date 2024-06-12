@@ -10,13 +10,4 @@ class AppealSubmission < ApplicationRecord
   has_encrypted :upload_metadata, key: :kms_key, **lockbox_options
 
   has_many :appeal_submission_uploads, dependent: :destroy
-
-  def enqueue_uploads(uploads_arr, _user, version_number)
-    uploads_arr.each do |upload_attrs|
-      asu = AppealSubmissionUpload.create!(decision_review_evidence_attachment_guid: upload_attrs['confirmationCode'],
-                                           appeal_submission_id: id)
-      StatsD.increment("nod_evidence_upload.#{version_number}.queued")
-      DecisionReview::SubmitUpload.perform_async(asu.id)
-    end
-  end
 end

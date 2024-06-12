@@ -7,6 +7,7 @@ module V0
 
     def create
       raise 'Must pass in a version of the DecisionReview Service' if decision_review_service.nil?
+
       submit_nod # app/controllers/concerns/notice_of_disagreement/submit_nod.rb
       render json: nod_response_body
     rescue => e
@@ -15,7 +16,7 @@ module V0
       rescue
         request_body_debug_data
       end
-      handle_exception(method: 'create', exception: e, options: { request: request })
+      handle_exception(method: 'create', exception: e, options: { request: })
       raise
     end
 
@@ -30,7 +31,7 @@ module V0
 
     def handle_exception(method:, exception:, options:)
       error_class = "#{self.class.name}##{method} exception #{exception.class} (NOD)"
-      log_exception_to_personal_information_log(exception, error_class: error_class, **options)
+      log_exception_to_personal_information_log(exception, error_class:, **options)
     end
 
     def version_number
