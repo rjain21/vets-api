@@ -23,7 +23,7 @@ spec:
         - name: vets-api-db-init
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           command: [ "bash" ]
-          args: [ "-c", "bundle exec rake db:migrate || bundle exec rake db:setup db:migrate" ]
+          args: [ "-c", "bundle exec rake db:prepare" ]
           env:
             - name: "Settings.database_url"
               value: "{{ .Values.databaseUrl }}"
