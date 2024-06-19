@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require Vye::Engine.root / 'spec/rails_helper'
 
 describe Vye::UserInfoSerializer, type: :serializer do
   subject { serialize(user_info, serializer_class: described_class) }

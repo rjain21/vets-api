@@ -171,5 +171,17 @@ PERIODIC_JOBS = lambda { |mgr|
 
   # Daily 2am job that sends missing Pega statuses to DataDog
   mgr.register('0 2 * * *', 'IvcChampva::MissingFormStatusJob')
+
+  # Daily 0000 hrs job for Vye: performs ingress of state from BDN & TIMS.
+  mgr.register('00 00 * * *', 'Vye::MidnightRun')
+
+  # Daily 0600 hrs job for Vye: activates injested BDN state, and egresses the changes for the day.
+  mgr.register('00 06 * * *', 'Vye::DawnDash')
+
+  # Daily 1700 hrs job for Vye:
+  # - clears deactivated BDN state,
+  # - deletes processed files from S3 bucket,
+  # - and purges stale verifications.
+  mgr.register('00 17 * * *', 'Vye::SundownSweeps')
 }
 # rubocop:enable Metrics/BlockLength
