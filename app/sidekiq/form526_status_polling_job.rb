@@ -2,6 +2,7 @@
 
 require 'benefits_intake_service/service'
 
+# [wipn8923] the job
 class Form526StatusPollingJob
   include Sidekiq::Job
   sidekiq_options retry: false
