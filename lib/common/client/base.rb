@@ -113,17 +113,17 @@ module Common
       rescue Timeout::Error, Faraday::TimeoutError => e
         Sentry.set_extras(service_name: config.service_name, url: path)
         raise Common::Exceptions::GatewayTimeout, e.class.name
-      rescue Faraday::ClientError, Faraday::ServerError, Faraday::Error => e
-        error_class = case e
-                      when Faraday::ParsingError
-                        Common::Client::Errors::ParsingError
-                      else
-                        Common::Client::Errors::ClientError
-                      end
-
-        response_hash = e.response&.to_hash
-        client_error = error_class.new(e.message, response_hash&.dig(:status), response_hash&.dig(:body))
-        raise client_error
+      # rescue Faraday::ClientError, Faraday::ServerError, Faraday::Error => e
+      #   error_class = case e
+      #                 when Faraday::ParsingError
+      #                   Common::Client::Errors::ParsingError
+      #                 else
+      #                   Common::Client::Errors::ClientError
+      #                 end
+      #
+      #   response_hash = e.response&.to_hash
+      #   client_error = error_class.new(e.message, response_hash&.dig(:status), response_hash&.dig(:body))
+      #   raise client_error
       end
 
       def sanitize_headers!(_method, _path, _params, headers)
