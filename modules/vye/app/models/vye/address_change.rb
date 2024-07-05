@@ -28,18 +28,23 @@ module Vye
       _suffix: true
     )
 
-    scope :created_today, lambda {
-      includes(user_info: :user_profile)
-        .where('created_at >= ?', Time.zone.now.beginning_of_day)
-    }
+    scope :export_ready, -> do
+      self
+        .select('DISTINCT ON (vye_address_changes.user_info_id) vye_address_changes.*')
+        .joins(:user_info)
+        .where(origin: 'frontend', user_info: { bdn_clone_active: true })
+        .order('vye_address_changes.user_info_id, vye_address_changes.created_at DESC')
+    end
 
-    def self.todays_records
-      created_today.each_with_object([]) do |record, result|
+    def self.report_rows
+      export_ready.each_with_object([]) do |record, result|
+        user_info = record.user_info
+
         result << {
-          rpo: record.user_info.rpo_code,
-          benefit_type: record.user_info.indicator,
-          ssn: record.user_info.ssn,
-          file_number: record.user_info.file_number,
+          rpo: user_info.rpo_code,
+          benefit_type: user_info.indicator,
+          ssn: user_info.ssn,
+          file_number: user_info.file_number,
           veteran_name: record.veteran_name,
           address1: record.address1,
           address2: record.address2,
@@ -52,7 +57,7 @@ module Vye
       end
     end
 
-    def self.todays_report(io)
+    def self.write_report(io)
       template = YAML.load(<<-END_OF_TEMPLATE).gsub(/\n/, '')
       |-
         %3<rpo>s,
@@ -69,7 +74,7 @@ module Vye
         %5<zip_code>s
       END_OF_TEMPLATE
 
-      report = todays_records.each_with_object([]) do |record, result|
+      report = report_rows.each_with_object([]) do |record, result|
         io.puts(format(template, record))
       end
     end

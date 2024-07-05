@@ -19,12 +19,38 @@ module Vye
     )
 
     has_one(
+      :latest_address_frontend,
+      -> { where(origin: 'frontend').order(created_at: :desc) },
+      class_name: 'AddressChange',
+      inverse_of: :user_info,
+      dependent: :restrict_with_exception
+    )
+
+    has_one(
       :latest_address,
       -> { order(created_at: :desc) },
       class_name: 'AddressChange',
       inverse_of: :user_info,
       dependent: :restrict_with_exception
     )
+
+    has_one(
+      :latest_verification,
+      -> { where(origin: 'backend').order(created_at: :desc) },
+      class_name: 'AddressChange',
+      inverse_of: :user_info,
+      dependent: :restrict_with_exception
+    )
+
+    # scope :latest_verification, lambda {
+    #   latest_records = select('DISTINCT ON (user_info_id) *')
+    #                      .joins(user_info: :user_profile)
+    #                      .where(vye_user_infos: { bdn_clone_active: true })
+    #                      .order('vye_address_changes.user_info_id, vye_address_changes.created_at DESC')
+    
+    #   where(id: latest_records)
+    # }
+
 
     has_many :awards, dependent: :destroy
     has_many :direct_deposit_changes, dependent: :destroy

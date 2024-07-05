@@ -4,6 +4,8 @@ module Vye
   class Vye::BdnClone < ApplicationRecord
     has_many :user_infos, dependent: :destroy
 
+    validates :is_active, :export_ready, uniqueness: true, allow_nil: true
+    
     def activate!
       UserInfo.transaction do
         # rubocop:disable Rails/SkipsModelValidations

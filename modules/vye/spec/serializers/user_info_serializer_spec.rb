@@ -40,16 +40,8 @@ describe Vye::UserInfoSerializer, type: :serializer do
     expect(attributes['indicator']).to eq user_info.indicator
   end
 
-  context 'when api_key is set' do
-    it 'includes :zip_code' do
-      expect(attributes['zip_code']).to eq user_info.zip_code
-    end
-  end
-
-  context 'when api_key is not set' do
-    it 'includes :zip_code' do
-      expect(attributes['zip_code']).to eq nil
-    end
+  it 'includes :zip_code' do
+    expect(attributes['zip_code']).to eq user_info.zip_code
   end
 
   it 'includes :latest_address' do

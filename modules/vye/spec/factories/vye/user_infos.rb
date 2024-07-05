@@ -26,7 +26,13 @@ FactoryBot.define do
     bdn_clone_active { true }
 
     after(:create) do |user_info|
-      create_list(:vye_address_change, 3, user_info:)
+      create_list(:vye_address_backend, 1, user_info:)
+    end
+
+    trait :with_address_changes do
+      after(:create) do |user_info|
+        create_list(:vye_address_change, 2, user_info:, origin: 'frontend')
+      end
     end
   end
 end
