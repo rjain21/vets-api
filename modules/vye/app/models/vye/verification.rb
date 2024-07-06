@@ -2,9 +2,8 @@
 
 module Vye
   class Vye::Verification < ApplicationRecord
-    self.ignored_columns += [:user_info_id]
-
     belongs_to :user_profile
+    belongs_to :user_info, optional: true
     belongs_to :award, optional: true
 
     validates(:source_ind, presence: true)

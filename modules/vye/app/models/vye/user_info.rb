@@ -54,6 +54,7 @@ module Vye
 
     has_many :awards, dependent: :destroy
     has_many :direct_deposit_changes, dependent: :destroy
+    has_many :queued_verifications, class_name: 'Verification', inverse_of: :user_info, dependent: :nullify
 
     scope :with_bdn_clone_active, -> { where(bdn_clone_active: true) }
 
@@ -82,10 +83,6 @@ module Vye
 
     def zip_code
       backend_address&.zip_code&.slice(0, 5)
-    end
-
-    def queued_verifications
-      awards.map(&:verifications).flatten
     end
 
     def queued_verifications?

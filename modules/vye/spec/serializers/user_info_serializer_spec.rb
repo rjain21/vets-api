@@ -6,8 +6,9 @@ describe Vye::UserInfoSerializer, type: :serializer do
   subject { serialize(user_info, serializer_class: described_class) }
 
   before do
+    user_profile = user_info.user_profile
     award = create(:vye_award, user_info:)
-    create_list(:vye_verification, 3, user_profile: user_info.user_profile, award:)
+    create_list(:vye_verification, 3, user_profile:, user_info:, award:)
     allow(user_info).to receive(:pending_verifications).and_return(user_info.verifications)
   end
 
