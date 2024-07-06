@@ -31,8 +31,8 @@ module Vye
     scope :export_ready, -> do
       self
         .select('DISTINCT ON (vye_address_changes.user_info_id) vye_address_changes.*')
-        .joins(:user_info)
-        .where(origin: 'frontend', user_info: { bdn_clone_active: true })
+        .joins(user_info: :bdn_clone)
+        .where(origin: 'frontend', 'vye_bdn_clones': { export_ready: true } )
         .order('vye_address_changes.user_info_id, vye_address_changes.created_at DESC')
     end
 
@@ -40,19 +40,24 @@ module Vye
       export_ready.each_with_object([]) do |record, result|
         user_info = record.user_info
 
+        rpo = user_info.rpo_code
+        benefit_type = user_info.indicator
+        ssn = user_info.ssn
+        file_number = user_info.file_number
+        veteran_name = record.veteran_name
+        address1 = record.address1
+        address2 = record.address2
+        address3 = record.address3
+        address4 = record.address4
+        city = record.city
+        state = record.state
+        zip_code = record.zip_code
+
         result << {
-          rpo: user_info.rpo_code,
-          benefit_type: user_info.indicator,
-          ssn: user_info.ssn,
-          file_number: user_info.file_number,
-          veteran_name: record.veteran_name,
-          address1: record.address1,
-          address2: record.address2,
-          address3: record.address3,
-          address4: record.address4,
-          city: record.city,
-          state: record.state,
-          zip_code: record.zip_code
+          rpo:, benefit_type:, ssn:,
+          file_number:, veteran_name:, 
+          address1:, address2:, address3:, address4:,
+          city:, state:, zip_code:
         }
       end
     end
@@ -74,7 +79,7 @@ module Vye
         %5<zip_code>s
       END_OF_TEMPLATE
 
-      report = report_rows.each_with_object([]) do |record, result|
+      report_rows.each do |record|
         io.puts(format(template, record))
       end
     end
