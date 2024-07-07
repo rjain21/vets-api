@@ -44,22 +44,19 @@ module Vye
       export_ready.each_with_object([]) do |record, result|
         user_info = record.user_info
 
-        rpo = user_info.rpo_code
-        benefit_type = user_info.indicator
-        ssn = user_info.ssn
-        file_number = user_info.file_number
-        veteran_name = record.veteran_name
-        address1 = record.address1
-        address2 = record.address2
-        address3 = record.address3
-        address4 = record.address4
-        city = record.city
-        state = record.state
-        zip_code = record.zip_code
-
         result << {
-          rpo:, benefit_type:, ssn:, file_number:, veteran_name:,
-          address1:, address2:, address3:, address4:, city:, state:, zip_code:
+          rpo: user_info.rpo_code,
+          benefit_type: user_info.indicator,
+          ssn: user_info.ssn,
+          file_number: user_info.file_number,
+          veteran_name: record.veteran_name,
+          address1: record.address1,
+          address2: record.address2,
+          address3: record.address3,
+          address4: record.address4,
+          city: record.city,
+          state: record.state,
+          zip_code: record.zip_code
         }
       end
     end

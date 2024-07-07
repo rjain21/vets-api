@@ -25,16 +25,13 @@ module Vye
       export_ready.each_with_object([]) do |record, result|
         user_info = record.user_info
 
-        stub_nm = user_info.stub_nm
-        ssn = user_info.ssn
-        transact_date = record.transact_date.strftime('%Y%m%d')
-        rpo_code = user_info.rpo_code
-        indicator = user_info.indicator
-        source_ind = record.source_ind
-
         result << {
-          stub_nm:, ssn:, transact_date:,
-          rpo_code:, indicator:, source_ind:
+          stub_nm: user_info.stub_nm,
+          ssn: user_info.ssn,
+          transact_date: record.transact_date.strftime('%Y%m%d'),
+          rpo_code: user_info.rpo_code,
+          indicator: user_info.indicator,
+          source_ind: record.source_ind
         }
       end
     end

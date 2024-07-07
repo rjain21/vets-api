@@ -7,6 +7,7 @@ module Vye
     ENUM_ACCT_TYPE = ActiveSupport::HashWithIndifferentAccess.new(checking: 'C', savings: 'S')
 
     has_kms_key
+
     has_encrypted(
       :acct_no, :acct_type, :bank_name, :bank_phone, :email,
       :full_name, :routing_no, :phone, :phone2,
@@ -18,11 +19,6 @@ module Vye
       :full_name, :routing_no, :phone,
       presence: true
     )
-
-    scope :created_today, lambda {
-      includes(user_info: :user_profile)
-        .where('created_at >= ?', Time.zone.now.beginning_of_day)
-    }
 
     def self.acct_types
       ENUM_ACCT_TYPE
@@ -43,6 +39,11 @@ module Vye
     def routing_no_chk
       routing_no[8]
     end
+
+    scope :created_today, lambda {
+      includes(user_info: :user_profile)
+        .where('created_at >= ?', Time.zone.now.beginning_of_day)
+    }
 
     def self.todays_records
       created_today.each_with_object([]) do |record, result|
