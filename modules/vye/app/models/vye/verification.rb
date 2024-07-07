@@ -13,32 +13,46 @@ module Vye
       _prefix: :source
     )
 
-    def self.todays_verifications
-      UserInfo
-        .includes(:bdn_clone, awards: :verifications)
-        .each_with_object([]) do |user_info, result|
-          verification = user_info.queued_verifications.first
-
-          stub_nm = user_info.stub_nm
-          ssn = user_info.ssn
-          transact_date = verification.transact_date.strftime('%Y%m%d')
-          rpo_code = user_info.rpo_code
-          indicator = user_info.indicator
-          source_ind = verification.source_ind
-
-          result << { stub_nm:, ssn:, transact_date:, rpo_code:, indicator:, source_ind: }
-        end
+    scope :export_ready, -> do
+      self
+        .select('DISTINCT ON (vye_verifications.user_info_id) vye_verifications.*')
+        .joins(user_info: :bdn_clone)
+        .where('vye_bdn_clones': { export_ready: true } )
+        .order('vye_verifications.user_info_id, vye_verifications.created_at DESC')
     end
 
-    def self.todays_verifications_report
-      report = todays_verifications.each_with_object([]) do |record, result|
-        result << format(
-          '%7<stub_nm>s%9<ssn>s%8<transact_date>s%3<rpo_code>s%1<indicator>s%1<source_ind>s',
-          record
-        )
-      end
+    def self.report_rows
+      export_ready.each_with_object([]) do |record, result|
+        user_info = record.user_info
 
-      report.join("\n")
+        stub_nm = user_info.stub_nm
+        ssn = user_info.ssn
+        transact_date = record.transact_date.strftime('%Y%m%d')
+        rpo_code = user_info.rpo_code
+        indicator = user_info.indicator
+        source_ind = verification.source_ind
+
+        result << {
+          stub_nm:, ssn:, transact_date:,
+          rpo_code:, indicator:, source_ind:
+        }
+      end
+    end
+
+    def self.write_report(io)
+      template = YAML.load(<<-END_OF_TEMPLATE).gsub(/\n/, '')
+      |-
+        %7<stub_nm>s
+        %9<ssn>s
+        %8<transact_date>s
+        %3<rpo_code>s
+        %1<indicator>s
+        %1<source_ind>s
+      END_OF_TEMPLATE
+
+      report_rows.each do |record|
+        io.puts(format(template, record))
+      end
     end
   end
 end

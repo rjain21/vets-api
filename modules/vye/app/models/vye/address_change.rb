@@ -28,6 +28,18 @@ module Vye
       _suffix: true
     )
 
+    scope :backend, -> do
+      self
+        .where(origin: 'backend')
+        .limit(1)
+    end
+
+    scope :latest, -> do
+      self
+        .order(created_at: :desc)
+        .limit(1)
+    end
+
     scope :export_ready, -> do
       self
         .select('DISTINCT ON (vye_address_changes.user_info_id) vye_address_changes.*')
