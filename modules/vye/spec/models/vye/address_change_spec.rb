@@ -14,7 +14,8 @@ RSpec.describe Vye::AddressChange, type: :model do
       old_bdn = FactoryBot.create(:vye_bdn_clone, is_active: true, export_ready: nil)
       new_bdn = FactoryBot.create(:vye_bdn_clone, is_active: false, export_ready: nil)
 
-      7.times { FactoryBot.create(:vye_user_info, :with_address_changes, bdn_clone: old_bdn) }
+      FactoryBot.create_list(:vye_user_info, 7, :with_address_changes, bdn_clone: old_bdn)
+
       new_bdn.activate!
 
       ssn = '123456789'
@@ -36,7 +37,7 @@ RSpec.describe Vye::AddressChange, type: :model do
       end.not_to raise_error
 
       io.rewind
-      
+
       expect(io.string.scan("\n").count).to be(7)
     end
   end

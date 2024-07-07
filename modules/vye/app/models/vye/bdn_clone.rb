@@ -15,8 +15,6 @@ module Vye
 
     validates :is_active, :export_ready, uniqueness: true, allow_nil: true
 
-    public
-
     def activate!
       transaction do
         old = self.class.find_by(is_active: true)
@@ -28,7 +26,7 @@ module Vye
           # rubocop:enable Rails/SkipsModelValidations
         end
 
-        self.update!(is_active: true)
+        update!(is_active: true)
         # rubocop:disable Rails/SkipsModelValidations
         UserInfo.where(bdn_clone_id: id).update_all(bdn_clone_active: true)
         # rubocop:enable Rails/SkipsModelValidations

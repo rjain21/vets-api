@@ -5,13 +5,13 @@ require 'rails_helper'
 RSpec.describe Vye::BatchTransfer::IngressFiles do
   describe '#bdn_feed_filename' do
     it 'returns a string' do
-      expect(described_class.send :bdn_feed_filename).to be_a(String)
+      expect(described_class.send(:bdn_feed_filename)).to be_a(String)
     end
   end
 
   describe '#tims_feed_filename' do
     it 'returns a string' do
-      expect(described_class.send :tims_feed_filename).to be_a(String)
+      expect(described_class.send(:tims_feed_filename)).to be_a(String)
     end
   end
 
@@ -39,7 +39,7 @@ RSpec.describe Vye::BatchTransfer::IngressFiles do
     )
   end
 
-  it "loads the BDN feed from AWS" do
+  it 'loads the BDN feed from AWS' do
     path = instance_double(Pathname)
     expect(Rails.root).to receive(:/).once.and_return(path)
     expect(Rails.root).to receive(:/).and_call_original
@@ -58,7 +58,7 @@ RSpec.describe Vye::BatchTransfer::IngressFiles do
     described_class.bdn_load
   end
 
-  it "loads the TIMS feed from AWS" do
+  it 'loads the TIMS feed from AWS' do
     path = instance_double(Pathname)
     expect(Rails.root).to receive(:/).once.and_return(path)
     expect(Rails.root).to receive(:/).and_call_original

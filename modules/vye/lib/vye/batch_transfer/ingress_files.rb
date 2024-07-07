@@ -19,13 +19,13 @@ module Vye
       def credentials = Vye.settings.s3.to_h.slice(:region, :access_key_id, :secret_access_key)
 
       def bucket = Vye.settings.s3.bucket
-      
+
       def external_bucket = Vye.settings.s3.external_bucket
 
       def s3_client = Aws::S3::Client.new(**credentials)
 
       def download(filename)
-        date = Date.today.strftime("%Y-%m-%d")
+        date = Time.zone.today.strftime('%Y-%m-%d')
         response_target = Rails.root / "tmp/vye/downloads/#{date}/#{filename}"
         key = "scanned/#{filename}"
 
@@ -60,46 +60,20 @@ module Vye
 
       public
 
-      def upload_fixtures(bucket: :internal, path: 'scanned')
-        case bucket
-        when :external
-          bucket = self.external_bucket
-          raise ArgumentError, "invalid external path" unless path == 'inbound' || path == 'outbound'
-        when :internal
-          bucket = self.bucket
-          raise ArgumentError, "invalid internal path"  unless path == 'scanned' || path == 'processed'
-        else
-          raise ArgumentError, "bucket must be :external or :internal"
-        end
-
+      def upload_fixtures
         [
           Vye::Engine.root / "spec/fixtures/bdn_sample/#{bdn_feed_filename}",
           Vye::Engine.root / "spec/fixtures/tims_sample/#{tims_feed_filename}"
         ].each do |file|
-          key = "#{path}/#{file.basename}"
+          key = "scanned/#{file.basename}"
           body = file.read
 
           s3_client.put_object(bucket:, key:, body:)
         end
       end
 
-      def clear_fixtures(bucket: :internal, path: 'scanned')
-        case bucket
-        when :external
-          bucket = self.external_bucket
-          raise ArgumentError, "invalid external path" unless path == 'inbound' || path == 'outbound'
-        when :internal
-          bucket = self.bucket
-          raise ArgumentError, "invalid internal path" unless path == 'scanned' || path == 'processed'
-        else
-          raise ArgumentError, "bucket must be :external or :internal"
-        end
-      
-        [Pathname(bdn_feed_filename), Pathname(tims_feed_filename)].each do |file|
-          key = "#{path}/#{file.basename}"
-          
-          s3_client.delete_object(bucket: bucket, key: key)
-        end
+      def clear_fixtures
+        EgressFiles.clear_from(bucket: :internal, path: 'scanned')
       end
 
       def bdn_load = download(bdn_feed_filename, &method(:bdn_import))

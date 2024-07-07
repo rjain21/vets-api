@@ -28,25 +28,17 @@ module Vye
       _suffix: true
     )
 
-    scope :backend, -> do
-      self
-        .where(origin: 'backend')
-        .limit(1)
-    end
+    scope :backend, -> { where(origin: 'backend').limit(1) }
 
-    scope :latest, -> do
-      self
-        .order(created_at: :desc)
-        .limit(1)
-    end
+    scope :latest, -> { order(created_at: :desc).limit(1) }
 
-    scope :export_ready, -> do
+    scope :export_ready, lambda {
       self
         .select('DISTINCT ON (vye_address_changes.user_info_id) vye_address_changes.*')
         .joins(user_info: :bdn_clone)
-        .where(origin: 'frontend', 'vye_bdn_clones': { export_ready: true } )
+        .where(origin: 'frontend', vye_bdn_clones: { export_ready: true })
         .order('vye_address_changes.user_info_id, vye_address_changes.created_at DESC')
-    end
+    }
 
     def self.report_rows
       export_ready.each_with_object([]) do |record, result|
@@ -66,10 +58,8 @@ module Vye
         zip_code = record.zip_code
 
         result << {
-          rpo:, benefit_type:, ssn:,
-          file_number:, veteran_name:, 
-          address1:, address2:, address3:, address4:,
-          city:, state:, zip_code:
+          rpo:, benefit_type:, ssn:, file_number:, veteran_name:,
+          address1:, address2:, address3:, address4:, city:, state:, zip_code:
         }
       end
     end

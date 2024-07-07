@@ -12,13 +12,13 @@ module Vye
       def credentials = Vye.settings.s3.to_h.slice(:region, :access_key_id, :secret_access_key)
 
       def bucket = Vye.settings.s3.bucket
-      
+
       def external_bucket = Vye.settings.s3.external_bucket
-      
+
       def s3_client = Aws::S3::Client.new(**credentials)
 
       def upload(file)
-        key = "processed/#{file.basename.to_s}"
+        key = "processed/#{file.basename}"
         body = file.open('rb')
         content_type = 'text/plain'
 
@@ -51,41 +51,34 @@ module Vye
         "vawave#{now_in_bdn_timezone.yday}"
       end
 
+      def check_s3_location!(bucket:, path:)
+        case bucket
+        when external_bucket
+          raise ArgumentError, 'invalid external path' unless %w[inbound outbound].include?(path)
+        when self.bucket
+          raise ArgumentError, 'invalid internal path' unless %w[scanned processed].include?(path)
+        else
+          raise ArgumentError, 'bucket must be either the internal one or the external one'
+        end
+      end
+
       public
 
-      def check_args(bucket:, path:)
-        case bucket
-        when :external
-          bucket = self.external_bucket
-          raise ArgumentError, "invalid external path" unless path == 'inbound' || path == 'outbound'
-        when :internal
-          bucket = self.bucket
-          raise ArgumentError, "invalid internal path" unless path == 'scanned' || path == 'processed'
-        else
-          raise ArgumentError, "bucket must be :external or :internal"
-        end
-
-        bucket
-      end
-
-      def list_uploaded(bucket: :internal, path: 'processed')
-        bucket = check_args(bucket:, path:)
+      def clear_from(bucket: :internal, path: 'processed')
+        bucket = { internal: self.bucket, external: external_bucket }[bucket]
         prefix = "#{path}/"
-        s3_client.list_objects_v2(bucket:, prefix: 'scanned/').contents.map do |obj|
-          obj.key unless obj.key.ends_with?('/')
-        end.compact
-      end
+        check_s3_location!(bucket:, path:)
 
-      def clear_uploaded(bucket: :internal, path: 'processed')
-        bucket = check_args(bucket:, path:)
-
-        list_uploaded(bucket: :internal, path: 'processed').each do |key|
-          s3_client.delete_object(bucket: bucket, key: key)
-        end
+        s3_client
+          .list_objects_v2(bucket:, prefix:)
+          .contents
+          .map { |obj| obj.key unless obj.key.ends_with?('/') }
+          .compact
+          .each { |key| s3_client.delete_object(bucket:, key:) }
       end
 
       def address_changes_upload
-        date = Date.today.strftime("%Y-%m-%d")
+        date = Time.zone.today.strftime('%Y-%m-%d')
         path = Rails.root / "tmp/vye/uploads/#{date}/#{address_changes_filename}"
         path.dirname.mkpath
 
@@ -96,7 +89,7 @@ module Vye
       end
 
       def direct_deposit_upload
-        date = Date.today.strftime("%Y-%m-%d")
+        date = Time.zone.today.strftime('%Y-%m-%d')
         path = Rails.root / "tmp/vye/uploads/#{date}/#{direct_deposit_filename}"
         path.dirname.mkpath
 
@@ -107,7 +100,7 @@ module Vye
       end
 
       def verification_upload
-        date = Date.today.strftime("%Y-%m-%d")
+        date = Time.zone.today.strftime('%Y-%m-%d')
         path = Rails.root / "tmp/vye/uploads/#{date}/#{verification_filename}"
         path.dirname.mkpath
 

@@ -10,9 +10,9 @@ RSpec.describe Vye::UserInfo, type: :model do
     let(:user_info) { FactoryBot.build(:vye_user_info, user_profile:, bdn_clone:) }
 
     it 'creates a record' do
-      expect { 
+      expect do
         user_info.save!
-      }.to change(described_class, :count).by(1)
+      end.to change(described_class, :count).by(1)
     end
   end
 

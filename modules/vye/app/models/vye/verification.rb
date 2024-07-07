@@ -13,13 +13,13 @@ module Vye
       _prefix: :source
     )
 
-    scope :export_ready, -> do
+    scope :export_ready, lambda {
       self
         .select('DISTINCT ON (vye_verifications.user_info_id) vye_verifications.*')
         .joins(user_info: :bdn_clone)
-        .where('vye_bdn_clones': { export_ready: true } )
+        .where(vye_bdn_clones: { export_ready: true })
         .order('vye_verifications.user_info_id, vye_verifications.created_at DESC')
-    end
+    }
 
     def self.report_rows
       export_ready.each_with_object([]) do |record, result|
