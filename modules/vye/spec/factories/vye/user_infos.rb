@@ -34,5 +34,11 @@ FactoryBot.define do
         create_list(:vye_address_change, 2, user_info:, origin: 'frontend')
       end
     end
+
+    trait :with_verified_awards do
+      after(:create) do |user_info|
+        create_list(:vye_award, 4, :with_verifications, user_info:)
+      end
+    end
   end
 end

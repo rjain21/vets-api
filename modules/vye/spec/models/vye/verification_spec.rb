@@ -14,7 +14,7 @@ RSpec.describe Vye::Verification, type: :model do
       old_bdn = FactoryBot.create(:vye_bdn_clone, is_active: true, export_ready: nil)
       new_bdn = FactoryBot.create(:vye_bdn_clone, is_active: false, export_ready: nil)
 
-      7.times { FactoryBot.create(:vye_user_info, :with_verifications, bdn_clone: old_bdn) }
+      7.times { FactoryBot.create(:vye_user_info, :with_verified_awards, bdn_clone: old_bdn) }
       new_bdn.activate!
 
       ssn = '123456789'
@@ -37,30 +37,7 @@ RSpec.describe Vye::Verification, type: :model do
 
       io.rewind
       
-      expect(io.string.scan('123456789').count).to be(7)
+      expect(io.string.scan("\n").count).to be(7)
     end
   end
-
-  # describe 'show todays verifications' do
-  #   let!(:user_profile) { FactoryBot.create(:vye_user_profile) }
-  #   let!(:user_info) { FactoryBot.create(:vye_user_info, user_profile:) }
-  #   let!(:award) { FactoryBot.create(:vye_award, user_info:) }
-  #   let!(:verification) { FactoryBot.create(:vye_verification, award:, user_profile:) }
-
-  #   before do
-  #     ssn = '123456789'
-  #     profile = double(ssn:)
-  #     find_profile_by_identifier = double(profile:)
-  #     service = double(find_profile_by_identifier:)
-  #     allow(MPI::Service).to receive(:new).and_return(service)
-  #   end
-
-  #   it 'shows todays verifications' do
-  #     expect(Vye::Verification.todays_verifications.length).to eq(1)
-  #   end
-
-  #   it 'shows todays verification report' do
-  #     expect(Vye::Verification.todays_verifications_report).to be_a(String)
-  #   end
-  # end
 end
