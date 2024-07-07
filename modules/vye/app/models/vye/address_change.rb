@@ -24,7 +24,7 @@ module Vye
     # and sent to the backend, but the backend has not yet processed it.
     # So it will not have been reflected from the backend until the next pull.
     enum(
-      origin: { frontend: 'frontend', cached: 'cached', backend: 'backend', expired: 'expired' },
+      origin: { frontend: 'frontend', cached: 'cached', backend: 'backend' },
       _suffix: true
     )
 

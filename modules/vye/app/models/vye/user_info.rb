@@ -34,7 +34,7 @@ module Vye
     def backend_address = address_changes.backend.first
     def latest_address = address_changes.latest.first
     def zip_code = backend_address&.zip_code&.slice(0, 5)
-    def queued_verifications? = queued_verifications.present?
+    def queued_verifications? = queued_verifications.exists?
 
     private
 
