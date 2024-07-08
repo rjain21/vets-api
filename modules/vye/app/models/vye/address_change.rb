@@ -61,8 +61,8 @@ module Vye
       end
     end
 
-    def self.write_report(io)
-      template = YAML.load(<<-END_OF_TEMPLATE).gsub(/\n/, '')
+    REPORT_TEMPLATE =
+      YAML.load(<<-END_OF_TEMPLATE).gsub(/\n/, '')
       |-
         %3<rpo>s,
         %1<benefit_type>s,
@@ -78,8 +78,11 @@ module Vye
         %5<zip_code>s
       END_OF_TEMPLATE
 
+    private_constant :REPORT_TEMPLATE
+
+    def self.write_report(io)
       report_rows.each do |record|
-        io.puts(format(template, record))
+        io.puts(format(REPORT_TEMPLATE, record))
       end
     end
   end

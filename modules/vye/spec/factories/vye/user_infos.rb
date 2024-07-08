@@ -40,5 +40,11 @@ FactoryBot.define do
         create_list(:vye_award, 4, :with_verifications, user_info:)
       end
     end
+
+    trait :with_direct_deposit_changes do
+      after(:create) do |user_info|
+        create_list(:vye_direct_deposit_change, 2, user_info:)
+      end
+    end
   end
 end
