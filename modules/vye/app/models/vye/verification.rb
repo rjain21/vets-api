@@ -31,7 +31,7 @@ module Vye
           transact_date: record.transact_date.strftime('%Y%m%d'),
           rpo_code: user_info.rpo_code,
           indicator: user_info.indicator,
-          source_ind: record.source_ind
+          source_ind: source_inds[record.source_ind]
         }
       end
     end
