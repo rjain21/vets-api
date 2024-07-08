@@ -85,5 +85,20 @@ module Vye
         io.puts(format(REPORT_TEMPLATE, record))
       end
     end
+
+    def self.cache_new_address_changes
+      # rubocop:disable Rails/FindEach
+      export_ready
+        .includes(user_info: { user_profile: :active_user_info })
+        .each do |record|
+          user_info = record.user_info.user_profile.active_user_info
+
+          address_change = record.dup
+          address_change.user_info = user_info
+          address_change.origin = 'cached'
+          address_change.save!
+        end
+      # rubocop:enable Rails/FindEach
+    end
   end
 end

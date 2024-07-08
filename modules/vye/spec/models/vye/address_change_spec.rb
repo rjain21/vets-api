@@ -9,6 +9,33 @@ RSpec.describe Vye::AddressChange, type: :model do
     expect(address_change).to be_valid
   end
 
+  describe 'caching for next BDN clone' do
+    before do
+      old_bdn = FactoryBot.create(:vye_bdn_clone, is_active: true, export_ready: nil)
+      new_bdn = FactoryBot.create(:vye_bdn_clone, is_active: false, export_ready: nil)
+
+      7.times do
+        user_profile = FactoryBot.create(:vye_user_profile)
+        FactoryBot.create(:vye_user_info, :with_address_changes, bdn_clone: old_bdn, user_profile:)
+        FactoryBot.create(:vye_user_info, bdn_clone: new_bdn, user_profile:)
+      end
+
+      new_bdn.activate!
+
+      ssn = '123456789'
+      profile = double(ssn:)
+      find_profile_by_identifier = double(profile:)
+      service = double(find_profile_by_identifier:)
+      allow(MPI::Service).to receive(:new).and_return(service)
+    end
+
+    it 'produces report rows' do
+      expect do
+        described_class.cache_new_address_changes
+      end.to change(described_class, :count).by(7)
+    end
+  end
+
   describe 'creates a report' do
     before do
       old_bdn = FactoryBot.create(:vye_bdn_clone, is_active: true, export_ready: nil)
