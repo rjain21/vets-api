@@ -82,10 +82,9 @@ module Vye
         path = Rails.root / "tmp/vye/uploads/#{date}/#{address_changes_filename}"
         path.dirname.mkpath
 
-        path2 = Vye::Engine.root / 'spec/fixtures/bdn_sample/WAVE.txt'
-        FileUtils.cp(path2, path)
+        path.open('w') { |io| AddressChange.write_report(io) }
 
-        # upload(path)
+        upload(path)
       end
 
       def direct_deposit_upload
@@ -93,10 +92,9 @@ module Vye
         path = Rails.root / "tmp/vye/uploads/#{date}/#{direct_deposit_filename}"
         path.dirname.mkpath
 
-        path2 = Vye::Engine.root / 'spec/fixtures/bdn_sample/WAVE.txt'
-        FileUtils.cp(path2, path)
+        path.open('w') { |io| DirectDepositChange.write_report(io) }
 
-        # upload(path)
+        upload(path)
       end
 
       def verification_upload
@@ -104,10 +102,9 @@ module Vye
         path = Rails.root / "tmp/vye/uploads/#{date}/#{verification_filename}"
         path.dirname.mkpath
 
-        path2 = Vye::Engine.root / 'spec/fixtures/bdn_sample/WAVE.txt'
-        FileUtils.cp(path2, path)
+        path.open('w') { |io| Verification.write_report(io) }
 
-        # upload(path)
+        upload(path)
       end
     end
   end
