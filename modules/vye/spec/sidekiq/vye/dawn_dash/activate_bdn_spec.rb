@@ -5,15 +5,18 @@ require Vye::Engine.root / 'spec/rails_helper'
 
 describe Vye::DawnDash::ActivateBdn, type: :worker do
   before do
-    allow(Vye::BdnClone).to receive(:injested?).and_return(true)
-    allow(Vye::BdnClone).to receive(:activate!)
+    Sidekiq::Worker.clear_all
   end
 
   it 'enqueues child jobs' do
+    expect(Vye::BdnClone).to receive(:injested?).and_return(true)
+    expect(Vye::BdnClone).to receive(:activate_injested!)
+    expect(Vye::DawnDash::EgressUpdates).to receive(:perform_async)
+
     expect do
-      described_class.new.perform
+      described_class.perform_async
     end.to change { Sidekiq::Worker.jobs.size }.by(1)
 
-    expect(Vye::DawnDash::EgressUpdates).to have_enqueued_sidekiq_job
+    Sidekiq::Worker.drain_all
   end
 end

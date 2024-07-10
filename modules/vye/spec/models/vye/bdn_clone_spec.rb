@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Vye::BdnClone, type: :model do
   describe 'create' do
-    let(:attributes) { FactoryBot.attributes_for(:vye_bdn_clone) }
+    let(:attributes) { FactoryBot.attributes_for(:vye_bdn_clone_base) }
 
     it 'creates a record' do
       expect do
@@ -14,9 +14,9 @@ RSpec.describe Vye::BdnClone, type: :model do
   end
 
   describe 'activation' do
-    let!(:vbc0) { FactoryBot.create(:vye_bdn_clone, is_active: nil) }
-    let!(:vbc1) { FactoryBot.create(:vye_bdn_clone, is_active: true) }
-    let!(:vbc2) { FactoryBot.create(:vye_bdn_clone, is_active: false) }
+    let!(:vbc0) { FactoryBot.create(:vye_bdn_clone_base, is_active: nil) }
+    let!(:vbc1) { FactoryBot.create(:vye_bdn_clone_base, is_active: true) }
+    let!(:vbc2) { FactoryBot.create(:vye_bdn_clone_base, is_active: false) }
 
     let!(:vup1) { FactoryBot.create(:vye_user_profile) }
     let!(:vup2) { FactoryBot.create(:vye_user_profile) }

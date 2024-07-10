@@ -3,9 +3,12 @@
 module Vye
   class MidnightRun
     class IngressBdn
-      include Sidekiq::Worker
+      include Sidekiq::Job
+      sidekiq_options retry: 8, unique_for: 12.hours
 
-      def perform; end
+      def perform
+        Vye::BatchTransfer::IngressFiles.bdn_load
+      end
     end
   end
 end

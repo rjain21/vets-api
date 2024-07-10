@@ -25,6 +25,14 @@ module Vye
       injested.present?
     end
 
+    def self.activate_injested!
+      injested.activate!
+    end
+
+    def self.clear_export_ready!
+      where(export_ready: true).update!(export_ready: nil)
+    end
+
     def activate!
       transaction do
         old = self.class.find_by(is_active: true)

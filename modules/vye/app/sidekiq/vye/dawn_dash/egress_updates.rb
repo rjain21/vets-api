@@ -3,9 +3,15 @@
 module Vye
   class DawnDash
     class EgressUpdates
-      include Sidekiq::Worker
+      include Sidekiq::Job
+      sidekiq_options retry: 8, unique_for: 12.hours
 
-      def perform; end
+      def perform
+        Vye::BatchTransfer::EgressFiles.address_changes_upload
+        Vye::BatchTransfer::EgressFiles.direct_deposit_upload
+        Vye::BatchTransfer::EgressFiles.verification_upload
+        BdnClone.clear_export_ready!
+      end
     end
   end
 end

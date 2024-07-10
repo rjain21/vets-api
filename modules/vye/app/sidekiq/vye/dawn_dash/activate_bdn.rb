@@ -4,8 +4,8 @@ module Vye
   class DawnDash
     class ActivateBdn
       class BndCloneNotFound < StandardError; end
-
-      include Sidekiq::Worker
+      include Sidekiq::Job
+      sidekiq_options retry: 8, unique_for: 12.hours
 
       private
 
