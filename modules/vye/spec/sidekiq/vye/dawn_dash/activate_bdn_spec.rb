@@ -6,7 +6,7 @@ require Vye::Engine.root / 'spec/rails_helper'
 describe Vye::DawnDash::ActivateBdn, type: :worker do
   before do
     allow(Vye::BdnClone).to receive(:injested?).and_return(true)
-    allow(Vye::BdnClone).to receive(:activate_injested!)
+    allow(Vye::BdnClone).to receive(:activate!)
   end
 
   it 'enqueues child jobs' do

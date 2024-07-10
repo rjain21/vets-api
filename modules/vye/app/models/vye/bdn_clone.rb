@@ -5,15 +5,25 @@ module Vye
     has_many :user_infos, dependent: :destroy
 
     # BDN Clone Stages
-    # |-------------------------------------------------|
-    # | is_active | export_ready | description          |
-    # |-----------|--------------|----------------------|
-    # | false     |   nil        | fresh import         |
-    # | true      |   nil        | currently active     |
-    # | nil       |   true       | ready to be exported |
-    # |-------------------------------------------------|
+    # |----------------------------------------------------------|
+    # | is_active | export_ready | description                   |
+    # |-----------|--------------|-------------------------------|
+    # | false     |   nil        | fresh import                  |
+    # | true      |   nil        | currently active              |
+    # | nil       |   true       | ready to be exported          |
+    # | nil       |   false      | there was a problem exporting |
+    # | nil       |   nil        | to be removed                 |
+    # |----------------------------------------------------------|
 
     validates :is_active, :export_ready, uniqueness: true, allow_nil: true
+
+    def self.injested
+      find_by(is_active: false)
+    end
+
+    def self.injested?
+      injested.present?
+    end
 
     def activate!
       transaction do
