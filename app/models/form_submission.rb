@@ -10,4 +10,8 @@ class FormSubmission < ApplicationRecord
   belongs_to :user_account, optional: true
 
   validates :form_type, presence: true
+
+  def self.find_by_benefits_intake_uuid(uuid)
+    where(benefits_intake_uuid: uuid)
+  end
 end

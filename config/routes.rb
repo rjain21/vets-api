@@ -3,6 +3,8 @@
 require 'flipper/admin_user_constraint'
 
 Rails.application.routes.draw do
+  resources :form_submissions, only: [:index]
+  
   match '/v0/*path', to: 'application#cors_preflight', via: [:options]
   match '/services/*path', to: 'application#cors_preflight', via: [:options]
 

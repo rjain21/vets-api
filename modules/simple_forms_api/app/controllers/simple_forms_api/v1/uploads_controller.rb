@@ -28,6 +28,10 @@ module SimpleFormsApi
 
       UNAUTHENTICATED_FORMS = %w[40-0247 21-10210 21P-0847 40-10007].freeze
 
+      def index
+        @forms = FormSubmission.find_by_benefits_intake_uuid(params[:benefits_intake_uuid])
+      end  
+
       def submit
         Datadog::Tracing.active_trace&.set_tag('form_id', params[:form_number])
 
