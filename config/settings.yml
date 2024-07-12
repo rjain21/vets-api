@@ -1349,6 +1349,8 @@ va_forms:
   drupal_username: ~
   drupal_password: ~
   drupal_url: https://fake-url.com
+  form_reloader:
+    enabled: false
   # A notification for when a forms url has changed
   slack:
     enabled: false
@@ -1747,6 +1749,11 @@ vye:
     r: 8
     p: 1
     length: 16
+  s3:
+    access_key_id: ~
+    secret_access_key: ~
+    region: ~
+    bucket: ~
 
 schema_contract:
   appointments_index: 'modules/vaos/app/schemas/appointments_index.json'
