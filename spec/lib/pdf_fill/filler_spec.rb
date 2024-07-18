@@ -84,7 +84,7 @@ describe PdfFill::Filler, type: :model do
         factory: :dependency_claim
       }, 
       {
-        form_id: '686C-674V2',
+        form_id: '686C-674-V2',
         factory: :dependency_claim
       }
     ].each do |options|

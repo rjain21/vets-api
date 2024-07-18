@@ -36,7 +36,7 @@ module PdfFill
       '21-8940' => PdfFill::Forms::Va218940,
       '10-10CG' => PdfFill::Forms::Va1010cg,
       '686C-674' => PdfFill::Forms::Va686c674,
-      '686C-674V2' => PdfFill::Forms::Va686c674v2,
+      '686C-674-V2' => PdfFill::Forms::Va686c674v2,
       '28-1900' => PdfFill::Forms::Va281900,
       '28-8832' => PdfFill::Forms::Va288832,
       '21-674' => PdfFill::Forms::Va21674,
