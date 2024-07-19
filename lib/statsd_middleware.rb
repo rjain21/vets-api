@@ -53,6 +53,7 @@ class StatsdMiddleware
     5490-edu-benefits
     5495-edu-benefits
     686C-674
+    686C-674-v2
     995-supplemental-claim
     appeals-testing
     ask-a-question
