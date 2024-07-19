@@ -27,3 +27,12 @@ metadata:
 spec:
   query: avg:sidekiq.enqueued{env:eks-{{ .Values.target_env }}}
 {{- end }}
+---
+apiVersion: datadoghq.com/v1alpha1
+kind: DatadogMetric
+metadata:
+  name: ready-pods-count
+  namespace: {{ $root.Release.Namespace }}
+spec:
+  query: avg:kubernetes_state.deployment.replicas_available{env:eks-{{ .Values.target_env }}}
+{{- end }}
