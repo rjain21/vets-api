@@ -874,9 +874,9 @@ features:
     actor_type: user
     enable_in_development: true
   pension_medical_evidence_clarification:
-   actor_type: user
-   description: >
-     [Front-end only] When enabled, 21P-527EZ will display additional explanations for the medical evidence requirement.
+    actor_type: user
+    description: >
+      [Front-end only] When enabled, 21P-527EZ will display additional explanations for the medical evidence requirement.
   pre_entry_covid19_screener:
     actor_type: user
     description: >
@@ -906,6 +906,9 @@ features:
     actor_type: user
     description: Hides the Profile - Direct Deposit page content during a service outage
     enable_in_development: false
+  profile_use_v3_api:
+    actor_type: user
+    description: Use V3 API endpoint when requesting User Profile information
   profile_show_credential_retirement_messaging:
     actor_type: user
     description: Show/hide MHV and DS Logon credential retirement messaging in profile
@@ -1585,4 +1588,4 @@ features:
     description: swap order of the military details in GI search filters
   merge_1995_and_5490:
     actore_type: user
-    description: Activating the combined 1995 and 5490 form 
+    description: Activating the combined 1995 and 5490 form
