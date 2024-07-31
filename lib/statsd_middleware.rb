@@ -63,6 +63,7 @@ class StatsdMiddleware
     burial-poc-v6
     burials
     burials-v2
+    burials-ez
     check-in
     claims-status
     coe
