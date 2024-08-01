@@ -63,6 +63,42 @@ RSpec.describe 'payment information', type: :request do
       end
     end
 
+    context 'when accountControl or paymentAccount are nil' do
+      it 'matches the payment information schema' do
+        VCR.use_cassette('lighthouse/direct_deposit/show/200_valid') do
+          get '/mobile/v0/payment-information/benefits', headers: sis_headers
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq({
+            'data' => {
+              'id' => user.uuid,
+              'type' => 'paymentInformation',
+              'attributes' => {
+                'accountControl' => {
+                  'canUpdateAddress' => false,
+                  'corpAvailIndicator' => false,
+                  'corpRecFoundIndicator' => false,
+                  'hasNoBdnPaymentsIndicator' => false,
+                  'identityIndicator' => false,
+                  'isCompetentIndicator' => false,
+                  'indexIndicator' => false,
+                  'noFiduciaryAssignedIndicator' => false,
+                  'notDeceasedIndicator' => false,
+                  'canUpdatePayment' => false
+                },
+                'paymentAccount' => {
+                  'accountType' => nil,
+                  'financialInstitutionName' => nil,
+                  'accountNumber' => nil,
+                  'financialInstitutionRoutingNumber' => nil
+                }
+              }
+            }
+          })
+          expect(response.body).to match_json_schema('payment_information')
+        end
+      end
+    end
+
     context 'with a 403 response' do
       it 'returns a not authorized response' do
         VCR.use_cassette('mobile/direct_deposit/show/403_forbidden') do

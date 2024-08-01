@@ -16,25 +16,25 @@ module Mobile
 
         def parse_control_information(account_control_info)
           {
-            can_update_address: account_control_info['can_update_direct_deposit'],
-            corp_avail_indicator: account_control_info['is_corp_available'],
-            corp_rec_found_indicator: account_control_info['is_corp_rec_found'],
-            has_no_bdn_payments_indicator: account_control_info['has_no_bdn_payments'],
-            identity_indicator: account_control_info['has_identity'],
-            is_competent_indicator: account_control_info['is_competent'],
-            index_indicator: account_control_info['has_index'],
-            no_fiduciary_assigned_indicator: account_control_info['has_no_fiduciary_assigned'],
-            not_deceased_indicator: account_control_info['is_not_deceased'],
-            can_update_payment: account_control_info['can_update_direct_deposit']
+            can_update_address: account_control_info&.dig('can_update_direct_deposit') || false,
+            corp_avail_indicator: account_control_info&.dig('is_corp_available') || false,
+            corp_rec_found_indicator: account_control_info&.dig('is_corp_rec_found') || false,
+            has_no_bdn_payments_indicator: account_control_info&.dig('has_no_bdn_payments') || false,
+            identity_indicator: account_control_info&.dig('has_identity') || false,
+            is_competent_indicator: account_control_info&.dig('is_competent') || false,
+            index_indicator: account_control_info&.dig('has_index') || false,
+            no_fiduciary_assigned_indicator: account_control_info&.dig('has_no_fiduciary_assigned') || false,
+            not_deceased_indicator: account_control_info&.dig('is_not_deceased') || false,
+            can_update_payment: account_control_info&.dig('can_update_direct_deposit') || false
           }
         end
 
         def parse_payment_account(payment_account_info)
           {
-            account_type: payment_account_info[:account_type],
-            financial_institution_name: payment_account_info[:name],
-            account_number: payment_account_info[:account_number],
-            financial_institution_routing_number: payment_account_info[:routing_number]
+            account_type: payment_account_info&.dig(:account_type),
+            financial_institution_name: payment_account_info&.dig(:name),
+            account_number: payment_account_info&.dig(:account_number),
+            financial_institution_routing_number: payment_account_info&.dig(:routing_number)
           }
         end
       end
