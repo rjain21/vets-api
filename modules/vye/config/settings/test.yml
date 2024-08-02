@@ -4,3 +4,7 @@ vye:
   scrypt:
     # NOTE: This is a random salt for testing purposes only.
     salt: 'testing-vye-scrypt-salt'
+    N: 8
+    r: 8
+    p: 1
+    length: 16
