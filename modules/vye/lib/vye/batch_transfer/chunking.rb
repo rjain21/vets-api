@@ -12,7 +12,7 @@ module Vye
         @block_size = block_size
         @stem, @ext = filename.match(/(.*)[.]([^.]*)/).values_at(1, 2)
         @chunks = []
-        @flags = %i[uploaded split].index_with { |_f| false }
+        @flags = %i[split].index_with { |_f| false }
       end
 
       def split
@@ -28,25 +28,12 @@ module Vye
         close_current_handle
       end
 
-      def upload
-        return chunks if uploaded?
-        raise NotReadyForUploading unless split?
-
-        chunks.each(&:upload)
-
-        uploaded!
-        chunks
-      end
-
       private
 
       attr_reader :filename, :block_size, :stem, :ext, :offset, :line_num, :chunks, :done
 
       def split! = @flags[:split] = true
       def split? = @flags[:split]
-
-      def uploaded! = @flags[:uploaded] = true
-      def uploaded? = @flags[:uploaded]
 
       def dirname
         @dirname ||= tmp_dir
@@ -58,7 +45,7 @@ module Vye
         @offset = offset.blank? ? 0 : offset + line_num
         @line_num = 1
 
-        filename = "#{stem}-#{offset}.#{ext}"
+        filename = "#{stem}_#{offset}.#{ext}"
         file = dirname / filename
         @current_file = file
 

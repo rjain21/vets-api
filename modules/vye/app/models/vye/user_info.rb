@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module Vye
-  class Vye::UserInfo < ApplicationRecord
+  class UserInfo < ApplicationRecord
+    has_kms_key
+
     include NeedsEnrollmentVerification
     belongs_to :user_profile
     belongs_to :bdn_clone
@@ -18,8 +20,6 @@ module Vye
     delegate :pending_documents, to: :user_profile
     delegate :verifications, to: :user_profile
     delegate :veteran_name, to: :backend_address
-
-    has_kms_key
 
     has_encrypted(:dob, :file_number, :stub_nm, key: :kms_key, **lockbox_options)
 
