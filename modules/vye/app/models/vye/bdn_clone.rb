@@ -3,7 +3,7 @@
 module Vye
   class BndCloneNotFound < StandardError; end
 
-  class Vye::BdnClone < ApplicationRecord
+  class BdnClone < ApplicationRecord
     has_many :user_infos, dependent: :destroy
 
     # BDN Clone Stages
