@@ -26,7 +26,7 @@ module MyHealth
           preferred_team_value == 'false'
         end
           raise Common::Exceptions::BadRequest.new(
-            detail: 'Invalid input: updated_triage_teams cannot be empty or have all preferred_team values set to false'
+            detail: 'TESTING Invalid input: updated_triage_teams cannot be empty or have all preferred_team values set to false'
           )
         end
 
