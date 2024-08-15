@@ -52,8 +52,12 @@ module Mobile
         def save!(http_method, resource_type, params)
           record = build_record(resource_type, params)
           raise Common::Exceptions::ValidationErrors, record unless record.valid?
+          if Flipper.enabled?(:va_profile_information_v3_service, @user)
+            response = contact_information_service.send('create_or_update_info', http_method.to_sym, record)
+          else
+            response = contact_information_service.send("#{http_method}_#{resource_type.downcase}", record)
+          end
 
-          response = contact_information_service.send("#{http_method}_#{resource_type.downcase}", record)
           "AsyncTransaction::VAProfile::#{resource_type.capitalize}Transaction".constantize.start(@user, response)
         end
 
@@ -122,7 +126,11 @@ module Mobile
         end
 
         def contact_information_service
-          VAProfile::ContactInformation::Service.new @user
+          if Flipper.enabled?(:va_profile_information_v3_service, @user)
+            VAProfile::ProfileInformation::Service.new @user
+          else
+            VAProfile::ContactInformation::Service.new @user
+          end
         end
 
         def raise_timeout_error(_elapsed, _try)

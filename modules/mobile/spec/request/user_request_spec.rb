@@ -256,9 +256,16 @@ RSpec.describe 'user', type: :request do
 
     context 'when the upstream va profile service returns a 502' do
       before do
-        allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
-          Common::Exceptions::BackendServiceException.new('VET360_502')
-        )
+        if Flipper.enabled?(:va_profile_information_v3_service)
+          allow_any_instance_of(VAProfile::ProfileInformation::Service).to receive(:get_person).and_raise(
+            Common::Exceptions::BackendServiceException.new('VET360_502')
+          )
+        else
+          allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
+            Common::Exceptions::BackendServiceException.new('VET360_502')
+          )
+        end
+
       end
 
       it 'returns a service unavailable error' do
@@ -273,9 +280,15 @@ RSpec.describe 'user', type: :request do
 
     context 'when the upstream va profile service returns a 404' do
       before do
-        allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
-          Common::Exceptions::RecordNotFound.new(user.uuid)
-        )
+        if Flipper.enabled?(:va_profile_information_v3_service)
+          allow_any_instance_of(VAProfile::ProfileInformation::Service).to receive(:get_person).and_raise(
+            Common::Exceptions::RecordNotFound.new(user.uuid)
+          )
+        else
+          allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
+            Common::Exceptions::RecordNotFound.new(user.uuid)
+          )
+        end
       end
 
       it 'returns a record not found error' do
@@ -304,9 +317,15 @@ RSpec.describe 'user', type: :request do
 
     context 'when the va profile service throws an argument error' do
       before do
-        allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
-          ArgumentError.new
-        )
+        if Flipper.enabled?(:va_profile_information_v3_service)
+          allow_any_instance_of(VAProfile::ProfileInformation::Service).to receive(:get_person).and_raise(
+            ArgumentError.new
+          )
+        else
+          allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
+            ArgumentError.new
+          )
+        end
       end
 
       it 'returns a bad gateway error' do
@@ -319,9 +338,15 @@ RSpec.describe 'user', type: :request do
 
     context 'when the va profile service throws an client error' do
       before do
-        allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
-          Common::Client::Errors::ClientError.new
-        )
+        if Flipper.enabled?(:va_profile_information_v3_service)
+          allow_any_instance_of(VAProfile::ProfileInformation::Service).to receive(:get_person).and_raise(
+            Common::Client::Errors::ClientError.new
+          )
+        else
+          allow_any_instance_of(VAProfile::ContactInformation::Service).to receive(:get_person).and_raise(
+            Common::Client::Errors::ClientError.new
+          )
+        end
       end
 
       it 'returns a bad gateway error' do
@@ -396,7 +421,12 @@ RSpec.describe 'user', type: :request do
       # Another team will remove this method from the user model
       context 'when user model does not have a fax number method' do
         before do
-          allow_any_instance_of(VAProfileRedis::ContactInformation).to receive(:try).with(:fax_number).and_return(nil)
+          if Flipper.enabled?(:va_profile_information_v3_redis)
+            allow_any_instance_of(VAProfileRedis::ProfileInformation).to receive(:try).with(:fax_number).and_return(nil)
+          else
+            allow_any_instance_of(VAProfileRedis::ContactInformation).to receive(:try).with(:fax_number).and_return(nil)
+          end
+
         end
 
         it 'sets fax number to nil' do
