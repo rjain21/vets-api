@@ -1,10 +1,20 @@
 # frozen_string_literal: true
 
 module Vye
-  class UserProfileConflict < RuntimeError; end
-  class UserProfileNotFound < RuntimeError; end
+  class UserProfileConflict < StandardError; end
+  class UserProfileNotFound < StandardError; end
 
   class LoadData
+    STATSD_PREFIX = name.gsub('::', '.').underscore
+    STATSD_NAMES =
+      {
+        team_sensitive_load_fail: "#{STATSD_PREFIX}.team_sensitive.load_fail",
+        tims_feed_load_fail: "#{STATSD_PREFIX}.tims_feed.load_fail",
+        bdn_feed_load_fail: "#{STATSD_PREFIX}.bdn_feed.load_fail",
+        user_profile_created: "#{STATSD_PREFIX}.user_profile.created",
+        user_profile_updated: "#{STATSD_PREFIX}.user_profile.updated"
+      }.freeze
+
     SOURCES = %i[team_sensitive tims_feed bdn_feed].freeze
 
     private_constant :SOURCES
@@ -28,12 +38,18 @@ module Vye
 
       @valid_flag = true
     rescue => e
-      @error_message =
-        format(
-          'Loading data failed: source: %<source>s, locator: %<locator>s, error message: %<message>s',
-          source:, locator:, message: e.message
-        )
-      Rails.logger.error @error_message
+      error_message = e.message
+      Rails.logger.error format(
+        <<~FAILURE_TEMPLATE_HEREDOC.gsub(/\n/, ' ').freeze,
+          Loading data failed:
+          source: %<source>s,
+          locator: %<locator>s,
+          error message: %<error_message>s
+        FAILURE_TEMPLATE_HEREDOC
+        source:, locator:, error_message:
+      )
+      StatsD.increment(STATSD_NAMES[:"#{source}_load_fail"])
+      Sentry.capture_exception(e)
       @valid_flag = false
     end
 
@@ -61,25 +77,37 @@ module Vye
     end
 
     def load_profile(attributes)
-      user_profile, conflict, attribute_name =
-        UserProfile
-        .produce(attributes)
-        .values_at(:user_profile, :conflict, :attribute_name)
+      user_profile = UserProfile.produce(attributes)
 
-      if user_profile.new_record? && source == :tims_feed
-        raise UserProfileNotFound
-      elsif conflict == true && source == :tims_feed
-        raise UserProfileConflict
-      elsif conflict == true
-        message =
-          format(
-            'Updated conflict for %<attribute_name>s from BDN feed line: %<locator>s',
-            attribute_name:, locator:
+      if source == :tims_feed
+        # we are not going to create a new record based of off the TIMS feed
+        raise UserProfileNotFound if user_profile.new_record?
+
+        # we are not updating a record conflict from TIMS
+        raise UserProfileConflict if user_profile.changed?
+      else
+        # we are going to count the number of records created
+        # this should be decreasing over time
+        if user_profile.new_record?
+          StatsD.increment(STATSD_NAMES[:user_profile_created])
+
+        # we will update a record conflict from BDN (or TeamSensitive),
+        # but need to investigate why this is happening
+        elsif user_profile.changed?
+          user_profile_id = user_profile.id
+          changed_attributes = user_profile.changed_attributes
+
+          Rails.logger.warn format(
+            'UserProfile(%<user_profile_id>u) updated %<changed_attributes>p from BDN feed line: %<locator>s',
+            user_profile_id:, changed_attributes:, locator:
           )
-        Rails.logger.info message
+
+          StatsD.increment(STATSD_NAMES[:user_profile_updated])
+        end
+
+        user_profile.save!
       end
 
-      user_profile.save!
       @user_profile = user_profile
     end
 
