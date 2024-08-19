@@ -30,22 +30,27 @@ module VAProfile
         length: { maximum: 255, minimum: 6 }
       )
 
+      # Converts an instance of the Email model to a hash suitable for use in
+      # the body of a request to VAProfile
+      # @return [Hash] Hash representation of the Email model
+      def to_hash
+        {
+          emailAddressText: @email_address,
+          emailId: @id,
+          originatingSourceSystem: SOURCE_SYSTEM,
+          sourceSystemUser: @source_system_user,
+          sourceDate: @source_date,
+          vet360Id: @vet360_id,
+          effectiveStartDate: @effective_start_date,
+          effectiveEndDate: @effective_end_date
+        }
+      end
+
       # Converts an instance of the Email model to a JSON encoded string suitable for use in
       # the body of a request to VAProfile
       # @return [String] JSON-encoded string suitable for requests to VAProfile
       def in_json
-        {
-          bio: {
-            emailAddressText: @email_address,
-            emailId: @id,
-            originatingSourceSystem: SOURCE_SYSTEM,
-            sourceSystemUser: @source_system_user,
-            sourceDate: @source_date,
-            vet360Id: @vet360_id,
-            effectiveStartDate: @effective_start_date,
-            effectiveEndDate: @effective_end_date
-          }
-        }.to_json
+        { bio: to_hash }.to_json
       end
 
       # Converts a decoded JSON response from VAProfile to an instance of the Email model

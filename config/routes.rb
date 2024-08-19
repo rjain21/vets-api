@@ -305,6 +305,11 @@ Rails.application.routes.draw do
       end
 
       # Vet360 Routes
+      resources :contact_informations, only: %i[create update destroy] do
+        collection do
+          post :create_or_update
+        end
+      end
       resource :addresses, only: %i[create update destroy] do
         collection do
           post :create_or_update

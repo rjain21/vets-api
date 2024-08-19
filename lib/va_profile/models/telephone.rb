@@ -90,36 +90,39 @@ module VAProfile
         return_val
       end
 
-      # Converts an instance of the Telphone model to a JSON encoded string suitable for
-      # use in the body of a request to VAProfile
-      #
-      # @return [String] JSON-encoded string suitable for requests to VAProfile
-      #
+      # Converts an instance of the Telephone model to a hash suitable for use in
+      # the body of a request to VAProfile
+      # @return [Hash] Hash representation of the Telephone model
       # rubocop:disable Metrics/MethodLength
-      def in_json
+      def to_hash
         {
-          bio: {
-            areaCode: @area_code,
-            countryCode: @country_code,
-            internationalIndicator: @is_international,
-            originatingSourceSystem: SOURCE_SYSTEM,
-            phoneNumber: @phone_number,
-            phoneNumberExt: @extension,
-            phoneType: @phone_type,
-            sourceDate: @source_date,
-            sourceSystemUser: @source_system_user,
-            telephoneId: @id,
-            textMessageCapableInd: @is_textable,
-            textMessagePermInd: @is_text_permitted,
-            ttyInd: @is_tty,
-            vet360Id: @vet360_id,
-            voiceMailAcceptableInd: @is_voicemailable,
-            effectiveStartDate: @effective_start_date,
-            effectiveEndDate: @effective_end_date
-          }
-        }.to_json
+          areaCode: @area_code,
+          countryCode: @country_code,
+          internationalIndicator: @is_international,
+          originatingSourceSystem: SOURCE_SYSTEM,
+          phoneNumber: @phone_number,
+          phoneNumberExt: @extension,
+          phoneType: @phone_type,
+          sourceDate: @source_date,
+          sourceSystemUser: @source_system_user,
+          telephoneId: @id,
+          textMessageCapableInd: @is_textable,
+          textMessagePermInd: @is_text_permitted,
+          ttyInd: @is_tty,
+          vet360Id: @vet360_id,
+          voiceMailAcceptableInd: @is_voicemailable,
+          effectiveStartDate: @effective_start_date,
+          effectiveEndDate: @effective_end_date
+        }
       end
       # rubocop:enable Metrics/MethodLength
+
+      # Converts an instance of the Telephone model to a JSON encoded string suitable for
+      # use in the body of a request to VAProfile
+      # @return [String] JSON-encoded string suitable for requests to VAProfile
+      def in_json
+        { bio: to_hash }.to_json
+      end
 
       # Converts a decoded JSON response from VAProfile to an instance of the Telephone model
       # @param body [Hash] the decoded response body from VAProfile
