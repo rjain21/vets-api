@@ -17,6 +17,7 @@ module VAProfile
 
       validate :valid_email_addresses, if: -> { emails.present? }
       validate :valid_phone_numbers, if: -> { telephones.present? }
+      validate :valid_addresses, if: -> { addresses.present? }
 
       # Converts an instance of the ContactInformation model to a JSON encoded string suitable for use in
       # the body of a request to VAProfile
@@ -42,6 +43,12 @@ module VAProfile
       def valid_phone_numbers
         telephones.each do |telephone|
           errors.add(:telephones, 'contains invalid phone number') unless telephone.valid?
+        end
+      end
+
+      def valid_addresses
+        addresses.each do |address|
+          errors.add(:addresses, 'contains invalid address') unless address.valid?
         end
       end
     end
