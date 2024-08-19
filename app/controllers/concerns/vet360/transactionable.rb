@@ -2,6 +2,7 @@
 
 require 'common/exceptions/record_not_found'
 require 'va_profile/contact_information/service'
+require 'va_profile/v2/contact_information/servce'
 
 module Vet360
   module Transactionable
