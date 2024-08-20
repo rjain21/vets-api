@@ -19,8 +19,8 @@ module VAProfile
       validate :valid_phone_numbers, if: -> { telephones.present? }
       validate :valid_addresses, if: -> { addresses.present? }
 
-      # Converts an instance of the ContactInformation model to a JSON encoded string suitable for use in
-      # the body of a request to VAProfile
+      # Converts an instance of the ContactInformation model to a JSON
+      # encoded string suitable for use in the body of a request to VAProfile
       # @return [String] JSON-encoded string suitable for requests to VAProfile
       def in_json
         {

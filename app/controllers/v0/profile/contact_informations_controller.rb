@@ -9,9 +9,16 @@ module V0
       before_action { authorize :vet360, :access? }
       after_action :invalidate_cache
 
+      def build_record(type, params)
+        "VAProfile::Models::#{type}"
+          .constantize
+          .new(params)
+          .set_defaults(@current_user)
+      end
+
       def create
         write_to_vet360_and_render_transaction!(
-          'contact_information',
+          'ContactInformation',
           contact_information_params
         )
         Rails.logger.warn('ContactInformationsController#create request completed', sso_logging_info)
@@ -19,7 +26,7 @@ module V0
 
       def create_or_update
         write_to_vet360_and_render_transaction!(
-          'contact_information',
+          'ContactInformation',
           contact_information_params,
           http_verb: 'update'
         )
@@ -27,7 +34,7 @@ module V0
 
       def update
         write_to_vet360_and_render_transaction!(
-          'contact_information',
+          'ContactInformation',
           contact_information_params,
           http_verb: 'put'
         )
@@ -36,7 +43,7 @@ module V0
 
       def destroy
         write_to_vet360_and_render_transaction!(
-          'contact_information',
+          'ContactInformation',
           add_effective_end_date(contact_information_params),
           http_verb: 'put'
         )
@@ -45,7 +52,7 @@ module V0
 
       private
 
-      def combined_params
+      def contact_information_params
         params.permit(
           addresses: [
             :address_line1,
