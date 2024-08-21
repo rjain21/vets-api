@@ -79,8 +79,13 @@ module VAProfile
         update_model(permission, 'text_permission', 'permission')
       end
 
-      def update_contactinformation(contact_information)
-        puts "hello"
+      def update_contact_information(contact_information)
+        # At this point we have a VAProfile::Models::ContactInformation object.
+        # it has 3 arrays:
+        # telephones
+        # emails
+        # addresses
+        post_or_put_data(:put, contact_information, '', ContactInformationTransactionResponse)
       end
 
       def update_telephone(telephone)

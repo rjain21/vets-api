@@ -32,7 +32,7 @@ module Vet360
     private
 
     def build_record(type, params)
-      "VAProfile::Models::#{type.capitalize}"
+      "VAProfile::Models::#{capitalize_type(type)}"
         .constantize
         .new(params)
         .set_defaults(@current_user)
@@ -53,11 +53,11 @@ module Vet360
     end
 
     def write_valid_record!(http_verb, type, record)
-      service.send("#{http_verb}_#{type.downcase}", record)
+      service.send("#{http_verb}_#{downcase_type(type)}", record)
     end
 
     def render_new_transaction!(type, response)
-      transaction = "AsyncTransaction::VAProfile::#{type.capitalize}Transaction".constantize.start(
+      transaction = "AsyncTransaction::VAProfile::#{capitalize_type(type)}Transaction".constantize.start(
         @current_user, response
       )
       render json: AsyncTransaction::BaseSerializer.new(transaction).serializable_hash
@@ -67,5 +67,15 @@ module Vet360
       params[:effective_end_date] = Time.now.utc.iso8601
       params
     end
+
+    private
+
+    def capitalize_type(type)
+      type.split('-').map(&:capitalize).join
+    end
+
+    def downcase_type(type)
+      type.gsub('-', '_').downcase
+
   end
 end

@@ -9,11 +9,11 @@ module VAProfile
 
       validates(:source_date, presence: true)
 
-      # Converts an instance of the Address model to a hash suitable for use in
-      # the body of a request to VAProfile
-      # @return [Hash] Hash representation of the Address model
+      # Converts a decoded JSON response from VAProfile to an instance of the Address model
+      # @param body [Hash] the decoded response body from VAProfile
+      # @return [VAProfile::Models::Address] the model built from the response body
       # rubocop:disable Metrics/MethodLength
-      def to_hash
+      def in_json
         address_attributes = {
           addressId: @id,
           addressLine1: @address_line1,
@@ -49,16 +49,11 @@ module VAProfile
 
         address_attributes[:badAddress] = false if correspondence?
 
-        address_attributes
+        {
+          bio: address_attributes
+        }.to_json
       end
       # rubocop:enable Metrics/MethodLength
-
-      # Converts an instance of the Address model to a JSON encoded string suitable for use in
-      # the body of a request to VAProfile
-      # @return [String] JSON-encoded string suitable for requests to VAProfile
-      def in_json
-        { bio: to_hash }.to_json
-      end
 
       # Converts a decoded JSON response from VAProfile to an instance of the Address model
       # @param body [Hash] the decoded response body from VAProfile

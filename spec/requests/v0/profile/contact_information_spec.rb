@@ -34,6 +34,7 @@ RSpec.describe 'contact_information' do
     end
   end
 
+  # TODO ADAM
   # describe 'POST /v0/profile/contact_informations' do
   #   let(:contact_information) { build(:contact_information, vet360_id: user.vet360_id) }
 

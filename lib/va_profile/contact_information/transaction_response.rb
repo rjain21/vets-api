@@ -36,6 +36,8 @@ module VAProfile
       end
     end
 
+    class ContactInformationTransactionResponse < TransactionResponse; end
+
     class AddressTransactionResponse < TransactionResponse
       attribute :response_body, String
 
