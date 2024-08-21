@@ -81,10 +81,11 @@ module VAProfile
 
       def update_contact_information(contact_information)
         # At this point we have a VAProfile::Models::ContactInformation object.
-        # it has 3 arrays:
+        # it has 4 arrays:
         # telephones
         # emails
         # addresses
+        # permissions
         post_or_put_data(:put, contact_information, '', ContactInformationTransactionResponse)
       end
 

@@ -51,13 +51,14 @@ describe VAProfile::Models::ContactInformation do
 
   describe 'serialization' do
     it 'serializes to JSON correctly' do
-      json = JSON.parse(contact_info.in_json)
-      expect(json['bio']['emails'].first['emailAddressText']).to eq(contact_info.emails.first.email_address)
-      expect(json['bio']['telephones'].first['phoneNumber']).to eq(contact_info.telephones.first.phone_number)
-      expect(json['bio']['addresses'].first['addressLine1']).to eq(contact_info.addresses.first.address_line1)
-      expect(json['bio']['addresses'].first['cityName']).to eq(contact_info.addresses.first.city)
-      expect(json['bio']['addresses'].first['stateCode']).to eq(contact_info.addresses.first.state_code)
-      expect(json['bio']['addresses'].first['zipCode5']).to eq(contact_info.addresses.first.zip_code)
+      json_data = JSON.parse(contact_info.in_json)
+      expect(json_data['bio']['emails'].first['emailAddressText']).to eq(contact_info.emails.first.email_address)
+      expect(json_data['bio']['telephones'].first['phoneNumber']).to eq(contact_info.telephones.first.phone_number)
+      expect(json_data['bio']['addresses'].first['addressLine1']).to eq(contact_info.addresses.first.address_line1)
+      expect(json_data['bio']['addresses'].first['cityName']).to eq(contact_info.addresses.first.city)
+      expect(json_data['bio']['addresses'].first['stateCode']).to eq(contact_info.addresses.first.state_code)
+      expect(json_data['bio']['addresses'].first['zipCode5']).to eq(contact_info.addresses.first.zip_code)
+      expect(json_data['bio']['permissions'].first['permissionValue'].to eq(contact_info.permissions.first.permission_value ))
     end
   end
 end

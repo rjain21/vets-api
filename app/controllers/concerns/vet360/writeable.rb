@@ -76,6 +76,7 @@ module Vet360
 
     def downcase_type(type)
       type.gsub('-', '_').downcase
+    end
 
   end
 end

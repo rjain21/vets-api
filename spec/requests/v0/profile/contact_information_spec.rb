@@ -24,8 +24,8 @@ RSpec.describe 'contact_information' do
   describe 'POST /v0/profile/contact_informations/create_or_update' do
     let(:contact_information) { build(:contact_information, vet360_id: user.vet360_id) }
 
-    it 'calls update_contactinformation' do
-      expect_any_instance_of(VAProfile::ContactInformation::Service).to receive(:update_contactinformation).and_call_original
+    it 'calls update_contact_information' do
+      expect_any_instance_of(VAProfile::ContactInformation::Service).to receive(:update_contact_information).and_call_original
       VCR.use_cassette('va_profile/contact_information/put_contact_information_success') do
         post('/v0/profile/contact_informations/create_or_update', params: contact_information.to_json, headers:)
       end
