@@ -12,7 +12,14 @@ RSpec.describe 'phones', type: :request do
   end
   let(:telephone) { build(:telephone, vet360_id: user.vet360_id) }
 
-  Flipper.disable(:va_v3_contact_information_service)
+  before do
+    Flipper.enable(:va_v3_contact_information_service)
+  end
+
+  after do
+    Flipper.disable(:va_v3_contact_information_service)
+  end
+
   describe 'POST /mobile/v0/user/phones' do
     context 'with a valid phone number' do
       before do

@@ -54,7 +54,11 @@ module Mobile
           raise Common::Exceptions::ValidationErrors, record unless record.valid?
 
           response = contact_information_service.send("#{http_method}_#{resource_type.downcase}", record)
-          "AsyncTransaction::VAProfile::#{resource_type.capitalize}Transaction".constantize.start(@user, response)
+          if Flipper.enabled?(:va_v3_contact_information_service, @user)
+            "AsyncTransaction::VAProfile::V2::#{resource_type.capitalize}Transaction".constantize.start(@user, response)
+          else
+            "AsyncTransaction::VAProfile::#{resource_type.capitalize}Transaction".constantize.start(@user, response)
+          end
         end
 
         def build_record(type, params)
